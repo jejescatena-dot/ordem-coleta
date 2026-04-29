@@ -57,11 +57,19 @@ body{font-family:Arial,sans-serif;background:#0e0e1a;color:#ddd;font-size:13px}
 .upz.done .upz-label{color:#22c55e}
 .upz.loading .upz-label{color:#f59e0b}
 .upz.error .upz-label{color:#e31e24}
-.upz input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upz input[type=file]{display:none!important}
 .upz-spin{display:none}
 .upz.loading .upz-spin{display:inline-block;animation:spin .8s linear infinite}
 .upz.loading .upz-icon-static{display:none}
 @keyframes spin{to{transform:rotate(360deg)}}
+.upz-btns{display:flex;gap:3px;margin-top:6px;width:100%}
+.upz-btn{flex:1;padding:4px 2px;font-size:8px;font-weight:700;border-radius:3px;cursor:pointer;border:1px solid #1e1e30;background:#0c0c1c;color:#666;text-transform:uppercase;letter-spacing:.3px;line-height:1.4;transition:all .15s}
+.upz-btn:hover{border-color:#e31e24;color:#e31e24;background:#1a0a0a}
+.upz-btn.ca-{border-color:#f59e0b44;color:#f59e0b88}
+.upz-btn.cam:hover{border-color:#f59e0b;color:#f59e0b;background:#1a150a}
+.upz.done .upz-btn{border-color:#22c55e44;color:#22c55e88}
+.upz.done .upz-btn:hover{border-color:#22c55e;color:#22c55e}
+.upz.loading .upz-btns{opacity:.4;pointer-events:none}
 
 /* API key */
 .api-bar{background:#0c0c1c;border:1px solid #1e1e30;border-radius:6px;padding:10px;margin-bottom:14px}
@@ -90,6 +98,13 @@ body{font-family:Arial,sans-serif;background:#0e0e1a;color:#ddd;font-size:13px}
 .btn-do-login{width:100%;padding:9px;background:#e31e24;border:none;border-radius:6px;color:#fff;font-weight:700;font-size:13px;cursor:pointer}
 .btn-do-login:hover{background:#c01a1f}
 .btn-do-login:disabled{background:#555;cursor:not-allowed}
+.login-close{position:absolute;top:12px;right:14px;background:transparent;border:none;color:#555;font-size:18px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:4px}
+.login-close:hover{color:#e31e24;background:#1e1e30}
+.login-box{position:relative}
+.pass-wrap{position:relative}
+.pass-wrap input{padding-right:36px!important}
+.pass-eye{position:absolute;right:9px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:#555;cursor:pointer;font-size:14px;padding:0;line-height:1}
+.pass-eye:hover{color:#e31e24}
 
 /* buttons */
 .btn-print{width:100%;padding:11px;background:#e31e24;border:none;border-radius:7px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:14px;letter-spacing:.4px;transition:background .2s}
@@ -154,12 +169,55 @@ body{font-family:Arial,sans-serif;background:#0e0e1a;color:#ddd;font-size:13px}
 .sig-doc{font-size:7pt;color:#999}
 
 @media print{
-  @page{size:A4;margin:0}
-  body{background:#fff}
-  .fp,.preview-label{display:none!important}
-  .app{display:block}
-  .pp{padding:0}
-  .doc{box-shadow:none;width:100%}
+  @page{size:A4 portrait;margin:10mm 13mm}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{background:#fff!important;margin:0;padding:0}
+  .fp,.preview-label,.mob-nav,.mob-header{display:none!important}
+  .app{display:block!important}
+  .pp{display:block!important;padding:0!important}
+  .doc-scale-wrap{width:210mm!important;height:auto!important;overflow:visible!important}
+  .doc{box-shadow:none!important;width:210mm!important;transform:none!important;margin:0!important;padding:0!important}
+}
+
+/* ══ MOBILE UX ══════════════════════════════════════════════════════════ */
+@media(max-width:768px){
+  .app{flex-direction:column}
+  .fp{width:100%;min-width:0;height:auto;position:relative;padding-bottom:68px}
+  .pp{display:none;padding:12px 10px}
+  .pp.mob-show{display:flex}
+  .fp.mob-hide{display:none}
+  .fp-inner{padding:0}
+  .mob-header{display:flex;align-items:center;justify-content:space-between;background:#0d0d1e;padding:12px 16px;position:sticky;top:0;z-index:50;border-bottom:2px solid #e31e24}
+  .mob-header .brand{font-size:16px;margin:0}
+  .mob-header .brand-sub{display:none}
+  .mob-header-right{display:flex;align-items:center;gap:8px}
+  .mob-hdr-api{font-size:9px;color:#555;cursor:pointer;background:#13131f;border:1px solid #1e1e30;border-radius:4px;padding:4px 8px}
+  .fp-scroll{padding:14px 14px 0}
+  .sec{background:#13131f;border:1px solid #1e1e30;border-radius:10px;padding:14px;margin-bottom:10px}
+  .sec-title{font-size:10px;margin-bottom:12px}
+  .fg input,.fg select,.fg textarea{padding:11px 13px;font-size:15px;border-radius:7px}
+  .fg label{font-size:11px;margin-bottom:5px}
+  .fg{margin-bottom:10px}
+  .uploads{gap:8px}
+  .upz{padding:14px 6px 10px}
+  .upz-icon{font-size:22px;margin-bottom:6px}
+  .upz-label{font-size:9px}
+  .upz-btn{padding:6px 3px;font-size:9px}
+  .btn-print{padding:14px;font-size:15px;border-radius:10px;margin-top:10px}
+  .btn-clear{padding:12px;font-size:13px;border-radius:10px}
+  .api-bar{display:none}
+  .doc-scale-wrap{width:100%;overflow:hidden;border-radius:8px}
+  .preview-label{font-size:10px;margin-bottom:10px}
+  .mob-nav{display:flex;position:fixed;bottom:0;left:0;right:0;height:60px;background:#0d0d1e;border-top:1px solid #1e1e30;z-index:200}
+  .mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:transparent;border:none;color:#555;cursor:pointer;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:0;transition:color .15s}
+  .mob-tab .mt-icon{font-size:20px;line-height:1}
+  .mob-tab.active{color:#e31e24}
+  .mob-tab.active .mt-bar{width:28px;height:2px;background:#e31e24;border-radius:2px;margin-top:2px}
+  .mob-tab .mt-bar{width:28px;height:2px;background:transparent;border-radius:2px;margin-top:2px}
+}
+@media(min-width:769px){
+  .mob-nav{display:none}
+  .mob-header{display:none}
 }
 </style>
 </head>
@@ -168,6 +226,17 @@ body{font-family:Arial,sans-serif;background:#0e0e1a;color:#ddd;font-size:13px}
 
 <!-- ══ FORM PANEL ══ -->
 <div class="fp">
+<!-- header mobile -->
+<div class="mob-header">
+  <div>
+    <div class="brand">MAX ATACADISTA</div>
+    <div style="font-size:9px;color:#555">Ordem de Coleta</div>
+  </div>
+  <div class="mob-header-right">
+    <button class="mob-hdr-api" onclick="document.querySelector('.api-bar').style.display='block';document.querySelector('.api-bar').scrollIntoView({behavior:'smooth'})">⚙ IA</button>
+    <div id="mobConnDot" style="width:8px;height:8px;border-radius:50%;background:#555"></div>
+  </div>
+</div>
 <div class="fp-inner">
   <div class="brand">MAX ATACADISTA</div>
   <div class="brand-sub">Ordem de Coleta · Preenchimento Automático</div>
@@ -206,21 +275,36 @@ body{font-family:Arial,sans-serif;background:#0e0e1a;color:#ddd;font-size:13px}
         <span class="upz-icon upz-icon-static">🧾</span>
         <span class="upz-icon upz-spin">⏳</span>
         <div class="upz-label" id="upNF-label">NF-e<br>da Loja</div>
-        <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple onchange="handleFileMulti(event,'nf')">
+        <div class="upz-btns">
+          <button class="upz-btn" type="button" onclick="document.getElementById('inpNF').click()">📁 Arquivo</button>
+          <button class="upz-btn cam" type="button" onclick="document.getElementById('inpNFcam').click()">📷 Câmera</button>
+        </div>
+        <input id="inpNF" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple onchange="handleFileMulti(event,'nf',false)">
+        <input id="inpNFcam" type="file" accept="image/*" capture="environment" multiple onchange="handleFileMulti(event,'nf',true)">
       </div>
       <!-- CNH -->
       <div class="upz" id="upCNH" ondrop="drop(event,'cnh')" ondragover="event.preventDefault()">
         <span class="upz-icon upz-icon-static">🪪</span>
         <span class="upz-icon upz-spin">⏳</span>
         <div class="upz-label">CNH<br>Motorista</div>
-        <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" onchange="handleFile(event,'cnh')">
+        <div class="upz-btns">
+          <button class="upz-btn" type="button" onclick="document.getElementById('inpCNH').click()">📁 Arquivo</button>
+          <button class="upz-btn cam" type="button" onclick="document.getElementById('inpCNHcam').click()">📷 Câmera</button>
+        </div>
+        <input id="inpCNH" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" onchange="handleFile(event,'cnh')">
+        <input id="inpCNHcam" type="file" accept="image/*" capture="environment" onchange="handleFile(event,'cnh')">
       </div>
       <!-- CRLV -->
       <div class="upz" id="upCRLV" ondrop="drop(event,'crlv')" ondragover="event.preventDefault()">
         <span class="upz-icon upz-icon-static">🚛</span>
         <span class="upz-icon upz-spin">⏳</span>
         <div class="upz-label" id="upCRLV-label">CRLV<br>Veículo/Reboque</div>
-        <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple onchange="handleFileMulti(event,'crlv')">
+        <div class="upz-btns">
+          <button class="upz-btn" type="button" onclick="document.getElementById('inpCRLV').click()">📁 Arquivo</button>
+          <button class="upz-btn cam" type="button" onclick="document.getElementById('inpCRLVcam').click()">📷 Câmera</button>
+        </div>
+        <input id="inpCRLV" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple onchange="handleFileMulti(event,'crlv',false)">
+        <input id="inpCRLVcam" type="file" accept="image/*" capture="environment" multiple onchange="handleFileMulti(event,'crlv',false)">
       </div>
     </div>
     <div id="extractMsg" style="font-size:10px;color:#555;text-align:center;min-height:16px"></div>
@@ -232,9 +316,7 @@ body{font-family:Arial,sans-serif;background:#0e0e1a;color:#ddd;font-size:13px}
     <div class="fg"><label>Razão Social <span id="b_emp" class="field-badge" style="display:none"></span></label>
       <input id="f_emp" type="text" placeholder="Nome da empresa" oninput="upd()"></div>
     <div class="fg"><label>CNPJ / CPF <span id="b_cnpj" class="field-badge" style="display:none"></span></label>
-      <input id="f_cnpj" type="text" placeholder="00.000.000/0001-00" oninput="upd()"></div>
-    <div class="fg"><label>Responsável / Signatário</label>
-      <input id="f_resp" type="text" placeholder="Quem assina" oninput="upd()"></div>
+      <input id="f_cnpj" type="text" placeholder="00.000.000/0001-00" inputmode="numeric" oninput="fmtCnpjCpf(this);upd()"></div>
   </div>
 
   <!-- LOJA -->
@@ -263,9 +345,9 @@ body{font-family:Arial,sans-serif;background:#0e0e1a;color:#ddd;font-size:13px}
       <input id="f_mot" type="text" placeholder="Nome do motorista" oninput="upd()"></div>
     <div class="fr">
       <div class="fg"><label>RG <span id="b_rg" class="field-badge" style="display:none"></span></label>
-        <input id="f_rg" type="text" placeholder="00.000.000-0" oninput="upd()"></div>
+        <input id="f_rg" type="text" placeholder="00.000.000-0" inputmode="numeric" oninput="fmtRg(this);upd()"></div>
       <div class="fg"><label>CPF <span id="b_cpf" class="field-badge" style="display:none"></span></label>
-        <input id="f_cpf" type="text" placeholder="000.000.000-00" oninput="upd()"></div>
+        <input id="f_cpf" type="text" placeholder="000.000.000-00" inputmode="numeric" oninput="fmtCpf(this);upd()"></div>
     </div>
   </div>
 
@@ -298,14 +380,15 @@ body{font-family:Arial,sans-serif;background:#0e0e1a;color:#ddd;font-size:13px}
       <textarea id="f_obs" placeholder="Opcional" oninput="upd()"></textarea></div>
   </div>
 
-  <button class="btn-print" onclick="printDoc()">🖨 Imprimir / Salvar PDF</button>
+  <button class="btn-print" id="btnGerar" onclick="gerarPDF()">📄 Gerar PDF</button>
   <button class="btn-clear" onclick="clearAll()">✕ Limpar tudo</button>
 </div><!-- /fp-inner -->
 </div><!-- /fp -->
 
 <!-- ══ PREVIEW ══ -->
-<div class="pp">
+<div class="pp" id="ppPanel">
   <div class="preview-label">Pré-visualização — A4</div>
+  <div class="doc-scale-wrap" id="docScaleWrap">
   <div class="doc" id="doc">
     <div class="doc-hd">
       <div class="logo-w">
@@ -402,12 +485,33 @@ body{font-family:Arial,sans-serif;background:#0e0e1a;color:#ddd;font-size:13px}
       </div>
     </div>
   </div><!-- /doc -->
+  </div><!-- /doc-scale-wrap -->
 </div><!-- /pp -->
 </div><!-- /app -->
+
+<!-- ══ BOTTOM NAV (mobile) ══ -->
+<nav class="mob-nav" id="mobNav">
+  <button class="mob-tab active" id="mtForm" onclick="mobSwitch('form')">
+    <span class="mt-icon">📋</span>
+    <span>Formulário</span>
+    <span class="mt-bar"></span>
+  </button>
+  <button class="mob-tab" id="mtPrev" onclick="mobSwitch('prev')">
+    <span class="mt-icon">👁</span>
+    <span>Prévia</span>
+    <span class="mt-bar"></span>
+  </button>
+  <button class="mob-tab" id="mtPrint" onclick="gerarPDF()">
+    <span class="mt-icon">📄</span>
+    <span>Gerar PDF</span>
+    <span class="mt-bar"></span>
+  </button>
+</nav>
 
 <!-- ══ LOGIN MODAL ══ -->
 <div class="login-overlay hidden" id="loginOverlay">
   <div class="login-box">
+    <button class="login-close" onclick="hideLogin()" title="Fechar">✕</button>
     <h2>MAX Atacadista</h2>
     <p>Ordem de Coleta · Acesso ao Sistema</p>
     <div class="fg">
@@ -418,9 +522,12 @@ body{font-family:Arial,sans-serif;background:#0e0e1a;color:#ddd;font-size:13px}
     </div>
     <div class="fg">
       <label style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:3px">Senha</label>
-      <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"
-        style="width:100%;background:#0c0c1c;border:1px solid #1e1e30;border-radius:5px;padding:8px 10px;color:#e0e0e0;font-size:12px;font-family:Arial,sans-serif"
-        onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="pass-wrap">
+        <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"
+          style="width:100%;background:#0c0c1c;border:1px solid #1e1e30;border-radius:5px;padding:8px 10px;color:#e0e0e0;font-size:12px;font-family:Arial,sans-serif"
+          onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="pass-eye" type="button" onclick="togglePassVis()" title="Mostrar/ocultar senha" id="passEyeBtn">👁</button>
+      </div>
     </div>
     <div class="login-err" id="loginErr"></div>
     <button class="btn-do-login" id="btnDoLogin" onclick="doLogin()">Entrar</button>
@@ -487,7 +594,7 @@ const LOJAS = {
   1141:{nm:"Max Campinas",cnpj:"76.430.438/0141-21",uf:"SP",end:"Av. Ricardo Bassoli Cezare, 1567, Jardim das Bandeiras",cep:"13.050-080"},
   1142:{nm:"Max Assis",cnpj:"76.430.438/0142-02",uf:"SP",end:"Avenida Dom Antonio, 2515, Vila Tenis Clube",cep:"19.806-173"},
   1144:{nm:"Max JK Foz",cnpj:"76.430.438/0144-74",uf:"PR",end:"Avenida Juscelino Kubitschek, 2404, Monjolo",cep:"85.864-498"},
-  1145:{nm:"Max João Bettega",cnpj:"76.430.438/0145-55",uf:"PR",end:"Rua Senador Accioly Filho, 2005, Cidade Industrial",cep:"81.350-200"},
+  1145:{nm:"Max João Bettega",cnpj:"76.430.438/0145-55",uf:"PR",end:"Rua SeNador Accioly Filho, 2005, Cidade Industrial",cep:"81.350-200"},
   1146:{nm:"Max Oficinas",cnpj:"76.430.438/0146-36",uf:"PR",end:"Avenida Visconde de Mauá, 2975, Oficinas",cep:"84.045-100"},
   1148:{nm:"Max Jaçanã",cnpj:"76.430.438/0148-06",uf:"SP",end:"Rua Manuel Gaya, 390, Vila Nova Mazzei",cep:"02.313-000"},
   1149:{nm:"Max Morumbi",cnpj:"76.430.438/0149-89",uf:"SP",end:"Avenida Giovanni Gronchi, 5800, Vila Andrade",cep:"05.724-002"},
@@ -498,7 +605,7 @@ const LOJAS = {
   1154:{nm:"Max Votuporanga",cnpj:"76.430.438/0154-46",uf:"SP",end:"Avenida Nasser Marão, 2519, Parque Industrial I",cep:"15.503-005"},
   1155:{nm:"Max Guaíra",cnpj:"76.430.438/0155-27",uf:"PR",end:"Rua Osvaldo Cruz, 1095, Parque do Lago",cep:"85.983-071"},
   1156:{nm:"Max Sarandi",cnpj:"76.430.438/0156-08",uf:"PR",end:"Rua José Munhoz, 287, Centro",cep:"87.111-610"},
-  1157:{nm:"Max Umuarama",cnpj:"76.430.438/0157-99",uf:"PR",end:"Rua Jamil Helu, 4035, Colonia Nucleo Cruzeiro",cep:"87.507-015"},
+  1157:{nm:"Max Umuarama",cnpj:"76.430.438/0157-99",uf:"PR",end:"Rua$Jamil Helu, 4035, Colonia Nucleo Cruzeiro",cep:"87.507-015"},
   1158:{nm:"Max Marília Norte",cnpj:"76.430.438/0158-70",uf:"SP",end:"Rua 17, 611, Jardim Nazareth",cep:"17.512-751"}
 };
 
@@ -537,20 +644,136 @@ function genNum(){
 }
 function pad(n){return String(n).padStart(2,'0')}
 
-function printDoc(){
-  // Monta o nome do arquivo a partir dos campos preenchidos
-  const loja = (document.getElementById('storeSearch')?.value||'').trim();
-  const emp  = (document.getElementById('f_emp')?.value||'').trim();
-  const partes = ['Max Atacadista'];
+/* ── PDF TOAST ── */
+function _showPdfToast(msg, prog){
+  let t=document.getElementById('pdfToast');
+  if(!t){
+    t=document.createElement('div');t.id='pdfToast';
+    Object.assign(t.style,{
+      position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)',
+      background:'rgba(10,10,20,.92)',color:'#fff',borderRadius:'12px',
+      padding:'14px 22px',fontSize:'13px',fontFamily:'Arial,sans-serif',
+      zIndex:'99999',display:'flex',alignItems:'center',gap:'10px',
+      boxShadow:'0 4px 24px rgba(0,0,0,.5)',backdropFilter:'blur(6px)',
+      border:'1px solid rgba(255,255,255,.08)',minWidth:'200px',transition:'opacity .3s'
+    });
+    const bar=document.createElement('div');bar.id='pdfBar';
+    Object.assign(bar.style,{
+      position:'absolute',bottom:'0',left:'0',height:'3px',
+      background:'linear-gradient(90deg,#e31e24,#ff6b6b)',
+      borderRadius:'0 0 12px 12px',width:'0%',transition:'width .4s ease'
+    });
+    t.appendChild(bar);
+    document.body.appendChild(t);
+  }
+  t.style.opacity='1';t.style.display='flex';
+  const bar=document.getElementById('pdfBar');
+  let span=t.querySelector('.pt-msg');
+  if(!span){span=document.createElement('span');span.className='pt-msg';t.appendChild(span);}
+  span.textContent=msg;
+  if(bar && prog!=null) bar.style.width=prog+'%';
+}
+function _hidePdfToast(){
+  const t=document.getElementById('pdfToast');
+  if(!t) return;
+  t.style.opacity='0';
+  setTimeout(()=>{t.style.display='none';},400);
+}
+
+function _loadScript(src){
+  return new Promise((res,rej)=>{
+    if(document.querySelector(`script[src="${src}"]`)){res();return;}
+    const s=document.createElement('script');s.src=src;
+    s.onload=res; s.onerror=rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function gerarPDF(){
+  const loja=(document.getElementById('storeSearch')?.value||'').trim();
+  const emp =(document.getElementById('f_emp')?.value||'').trim();
+  const partes=['Max Atacadista'];
   if(loja) partes.push(loja.replace(/–/g,'-').replace(/[\/\\:*?"<>|]/g,''));
   if(emp)  partes.push(emp.replace(/[\/\\:*?"<>|]/g,''));
-  const titulo = partes.join(' - ');
-  const original = document.title;
-  document.title = titulo;
-  window.print();
-  // Restaura após a impressão
-  setTimeout(()=>{ document.title = original; }, 2000);
+  const titulo=partes.join(' - ');
+  const nomeArq=titulo+'.pdf';
+
+  const btnG=document.getElementById('btnGerar');
+  const btnM=document.getElementById('mtPrint');
+  [btnG,btnM].forEach(b=>{if(b){b.disabled=true;}});
+
+  try{
+    _showPdfToast('⏳ Preparando PDF…', 10);
+    await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+    _showPdfToast('⏳ Carregando bibliotecas…', 25);
+    await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    _showPdfToast('🖼 Renderizando documento…', 45);
+
+    const docEl=document.getElementById('doc');
+    const prevTr=docEl.style.transform||'';
+    const prevTO=docEl.style.transformOrigin||'';
+    const wrap=document.getElementById('docScaleWrap');
+    const prevWH=wrap?wrap.style.height:'';
+    docEl.style.transform='none'; docEl.style.transformOrigin='top left';
+    if(wrap){wrap.style.height='auto';wrap.style.overflow='visible';}
+
+    const canvas=await html2canvas(docEl,{
+      scale:2.5,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false
+    });
+
+    docEl.style.transform=prevTr; docEl.style.transformOrigin=prevTO;
+    if(wrap){wrap.style.height=prevWH;wrap.style.overflow='hidden';}
+
+    _showPdfToast('📄 Gerando PDF…', 75);
+
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+    const pW=pdf.internal.pageSize.getWidth();
+    const pH=pdf.internal.pageSize.getHeight();
+    const imgDataH=pW/(canvas.width/canvas.height);
+
+    if(imgDataH<=pH){
+      pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',0,0,pW,imgDataH);
+    } else {
+      const sliceH=Math.floor(canvas.height*(pH/imgDataH));
+      let page=0, remaining=canvas.height;
+      while(remaining>0){
+        const srcY=page*sliceH, thisH=Math.min(sliceH,remaining);
+        const slice=document.createElement('canvas');
+        slice.width=canvas.width; slice.height=thisH;
+        slice.getContext('2d').drawImage(canvas,0,srcY,canvas.width,thisH,0,0,canvas.width,thisH);
+        const sliceDataH=(thisH/canvas.height)*imgDataH;
+        if(page>0) pdf.addPage();
+        pdf.addImage(slice.toDataURL('image/jpeg',0.92),'JPEG',0,0,pW,sliceDataH);
+        remaining-=thisH; page++;
+      }
+    }
+
+    _showPdfToast('✅ PDF pronto!', 100);
+
+    const isMobile=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    if(isMobile && navigator.canShare){
+      const blob=pdf.output('blob');
+      const file=new File([blob],nomeArq,{type:'application/pdf'});
+      const shareData={title:titulo,files:[file]};
+      if(navigator.canShare(shareData)){
+        _hidePdfToast();
+        await navigator.share(shareData);
+        return;
+      }
+    }
+    pdf.save(nomeArq);
+    setTimeout(_hidePdfToast, 1800);
+
+  } catch(err){
+    console.error('Erro ao gerar PDF:',err);
+    _showPdfToast('❌ Erro ao gerar PDF. Tente novamente.', 0);
+    setTimeout(_hidePdfToast, 3000);
+  } finally {
+    [btnG,btnM].forEach(b=>{if(b){b.disabled=false;}});
+  }
 }
+function printDoc(){ gerarPDF(); }
 function saveKey(){
   apiKey=document.getElementById('apiKey').value.trim();
   try{if(apiKey)localStorage.setItem('oc_apikey',apiKey);else localStorage.removeItem('oc_apikey');}catch(e){}
@@ -582,15 +805,60 @@ function updateConnStatus(){
     lbl.textContent='Sem backend configurado';lbl.style.color='#555';
     btnL.classList.remove('hidden');btnO.classList.add('hidden');
   }
+  syncMobDot&&syncMobDot();
 }
 function showLogin(){
   document.getElementById('loginErr').textContent='';
   document.getElementById('loginUser').value='';
-  document.getElementById('loginPass').value='';
+  const p=document.getElementById('loginPass');p.value='';p.type='password';
+  const eye=document.getElementById('passEyeBtn');if(eye)eye.textContent='👁';
   document.getElementById('loginOverlay').classList.remove('hidden');
   setTimeout(()=>document.getElementById('loginUser').focus(),100);
 }
 function hideLogin(){document.getElementById('loginOverlay').classList.add('hidden');}
+function togglePassVis(){
+  const p=document.getElementById('loginPass');
+  const eye=document.getElementById('passEyeBtn');
+  if(p.type==='password'){p.type='text';eye.textContent='🙈';}
+  else{p.type='password';eye.textContent='👁';}
+}
+// ── Formatação automática ──────────────────────────────────────────────────
+function fmtCnpjCpf(el){
+  const pos=el.selectionStart;
+  let d=el.value.replace(/\D/g,'').slice(0,14);
+  let f='';
+  if(d.length<=11){
+    if(d.length>9)f=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9);
+    else if(d.length>6)f=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6);
+    else if(d.length>3)f=d.slice(0,3)+'.'+d.slice(3);
+    else f=d;
+  }else{
+    if(d.length>12)f=d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'/'+d.slice(8,12)+'-'+d.slice(12);
+    else if(d.length>8)f=d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'/'+d.slice(8);
+    else if(d.length>5)f=d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5);
+    else if(d.length>2)f=d.slice(0,2)+'.'+d.slice(2);
+    else f=d;
+  }
+  el.value=f;
+}
+function fmtCpf(el){
+  let d=el.value.replace(/\D/g,'').slice(0,11);
+  let f='';
+  if(d.length>9)f=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9);
+  else if(d.length>6)f=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6);
+  else if(d.length>3)f=d.slice(0,3)+'.'+d.slice(3);
+  else f=d;
+  el.value=f;
+}
+function fmtRg(el){
+  let d=el.value.replace(/\D/g,'').slice(0,9);
+  let f='';
+  if(d.length>8)f=d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'-'+d.slice(8);
+  else if(d.length>5)f=d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5);
+  else if(d.length>2)f=d.slice(0,2)+'.'+d.slice(2);
+  else f=d;
+  el.value=f;
+}
 async function doLogin(){
   const url=backendUrl||document.getElementById('backendUrl').value.trim().replace(/\/$/,'');
   if(!url){document.getElementById('loginErr').textContent='Configure a URL do backend primeiro.';return;}
@@ -709,7 +977,7 @@ function badge(id,type){
 }
 
 function upd(){
-  const emp=g('f_emp'),cnpj=g('f_cnpj'),resp=g('f_resp');
+  const emp=g('f_emp'),cnpj=g('f_cnpj');
   const lnm=g('f_loja_nm'),lend=g('f_loja_end');
   const mot=g('f_mot'),rg=g('f_rg'),cpf=g('f_cpf');
   const pl1=g('f_pl1').toUpperCase(),pl2=g('f_pl2').toUpperCase(),vei=g('f_vei');
@@ -754,21 +1022,22 @@ function drop(e,type){
   if(type==='nf'||type==='crlv')files.forEach(f=>processFile(f,type));
   else if(files[0])processFile(files[0],type);
 }
-function handleFile(e,type){const f=e.target.files[0];if(f)processFile(f,type)}
-function handleFileMulti(e,type){
+function handleFile(e,type){const f=e.target.files[0];if(f)processFile(f,type,false);e.target.value='';}
+function handleFileMulti(e,type,fromCamera=false){
   const files=[...e.target.files];
-  if(type==='nf')files.forEach(f=>processFile(f,'nf'));
-  else if(files[0])processFile(files[0],type);
+  if(type==='nf')files.forEach(f=>processFile(f,'nf',fromCamera));
+  else if(files[0])processFile(files[0],type,false);
+  e.target.value='';
 }
 
-async function processFile(file,type){
+async function processFile(file,type,fromCamera=false){
   const zoneId={nf:'upNF',cnh:'upCNH',crlv:'upCRLV'}[type];
   setZone(zoneId,'loading','Lendo...');
   setMsg('Processando '+file.name+'...');
   try{
     const b64=await toBase64(file);
     const mime=file.type||'application/pdf';
-    if(!apiKey){
+    if(!apiKey && !sessionToken){
       // regex fallback
       const text=await extractText(file);
       if(type==='nf') parseNF_regex(text);
@@ -777,277 +1046,18 @@ async function processFile(file,type){
       setZone(zoneId,'done','✓ Lido (regex)');
       setMsg('⚠ Sem chave API: extração básica por texto. Configure a chave para maior precisão.');
     } else {
-      const result=await callClaude(b64,mime,type);
-      applyExtraction(result,type);
-      setZone(zoneId,'done','✓ Preenchido');
-      setMsg('✓ Campos preenchidos automaticamente por IA');
-    }
-  }catch(err){
-    setZone(zoneId,'error','Erro');
-    setMsg('Erro: '+err.message+'. Preencha manualmente.');
-    console.error(err);
-  }
-}
-
-function setZone(id,state,label){
-  const z=document.getElementById(id);
-  z.className='upz '+state;
-  z.querySelector('.upz-label').textContent=label;
-}
-function setMsg(txt){document.getElementById('extractMsg').textContent=txt}
-
-function toBase64(file){
-  return new Promise((res,rej)=>{
-    const r=new FileReader();
-    r.onload=e=>res(e.target.result.split(',')[1]);
-    r.onerror=rej;
-    r.readAsDataURL(file);
-  });
-}
-
-/* ═══════════ CLAUDE API ═══════════ */
-const PROMPTS={
-  nf:`Este é um DANFE (Documento Auxiliar NF-e) brasileiro. Extraia em JSON:
-{"emitente_cnpj":"CNPJ do EMITENTE — é a empresa que EMITIU a nota, aparece no cabeçalho superior do DANFE junto com o logo/nome da empresa emissora. Geralmente no campo 'CNPJ' do bloco do emitente ou 'INSC.EST.SUBST.TRIB./CNPJ'. Retorne somente dígitos.",
-"emitente_nome":"razão social do EMITENTE — empresa no cabeçalho superior, ANTES da seção DESTINATÁRIO/REMETENTE",
-"nf_numero":"número da NF no campo 'Nº' do DANFE (ex: 000205827)",
-"nf_data":"data de emissão no campo 'DATA DE EMISSÃO' formato DD/MM/AAAA",
-"dest_nome":"razão social do DESTINATÁRIO — seção 'DESTINATÁRIO/REMETENTE', campo 'NOME/RAZÃO SOCIAL'",
-"dest_cnpj":"CNPJ do DESTINATÁRIO — seção 'DESTINATÁRIO/REMETENTE', campo 'CNPJ/CPF'. Retorne somente dígitos. ATENÇÃO: é diferente do CNPJ do emitente.",
-"dest_end":"endereço completo do destinatário",
-"produtos":[{"descricao":"nome do produto em maiúsculas","qtd":"quantidade formatada (ex: 39.312 UN)"}]}
-Retorne APENAS o JSON válido, sem explicações.`,
-
-  cnh:`Esta é uma CNH brasileira (Carteira Nacional de Habilitação). Extraia em JSON:
-{"nome":"nome do TITULAR da CNH — use o campo '2 e 1 NOME E SOBRENOME' (primeira linha de nome no documento, acima da foto). Se houver código MRZ no rodapé (ex: OLIVEIRA<<MARCIO<SILVA), use-o como confirmação. NUNCA use nomes da seção FILIAÇÃO — filiação é pai/mãe, não o titular. Retorne em maiúsculas","cpf":"campo '4d CPF' — retorne com pontos e hífen (ex: 776.432.834-00)","rg":"campo '4c DOC. IDENTIDADE / ÓRG. EMISSOR / UF' — retorne número e órgão emissor (ex: 504678711 SSP SP)"}
-Retorne APENAS o JSON válido.`,
-
-  crlv:`Este é um CRLV brasileiro. Extraia exatamente os campos abaixo em JSON:
-{"placa":"placa do veículo","modelo":"MARCA/MODELO/VERSÃO completo","ano_fab":"ano fabricação","ano_mod":"ano modelo","cor":"cor predominante","especie_tipo":"campo ESPÉCIE/TIPO exatamente como consta no documento","combustivel":"tipo de combustível (ex: DIESEL, GASOLINA) — retorne null se o campo estiver em branco ou não preenchido","potencia":"valor do campo POTÊNCIA/CILINDRADA — retorne null se estiver em branco, zerado (0CV) ou não preenchido","motor":"número do motor — retorne null se estiver em branco, não aplicável ou contiver apenas asteriscos"}
-Retorne APENAS o JSON válido, sem texto adicional.`
-};
-
-async function callClaude(b64,mime,type){
-  const content=mime==='application/pdf'||mime==='application/octet-stream'
-    ?{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}}
-    :{type:'image',source:{type:'base64',media_type:mime,data:b64}};
-  const body={
-    model:'claude-haiku-4-5-20251001',
-    max_tokens:1000,
-    messages:[{role:'user',content:[content,{type:'text',text:PROMPTS[type]}]}]
-  };
-  let resp;
-  if(backendUrl&&sessionToken){
-    // ── MODO NUVEM: chama o backend ──
-    resp=await fetch(backendUrl+'/api/claude',{
-      method:'POST',
-      headers:{'content-type':'application/json','authorization':'Bearer '+sessionToken},
-      body:JSON.stringify(body)
-    });
-    if(resp.status===401){
-      sessionToken='';try{localStorage.removeItem('oc_token');}catch(e){}
-      updateConnStatus();showLogin();
-      throw new Error('Sessão expirada. Faça login novamente.');
-    }
-  }else if(apiKey){
-    // ── MODO LOCAL: chama Anthropic diretamente ──
-    resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'x-api-key':apiKey,'anthropic-version':'2023-06-01',
-        'content-type':'application/json',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify(body)
-    });
-  }else{
-    throw new Error('Configure o backend (modo nuvem) ou a chave API (modo local) para usar leitura automática.');
-  }
-  if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||e.error||resp.statusText)}
-  const data=await resp.json();
-  const txt=data.content[0].text;
-  const m=txt.match(/\{[\s\S]*\}/);
-  if(!m)throw new Error('JSON não encontrado na resposta');
-  return JSON.parse(m[0]);
-}
-
-function fmtQtd(q){
-  if(!q)return'';
-  // limpa notação científica/decimal excessiva: "3.360,000 UN" → "3.360 UN"
-  return q.replace(/,0+(\s)/g,'$1').replace(/\.000(\s)/g,'$1').trim();
-}
-
-function applyExtraction(data,type){
-  if(type==='nf'){
-    const cnpjEmit=(data.emitente_cnpj||'').replace(/\D/g,'');
-    const cnpjDest=(data.dest_cnpj||'').replace(/\D/g,'');
-    // Validar consistência com NFs anteriores
-    if(nfsCarregadas.length>0){
-      const primeiro=nfsCarregadas[0];
-      if(cnpjEmit && primeiro.cnpj_emit && cnpjEmit!==primeiro.cnpj_emit){
-        const fmt=c=>c.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5');
-        throw new Error(`NF rejeitada — Emitente (loja) diferente!\nNF anterior: ${fmt(primeiro.cnpj_emit)}\nEsta NF: ${fmt(cnpjEmit)}\nTodas as NFs devem ser da mesma filial.`);
-      }
-      if(cnpjDest && primeiro.cnpj_dest && cnpjDest!==primeiro.cnpj_dest){
-        const fmt=c=>c.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5');
-        throw new Error(`NF rejeitada — Destinatário (empresa) diferente!\nNF anterior: ${fmt(primeiro.cnpj_dest)}\nEsta NF: ${fmt(cnpjDest)}\nTodas as NFs devem ser do mesmo cliente.`);
-      }
-    }
-    // Registrar esta NF
-    nfsCarregadas.push({cnpj_emit:cnpjEmit,cnpj_dest:cnpjDest,numero:data.nf_numero||''});
-    // Atualizar contador no botão
-    const lbl=document.getElementById('upNF-label');
-    if(lbl)lbl.innerHTML=nfsCarregadas.length===1?'✓ 1 NF<br>carregada':`✓ ${nfsCarregadas.length} NFs<br>carregadas`;
-    // Identificar loja pelo CNPJ emitente (só na primeira NF)
-    if(nfsCarregadas.length===1){
-      const cod=CNPJ_TO_LOJA[cnpjEmit];
-      if(cod)selectLoja(cod,'ai');
-      else if(data.emitente_nome)setField('f_loja_nm',data.emitente_nome,'ai');
-      // destinatário = empresa (só primeira NF)
-      if(data.dest_nome)setField('f_emp',data.dest_nome,'ai');
-      if(cnpjDest){
-        const cn=cnpjDest.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5');
-        setField('f_cnpj',cn,'ai');
-      }
-    }
-    // Adicionar produtos desta NF (acumula, não substitui)
-    if(data.produtos?.length){
-      // Remover linha em branco se for a única
-      if(mercs.length===1&&!mercs[0].desc&&!mercs[0].qtd){mercs=[];mid=0;}
-      data.produtos.forEach(p=>addMerc(p.descricao,p.qtd,data.nf_numero||'',data.nf_data||''));
-      // Ordenar por data de emissão (DD/MM/AAAA) → da mais antiga para a mais recente
-      const parseNFDate=d=>{if(!d)return 0;const[dd,mm,aa]=(d).split('/');return new Date(aa,mm-1,dd).getTime()||0;};
-      mercs.sort((a,b)=>{
-        const da=parseNFDate(a.data),db=parseNFDate(b.data);
-        if(da!==db)return da-db;
-        return parseInt((a.nf||'0').replace(/\D/g,''))-parseInt((b.nf||'0').replace(/\D/g,''));
-      });
-      renderMercs();
-      badge('b_mercs','ai');
-    }
-  }else if(type==='cnh'){
-    if(data.nome)setField('f_mot',data.nome,'ai',()=>badge('b_mot','ai'));
-    if(data.rg)setField('f_rg',data.rg,'ai',()=>badge('b_rg','ai'));
-    if(data.cpf)setField('f_cpf',data.cpf,'ai',()=>badge('b_cpf','ai'));
-  }else if(type==='crlv'){
-    // Identifica veículo vs reboque 100% no JS, sem depender do modelo de IA para essa decisão
-    // Critério principal: combustível — reboques NUNCA têm combustível próprio
-    const comb=(data.combustivel||'').toString().trim().toLowerCase();
-    const mot=(data.motor||'').toString().trim();
-    const pot=(data.potencia||'').toString().trim().toLowerCase();
-    const et=(data.especie_tipo||'').toUpperCase();
-    const temCombustivel = comb!==''&&comb!=='null'&&comb!=='undefined';
-    const temMotorReal   = mot!==''&&mot!=='null'&&mot!=='undefined'&&!/^\*[\*\. ]*$/.test(mot);
-    const temPotencia    = pot!==''&&pot!=='null'&&pot!=='undefined'&&pot!=='0cv'&&!pot.startsWith('0');
-    const tipoReboque    = et.includes('REBOQUE')||et.includes('SEMI-REBOQUE');
-    // Reboque = sem combustível (critério principal) OU tipo descritivo de reboque OU sem motor E sem potência
-    const isReb = !temCombustivel || tipoReboque || (!temMotorReal && !temPotencia);
-    // Validar se já temos 2 CRLVs
-    if(crlvsCarregados.length>=2){
-      throw new Error('Já foram carregados 2 CRLVs (veículo + reboque). Clique em Limpar tudo para recomeçar.');
-    }
-    // Se já temos 1, validar se os tipos são diferentes
-    if(crlvsCarregados.length===1){
-      const existeReb=crlvsCarregados[0].is_reboque;
-      if(existeReb&&isReb){
-        throw new Error('Os dois documentos são REBOQUES. Envie 1 veículo trator + 1 reboque (ou apenas 1 veículo).');
-      }
-      if(!existeReb&&!isReb){
-        throw new Error('Os dois documentos são VEÍCULOS. Envie 1 veículo trator + 1 reboque (ou apenas 1 veículo).');
-      }
-    }
-    // Registra este CRLV
-    crlvsCarregados.push({is_reboque:isReb,data});
-    // Monta string do modelo
-    const fmtModelo=(d)=>`${d.modelo||''}${d.ano_fab?` (${d.ano_fab}/${d.ano_mod||d.ano_fab})`:''}${d.cor?' – '+d.cor:''}`;
-    if(crlvsCarregados.length===2){
-      // Temos os dois — popula veículo e reboque separadamente
-      const veiDt=crlvsCarregados.find(c=>!c.is_reboque).data;
-      const rebDt=crlvsCarregados.find(c=>c.is_reboque).data;
-      if(veiDt.placa)setField('f_pl1',veiDt.placa.toUpperCase(),'ai',()=>badge('b_pl1','ai'));
-      const mv=fmtModelo(veiDt);
-      if(mv.trim())setField('f_vei',mv,'ai',()=>badge('b_vei','ai'));
-      if(rebDt.placa)setField('f_pl2',rebDt.placa.toUpperCase(),'ai');
-      const lbl=document.getElementById('upCRLV-label');
-      if(lbl)lbl.innerHTML='✓ Veículo<br>+ Reboque';
-      setZone('upCRLV','done','✓ Veículo + Reboque');
-      setMsg('✓ Veículo ('+veiDt.placa+') e Reboque ('+rebDt.placa+') identificados automaticamente.');
-    }else{
-      // Apenas 1 — popula conforme tipo
-      if(!isReb){
-        if(data.placa)setField('f_pl1',data.placa.toUpperCase(),'ai',()=>badge('b_pl1','ai'));
-        const mv=fmtModelo(data);
-        if(mv.trim())setField('f_vei',mv,'ai',()=>badge('b_vei','ai'));
-        const lbl=document.getElementById('upCRLV-label');
-        if(lbl)lbl.innerHTML='✓ Veículo lido<br>Reboque opcional';
-        setMsg('✓ Veículo identificado ('+data.placa+'). Envie o CRLV do reboque se houver.');
-      }else{
-        if(data.placa)setField('f_pl2',data.placa.toUpperCase(),'ai');
-        const lbl=document.getElementById('upCRLV-label');
-        if(lbl)lbl.innerHTML='✓ Reboque lido<br>Envie veículo';
-        setMsg('✓ Reboque identificado ('+data.placa+'). Envie também o CRLV do veículo trator.');
-      }
-    }
-  }
-  upd();
-}
-
-function setField(id,val,source,cb){
-  const el=document.getElementById(id);if(!el)return;
-  el.value=val;
-  if(cb)cb();
-  upd();
-}
-
-/* ═══════════ REGEX FALLBACK (sem API) ═══════════ */
-async function extractText(file){
-  return new Promise(res=>{
-    const r=new FileReader();
-    r.onload=e=>res(e.target.result||'');
-    r.readAsText(file,'latin1');
-  });
-}
-function parseNF_regex(txt){
-  const cnpj=txt.match(/CNPJ[\s:]*(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})/);
-  if(cnpj){const num=cnpj[1].replace(/\D/g,'');const cod=CNPJ_TO_LOJA[num];if(cod)selectLoja(cod,'ai')}
-  const dest=txt.match(/DESTINAT[^:]*:?\s*\n?\s*([A-Z][A-Z\s&]+LTDA|ME|SA|S\.A\.)/i);
-  if(dest)setField('f_emp',dest[1].trim(),'ai');
-}
-function parseCNH_regex(txt){
-  const cpf=txt.match(/CPF[\s:]*(\d{3}[\.\s]?\d{3}[\.\s]?\d{3}[-\s]?\d{2})/);
-  if(cpf)setField('f_cpf',cpf[1],'ai');
-  const nome=txt.match(/NOME[^:]*:?\s*([A-Z][A-Z\s]+)\n/);
-  if(nome)setField('f_mot',nome[1].trim(),'ai');
-}
-function parseCRLV_regex(txt){
-  const placa=txt.match(/PLACA[\s:]*([A-Z]{3}\d[A-Z\d]\d{2})/i);
-  if(placa)setField('f_pl1',placa[1].toUpperCase(),'ai');
-  const mod=txt.match(/MARCA\s*\/\s*MODELO[^:]*:?\s*([A-Z0-9\/\s\.]+)\n/i);
-  if(mod)setField('f_vei',mod[1].trim(),'ai');
-}
-
-/* ═══════════ LIMPAR ═══════════ */
-function clearAll(){
-  if(!confirm('Limpar todos os dados?'))return;
-  ['f_emp','f_cnpj','f_resp','f_loja_nm','f_loja_cnpj','f_loja_end','storeSearch',
-   'f_mot','f_rg','f_cpf','f_pl1','f_pl2','f_vei','f_obs'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.value='';
-  });
-  document.getElementById('f_data').value=new Date().toISOString().split('T')[0];
-  ['b_emp','b_cnpj','b_loja','b_mot','b_rg','b_cpf','b_pl1','b_vei','b_mercs'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.style.display='none';
-  });
-  ['upNF','upCNH','upCRLV'].forEach(id=>setZone(id,'',''));
-  document.querySelectorAll('.upz').forEach(z=>{z.className='upz'});
-  document.querySelectorAll('.upz .upz-label').forEach((l,i)=>{
-    l.textContent=[['NF-e','da Loja'],['CNH','Motorista'],['CRLV','Veículo']][i].join('\n');
-  });
-  setMsg('');
-  nfsCarregadas=[];crlvsCarregados=[];
-  mercs=[];mid=0;
-  document.getElementById('d_num').textContent=genNum();
-  addMerc();
-}
-</script>
-</body>
-</html>
+      const callType=(type==='nf'&&fromCamera)?'nf_cam':type;
+      const result=await callClaude(b64,mime,callType);
+      if(type==='nf'&&fromCamera){
+        const conf=(result.confidence||'').toLowerCase();
+        if(conf==='low'){
+          setZone(zoneId,'error','✕ Foto recusada');
+          const motivo=result.reason?': '+result.reason:'';
+          setMsg('⚠ Foto recusada'+motivo+'. Envie o arquivo PDF da nota ou preencha os campos manualmente.');
+          return;
+        }
+        if(conf==='medium'){
+          const aviso=result.reason?': '+result.reason:'';
+          setMsg('⚠ Qualidade parcial'+aviso+' — confira os campos antes de gerar a ordem.');
+          applyExtraction(result,type);
+          setZon
