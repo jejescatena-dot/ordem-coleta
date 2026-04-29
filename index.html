@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Ordem de Coleta — Max Atacadista</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.hidden{display:none!important}
+body{font-family:Arial,sans-serif;background:#0e0e1a;color:#ddd;font-size:13px}
+.app{display:flex;min-height:100vh}
+
+/* ── FORM PANEL ── */
+.fp{width:410px;min-width:410px;background:#13131f;overflow-y:auto;height:100vh;position:sticky;top:0;display:flex;flex-direction:column}
+.fp-inner{padding:18px 16px;flex:1}
+.brand{font-size:14px;font-weight:900;color:#e31e24;text-transform:uppercase;letter-spacing:1px}
+.brand-sub{font-size:10px;color:#555;margin-bottom:16px}
+
+/* section */
+.sec{margin-bottom:16px}
+.sec-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#e31e24;margin-bottom:9px;padding-bottom:4px;border-bottom:1px solid #1e1e30}
+
+/* inputs */
+.fg{margin-bottom:8px}
+.fg label{display:block;font-size:10px;color:#888;margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.fg input,.fg select,.fg textarea{width:100%;background:#0c0c1c;border:1px solid #1e1e30;border-radius:5px;padding:7px 9px;color:#e0e0e0;font-size:12px;font-family:Arial,sans-serif;transition:border-color .2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:#e31e24}
+.fg select option{background:#0c0c1c}
+.fg textarea{resize:vertical;min-height:48px}
+.fr{display:flex;gap:7px}.fr .fg{flex:1}
+
+/* store search */
+.store-wrap{position:relative}
+.store-input{width:100%!important}
+.store-drop{display:none;position:absolute;top:100%;left:0;right:0;background:#0c0c1c;border:1px solid #e31e24;border-top:none;border-radius:0 0 5px 5px;max-height:200px;overflow-y:auto;z-index:100}
+.store-drop.open{display:block}
+.store-opt{padding:7px 10px;cursor:pointer;font-size:11px;border-bottom:1px solid #1a1a2a;color:#ccc}
+.store-opt:hover,.store-opt.active{background:#1e1e30;color:#e31e24}
+.store-opt .cod{font-weight:700;color:#e31e24;margin-right:6px}
+.store-opt .uf-tag{font-size:9px;color:#777;margin-left:4px}
+
+/* mercadorias */
+.merc-item{background:#0c0c1c;border:1px solid #1e1e30;border-radius:5px;padding:8px;margin-bottom:7px;position:relative}
+.merc-item .rm{position:absolute;top:7px;right:7px;background:#2a0d0d;border:none;color:#e31e24;width:17px;height:17px;border-radius:50%;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center}
+.btn-add{width:100%;padding:7px;background:transparent;border:1px dashed #1e1e30;border-radius:5px;color:#555;cursor:pointer;font-size:11px;transition:all .2s}
+.btn-add:hover{border-color:#e31e24;color:#e31e24}
+
+/* upload zones */
+.uploads{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px}
+.upz{border:1.5px dashed #1e1e30;border-radius:7px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.upz:hover{border-color:#e31e24;background:#1a0a0a}
+.upz.done{border-color:#22c55e;background:#0a1a0a}
+.upz.loading{border-color:#f59e0b;background:#1a150a}
+.upz.error{border-color:#e31e24;background:#1a0a0a}
+.upz-icon{font-size:18px;margin-bottom:4px;display:block}
+.upz-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#777;line-height:1.3}
+.upz.done .upz-label{color:#22c55e}
+.upz.loading .upz-label{color:#f59e0b}
+.upz.error .upz-label{color:#e31e24}
+.upz input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upz-spin{display:none}
+.upz.loading .upz-spin{display:inline-block;animation:spin .8s linear infinite}
+.upz.loading .upz-icon-static{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* API key */
+.api-bar{background:#0c0c1c;border:1px solid #1e1e30;border-radius:6px;padding:10px;margin-bottom:14px}
+.api-bar summary{font-size:10px;color:#888;cursor:pointer;font-weight:700;text-transform:uppercase;letter-spacing:.5px;list-style:none}
+.api-bar summary::after{content:" ▾";color:#555}
+.api-bar .api-body{margin-top:8px}
+.api-bar .api-hint{font-size:9px;color:#555;margin-top:4px;line-height:1.4}
+.api-sep{text-align:center;font-size:9px;color:#333;margin:8px 0;letter-spacing:2px}
+.api-status{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:10px}
+.api-dot{width:7px;height:7px;border-radius:50%;background:#555;flex-shrink:0}
+.api-dot.on{background:#22c55e}
+.api-dot.off{background:#e31e24}
+.btn-login{flex:1;padding:5px 8px;background:#e31e24;border:none;border-radius:4px;color:#fff;font-size:10px;font-weight:700;cursor:pointer}
+.btn-logout{flex:1;padding:5px 8px;background:transparent;border:1px solid #333;border-radius:4px;color:#666;font-size:10px;cursor:pointer}
+.btn-login:hover{background:#c01a1f}
+.btn-logout:hover{border-color:#e31e24;color:#e31e24}
+
+/* Login modal */
+.login-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(3px)}
+.login-overlay.hidden{display:none}
+.login-box{background:#13131f;border:1px solid #1e1e30;border-radius:10px;padding:28px 24px;width:300px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+.login-box h2{font-size:14px;font-weight:900;color:#e31e24;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.login-box p{font-size:10px;color:#555;margin-bottom:18px}
+.login-box .fg{margin-bottom:10px}
+.login-err{font-size:10px;color:#e31e24;min-height:14px;margin-bottom:8px;text-align:center}
+.btn-do-login{width:100%;padding:9px;background:#e31e24;border:none;border-radius:6px;color:#fff;font-weight:700;font-size:13px;cursor:pointer}
+.btn-do-login:hover{background:#c01a1f}
+.btn-do-login:disabled{background:#555;cursor:not-allowed}
+
+/* buttons */
+.btn-print{width:100%;padding:11px;background:#e31e24;border:none;border-radius:7px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:14px;letter-spacing:.4px;transition:background .2s}
+.btn-print:hover{background:#c01a1f}
+.btn-clear{width:100%;padding:9px;background:transparent;border:1px solid #1e1e30;border-radius:7px;color:#555;font-size:12px;cursor:pointer;margin-top:7px;transition:all .2s}
+.btn-clear:hover{border-color:#666;color:#bbb}
+
+/* status badge */
+.field-badge{display:inline-block;font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:5px;vertical-align:middle}
+.badge-ai{background:#22c55e22;color:#22c55e;border:1px solid #22c55e44}
+.badge-manual{background:#3b82f622;color:#3b82f6;border:1px solid #3b82f644}
+
+/* ── PREVIEW PANEL ── */
+.pp{flex:1;padding:32px;display:flex;flex-direction:column;align-items:center;overflow-y:auto;background:#0e0e1a}
+.preview-label{font-size:10px;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px}
+
+/* ── DOCUMENT A4 ── */
+.doc{width:210mm;background:#fff;box-shadow:0 4px 40px rgba(0,0,0,.4);padding:11mm 13mm;font-family:Arial,sans-serif;font-size:9pt;color:#1a1a1a;font-weight:400}
+.doc-hd{display:flex;justify-content:space-between;align-items:center;padding-bottom:7px;margin-bottom:8px;border-bottom:3px solid #e31e24}
+.logo-w{display:flex;align-items:center;gap:10px}
+.logo-img{height:34px;width:auto;display:block}
+.logo-t .t2{font-size:6pt;color:#555;text-transform:uppercase;letter-spacing:1.5px;font-weight:400}
+.logo-t .t3{font-size:6pt;color:#aaa;font-weight:400}
+.hd-r{text-align:right}
+.hd-r .dt{font-size:10pt;font-weight:900;text-transform:uppercase;color:#1a1a1a;line-height:1.2}
+.hd-r .dm{font-size:7pt;color:#777;margin-top:3px}
+.hd-r .dn{display:inline-block;background:#1a1a1a;color:#fff;font-size:6.5pt;padding:2px 7px;border-radius:3px;font-weight:700;margin-top:3px}
+
+.doc-nar{background:#f9f9f9;border-left:3px solid #e31e24;padding:7px 10px;margin-bottom:8px;font-size:8pt;line-height:1.5;border-radius:0 4px 4px 0;font-weight:400}
+.doc-nar b{color:#c01a1f;font-weight:700}
+
+.doc-g2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px}
+.doc-box{border:1px solid #e0e0e0;border-radius:4px;overflow:hidden}
+.doc-bh{background:#1a1a1a;color:#fff;font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:3px 7px}
+.doc-bb{padding:6px 7px}
+.doc-r{display:flex;gap:4px;margin-bottom:3px;align-items:flex-start}
+.doc-r:last-child{margin-bottom:0}
+.doc-l{font-size:6.5pt;font-weight:700;text-transform:uppercase;color:#aaa;min-width:50px;flex-shrink:0;padding-top:1px}
+.doc-v{font-size:8pt;font-weight:700;color:#1a1a1a;word-break:break-word}
+.doc-v.ph{color:#ccc;font-weight:400;font-style:italic}
+
+.doc-mercs{margin-bottom:8px}
+.doc-mh{background:#1a1a1a;color:#fff;font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:3px 7px;border-radius:4px 4px 0 0}
+.doc-mercs table{width:100%;border-collapse:collapse;font-size:8pt}
+.doc-mercs th{background:#f2f2f2;font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#666;padding:4px 7px;border:1px solid #ddd;text-align:left}
+.doc-mercs td{padding:4px 7px;border:1px solid #ddd;vertical-align:middle}
+.doc-mercs td.cn{width:20px;text-align:center;color:#aaa;font-size:7pt}
+.doc-mercs td.cq{width:72px;text-align:center;font-weight:700}
+.doc-mercs td.cf{width:80px;text-align:center;color:#666}
+.doc-mercs tr:nth-child(even) td{background:#fafafa}
+
+.doc-alert{background:#fff3f3;border:1.5px solid #e31e24;border-radius:4px;padding:6px 10px;font-size:7pt;font-weight:700;color:#b00;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px;line-height:1.5;text-align:center}
+.doc-obs{background:#fffbf0;border:1px solid #fdd835;border-radius:4px;padding:5px 9px;font-size:7.5pt;color:#5d4037;margin-bottom:8px;line-height:1.4;font-weight:400}
+.doc-obs b{color:#e65100;font-weight:700}
+
+.doc-sig-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:10px;padding-top:9px;border-top:1px solid #eee}
+.sig-assin{font-size:6pt;color:#1565c0;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-top:4px}
+.sig-box{text-align:center}
+.sig-line{border-top:1px solid #333;margin-bottom:4px;margin-top:90px}
+.sig-title{font-size:6.5pt;font-weight:700;text-transform:uppercase;color:#666;letter-spacing:.4px}
+.sig-name{font-size:8pt;color:#1a1a1a;font-weight:600;margin-top:2px}
+.sig-doc{font-size:7pt;color:#999}
+
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff}
+  .fp,.preview-label{display:none!important}
+  .app{display:block}
+  .pp{padding:0}
+  .doc{box-shadow:none;width:100%}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ FORM PANEL ══ -->
+<div class="fp">
+<div class="fp-inner">
+  <div class="brand">MAX ATACADISTA</div>
+  <div class="brand-sub">Ordem de Coleta · Preenchimento Automático</div>
+
+  <!-- API / BACKEND -->
+  <details class="api-bar" id="apiDetails">
+    <summary>🔑 Configuração de IA (leitura de documentos)</summary>
+    <div class="api-body">
+      <!-- MODO NUVEM -->
+      <div class="fg" style="display:none">
+        <label>🌐 URL do Backend (modo nuvem)</label>
+        <input type="text" id="backendUrl" placeholder="https://seu-app.railway.app" oninput="saveBackend()">
+      </div>
+      <div class="api-status">
+        <span class="api-dot" id="connDot"></span>
+        <span id="connLabel" style="color:#555;flex:1">Não conectado</span>
+        <button class="btn-login" id="btnLogin" onclick="showLogin()">Entrar</button>
+        <button class="btn-logout hidden" id="btnLogout" onclick="doLogout()">Sair</button>
+      </div>
+      <div class="api-sep">── OU ──</div>
+      <!-- MODO LOCAL -->
+      <div class="fg">
+        <label>🔑 API Key direta (modo local)</label>
+        <input type="password" id="apiKey" placeholder="sk-ant-..." oninput="saveKey()">
+      </div>
+      <div class="api-hint">Nuvem: configure o backend e faça login. Local: cole a chave diretamente (fica salva neste navegador).</div>
+    </div>
+  </details>
+
+  <!-- UPLOAD ZONES -->
+  <div class="sec">
+    <div class="sec-title">📎 Anexar Documentos (opcional)</div>
+    <div class="uploads">
+      <!-- NF (múltiplas) -->
+      <div class="upz" id="upNF" ondrop="drop(event,'nf')" ondragover="event.preventDefault()">
+        <span class="upz-icon upz-icon-static">🧾</span>
+        <span class="upz-icon upz-spin">⏳</span>
+        <div class="upz-label" id="upNF-label">NF-e<br>da Loja</div>
+        <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple onchange="handleFileMulti(event,'nf')">
+      </div>
+      <!-- CNH -->
+      <div class="upz" id="upCNH" ondrop="drop(event,'cnh')" ondragover="event.preventDefault()">
+        <span class="upz-icon upz-icon-static">🪪</span>
+        <span class="upz-icon upz-spin">⏳</span>
+        <div class="upz-label">CNH<br>Motorista</div>
+        <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" onchange="handleFile(event,'cnh')">
+      </div>
+      <!-- CRLV -->
+      <div class="upz" id="upCRLV" ondrop="drop(event,'crlv')" ondragover="event.preventDefault()">
+        <span class="upz-icon upz-icon-static">🚛</span>
+        <span class="upz-icon upz-spin">⏳</span>
+        <div class="upz-label" id="upCRLV-label">CRLV<br>Veículo/Reboque</div>
+        <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple onchange="handleFileMulti(event,'crlv')">
+      </div>
+    </div>
+    <div id="extractMsg" style="font-size:10px;color:#555;text-align:center;min-height:16px"></div>
+  </div>
+
+  <!-- EMPRESA -->
+  <div class="sec">
+    <div class="sec-title">🏢 Empresa Autorizante</div>
+    <div class="fg"><label>Razão Social <span id="b_emp" class="field-badge" style="display:none"></span></label>
+      <input id="f_emp" type="text" placeholder="Nome da empresa" oninput="upd()"></div>
+    <div class="fg"><label>CNPJ / CPF <span id="b_cnpj" class="field-badge" style="display:none"></span></label>
+      <input id="f_cnpj" type="text" placeholder="00.000.000/0001-00" oninput="upd()"></div>
+    <div class="fg"><label>Responsável / Signatário</label>
+      <input id="f_resp" type="text" placeholder="Quem assina" oninput="upd()"></div>
+  </div>
+
+  <!-- LOJA -->
+  <div class="sec">
+    <div class="sec-title">🏪 Loja Max Atacadista</div>
+    <div class="fg">
+      <label>Buscar loja <span id="b_loja" class="field-badge" style="display:none"></span></label>
+      <div class="store-wrap">
+        <input class="store-input" id="storeSearch" type="text" placeholder="Digite código ou nome..." autocomplete="off"
+          oninput="filterStores()" onfocus="openDrop()" onblur="setTimeout(closeDrop,200)">
+        <div class="store-drop" id="storeDrop"></div>
+      </div>
+    </div>
+    <div class="fg"><label>Nome / Nº da Loja</label>
+      <input id="f_loja_nm" type="text" placeholder="MAX ATACADISTA – Loja 0000" oninput="upd()"></div>
+    <div class="fg"><label>CNPJ da Loja</label>
+      <input id="f_loja_cnpj" type="text" placeholder="76.430.438/XXXX-XX" oninput="upd()"></div>
+    <div class="fg"><label>Endereço da Loja</label>
+      <input id="f_loja_end" type="text" placeholder="Rua, Nº, Bairro – UF, CEP" oninput="upd()"></div>
+  </div>
+
+  <!-- MOTORISTA -->
+  <div class="sec">
+    <div class="sec-title">👤 Motorista</div>
+    <div class="fg"><label>Nome Completo <span id="b_mot" class="field-badge" style="display:none"></span></label>
+      <input id="f_mot" type="text" placeholder="Nome do motorista" oninput="upd()"></div>
+    <div class="fr">
+      <div class="fg"><label>RG <span id="b_rg" class="field-badge" style="display:none"></span></label>
+        <input id="f_rg" type="text" placeholder="00.000.000-0" oninput="upd()"></div>
+      <div class="fg"><label>CPF <span id="b_cpf" class="field-badge" style="display:none"></span></label>
+        <input id="f_cpf" type="text" placeholder="000.000.000-00" oninput="upd()"></div>
+    </div>
+  </div>
+
+  <!-- VEÍCULO -->
+  <div class="sec">
+    <div class="sec-title">🚛 Veículo</div>
+    <div class="fr">
+      <div class="fg"><label>Placa Principal <span id="b_pl1" class="field-badge" style="display:none"></span></label>
+        <input id="f_pl1" type="text" placeholder="ABC1D23" oninput="upd()" style="text-transform:uppercase"></div>
+      <div class="fg"><label>Placa Reboque</label>
+        <input id="f_pl2" type="text" placeholder="opcional" oninput="upd()" style="text-transform:uppercase"></div>
+    </div>
+    <div class="fg"><label>Tipo / Modelo <span id="b_vei" class="field-badge" style="display:none"></span></label>
+      <input id="f_vei" type="text" placeholder="Ex: VW/26.320 CRM 6X2" oninput="upd()"></div>
+  </div>
+
+  <!-- MERCADORIAS -->
+  <div class="sec">
+    <div class="sec-title">📦 Mercadorias <span id="b_mercs" class="field-badge" style="display:none"></span></div>
+    <div id="mercs-list"></div>
+    <button class="btn-add" onclick="addMerc()">+ Adicionar produto</button>
+  </div>
+
+  <!-- FINALIZAÇÃO -->
+  <div class="sec">
+    <div class="sec-title">📋 Finalização</div>
+    <div class="fg"><label>Data</label>
+      <input id="f_data" type="date" oninput="upd()"></div>
+    <div class="fg"><label>Observações Adicionais</label>
+      <textarea id="f_obs" placeholder="Opcional" oninput="upd()"></textarea></div>
+  </div>
+
+  <button class="btn-print" onclick="printDoc()">🖨 Imprimir / Salvar PDF</button>
+  <button class="btn-clear" onclick="clearAll()">✕ Limpar tudo</button>
+</div><!-- /fp-inner -->
+</div><!-- /fp -->
+
+<!-- ══ PREVIEW ══ -->
+<div class="pp">
+  <div class="preview-label">Pré-visualização — A4</div>
+  <div class="doc" id="doc">
+    <div class="doc-hd">
+      <div class="logo-w">
+        <svg class="logo-img" viewBox="0 0 148 56" xmlns="http://www.w3.org/2000/svg">
+          <!-- M shape -->
+          <text x="1" y="44" font-family="'Arial Black','Arial Bold',Arial,sans-serif" font-size="50" font-weight="900" font-style="italic" fill="#e31e24" textLength="145" lengthAdjust="spacingAndGlyphs">MAX</text>
+          <!-- ATACADISTA -->
+          <text x="2" y="55" font-family="Arial,sans-serif" font-size="10.5" font-weight="700" fill="#1a1a1a" textLength="143" lengthAdjust="spacingAndGlyphs" letter-spacing="1">ATACADISTA</text>
+        </svg>
+        <div class="logo-t">
+          <div class="t2">Irmãos Muffato S.A.</div>
+          <div class="t3">CNPJ: 76.430.438/0001-71 · Depto: Logística / Expedição</div>
+        </div>
+      </div>
+      <div class="hd-r">
+        <div class="dt">Autorização de Retirada<br>de Mercadoria</div>
+        <div class="dm">Data: <span id="d_data">___/___/______</span></div>
+        <div class="dn" id="d_num">Nº —</div>
+      </div>
+    </div>
+
+    <div class="doc-nar">
+      A empresa <b id="d_emp">[EMPRESA]</b>, inscrita sob o CNPJ/CPF <b id="d_cnpj">[CNPJ]</b>,
+      autoriza o(a) Sr.(a) <b id="d_mot_n">[MOTORISTA]</b>, portador(a) do CPF <b id="d_cpf_n">[CPF]</b>,
+      a retirar mercadoria(s) no depósito <b id="d_loja_n">[LOJA]</b> (CNPJ: <b id="d_loja_cnpj_nar">[CNPJ LOJA]</b>),
+      localizado em <span id="d_end_n">[ENDEREÇO]</span>, conforme descrito abaixo.
+    </div>
+
+    <div class="doc-g2">
+      <div class="doc-box">
+        <div class="doc-bh">Motorista Autorizado</div>
+        <div class="doc-bb">
+          <div class="doc-r"><span class="doc-l">Nome</span><span class="doc-v" id="d_mn">—</span></div>
+          <div class="doc-r"><span class="doc-l">RG</span><span class="doc-v" id="d_mr">—</span></div>
+          <div class="doc-r"><span class="doc-l">CPF</span><span class="doc-v" id="d_mc">—</span></div>
+        </div>
+      </div>
+      <div class="doc-box">
+        <div class="doc-bh">Dados do Veículo</div>
+        <div class="doc-bb">
+          <div class="doc-r"><span class="doc-l">Placa</span><span class="doc-v" id="d_p1">—</span></div>
+          <div class="doc-r" id="d_p2r" style="display:none"><span class="doc-l">Reboque</span><span class="doc-v" id="d_p2v">—</span></div>
+          <div class="doc-r"><span class="doc-l">Modelo</span><span class="doc-v" id="d_vm">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-mercs">
+      <div class="doc-mh">Mercadorias Autorizadas para Retirada</div>
+      <table><thead><tr>
+        <th style="width:22px;text-align:center">#</th>
+        <th>Descrição do Produto</th>
+        <th style="width:72px;text-align:center">Qtd / Pallets</th>
+        <th style="width:72px;text-align:center">Qtd / Volume</th>
+        <th style="width:72px;text-align:center">Nº NF</th>
+        <th style="width:68px;text-align:center">Data NF</th>
+      </tr></thead>
+      <tbody id="d_mercs"></tbody></table>
+    </div>
+
+    <div class="doc-alert">
+      ATENÇÃO: NÃO CARREGAR MERCADORIAS COM DIVERGÊNCIA EM RELAÇÃO À NOTA FISCAL. QUALQUER INCONFORMIDADE DEVE SER REPORTADA IMEDIATAMENTE AO RESPONSÁVEL PELA EXPEDIÇÃO ANTES DO CARREGAMENTO.
+    </div>
+
+    <div class="doc-obs">
+      <b>OBS:</b> Retirada de mercadoria é expressamente responsabilidade do cliente
+      (transporte, seguro de carga, embarque das mercadorias, conferência das mesmas).<span id="d_obs_x"></span>
+    </div>
+
+    <div class="doc-sig-row">
+      <!-- 1. Empresa Faturada -->
+      <div class="sig-box">
+        <div class="sig-line"></div>
+        <div class="sig-title">Empresa Faturada</div>
+        <div class="sig-name" id="d_sig_emp">—</div>
+        <div class="sig-doc" id="d_sig_cnpj">—</div>
+        <div class="sig-assin">* OBRIGATÓRIO ASSINATURA ELETRÔNICA DA EMPRESA OU DO SÓCIO ADMINISTRADOR</div>
+      </div>
+      <!-- 2. Responsável pela Retirada (motorista) -->
+      <div class="sig-box">
+        <div class="sig-line"></div>
+        <div class="sig-title">Responsável pela Retirada</div>
+        <div class="sig-name" id="d_snm">—</div>
+        <div class="sig-doc" id="d_smot_cpf">—</div>
+        <div class="sig-doc" id="d_smot_rg">—</div>
+      </div>
+      <!-- 3. Responsável pela Expedição -->
+      <div class="sig-box">
+        <div class="sig-line"></div>
+        <div class="sig-title">Responsável pela Expedição</div>
+        <div class="sig-name">IRMÃOS MUFFATO S.A.</div>
+        <div class="sig-doc" id="d_sig_loja_cnpj">CNPJ: 76.430.438/0001-71</div>
+        <div class="sig-doc">Logística / Expedição / Prevenção Perdas</div>
+      </div>
+    </div>
+  </div><!-- /doc -->
+</div><!-- /pp -->
+</div><!-- /app -->
+
+<!-- ══ LOGIN MODAL ══ -->
+<div class="login-overlay hidden" id="loginOverlay">
+  <div class="login-box">
+    <h2>MAX Atacadista</h2>
+    <p>Ordem de Coleta · Acesso ao Sistema</p>
+    <div class="fg">
+      <label style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:3px">Usuário</label>
+      <input id="loginUser" type="text" placeholder="usuario" autocomplete="username"
+        style="width:100%;background:#0c0c1c;border:1px solid #1e1e30;border-radius:5px;padding:8px 10px;color:#e0e0e0;font-size:12px;font-family:Arial,sans-serif"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+    </div>
+    <div class="fg">
+      <label style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:3px">Senha</label>
+      <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"
+        style="width:100%;background:#0c0c1c;border:1px solid #1e1e30;border-radius:5px;padding:8px 10px;color:#e0e0e0;font-size:12px;font-family:Arial,sans-serif"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <button class="btn-do-login" id="btnDoLogin" onclick="doLogin()">Entrar</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════ DADOS DAS LOJAS ═══════════ */
+const LOJAS = {
+  1025:{nm:"Max Debret",cnpj:"76.430.438/0025-49",uf:"PR",end:"Rua das Missões, 2550, Vila Portes",cep:"85.853-100"},
+  1037:{nm:"Max Tiradentes",cnpj:"76.430.438/0037-82",uf:"PR",end:"Avenida Tiradentes, 2200, Rodocentro",cep:"86.071-000"},
+  1050:{nm:"Max Eldorado Prudente",cnpj:"76.430.438/0050-50",uf:"SP",end:"Avenida Salin Farah Maluf, 170, Jardim Eldorado",cep:"19.026-140"},
+  1057:{nm:"Max Floresta",cnpj:"76.430.438/0057-26",uf:"PR",end:"Rua Altemar Dutra, 1327, Brasilia",cep:"85.815-460"},
+  1060:{nm:"Max Apucarana",cnpj:"76.430.438/0060-21",uf:"PR",end:"Avenida Minas Gerais, S/N, Jardim Apucarana",cep:"85.804-000"},
+  1065:{nm:"Max Colombo",cnpj:"76.430.438/0065-36",uf:"PR",end:"Av. Colombo Esq. Rua Bolivia, 2720, Vila Morangueira",cep:"87.045-000"},
+  1066:{nm:"Max São Cristóvão",cnpj:"76.430.438/0066-17",uf:"PR",end:"Avenida Brasil, 900, São Cristovão",cep:"85.816-290"},
+  1067:{nm:"Max Paranaguá",cnpj:"76.430.438/0067-06",uf:"PR",end:"Avenida Coronel José Lobo, 939, Oceania",cep:"83.203-340"},
+  1070:{nm:"Max Linha Verde",cnpj:"76.430.438/0070-01",uf:"PR",end:"Rua Lothario Boutin, 554, Pinheirinho",cep:"81.110-522"},
+  1073:{nm:"Max Potirendaba",cnpj:"76.430.438/0073-46",uf:"SP",end:"Avenida Potirendaba, 2937, Parque Quinta das Paineiras",cep:"15.080-480"},
+  1075:{nm:"Max Bairro Alto",cnpj:"76.430.438/0075-08",uf:"PR",end:"Avenida Caviuna, 472, Bairro Alto",cep:"82.840-123"},
+  1076:{nm:"Max Campo Comprido",cnpj:"76.430.438/0076-99",uf:"PR",end:"Av. Juscelino Kubitschek de Oliveira, 2651, Cidade Industrial",cep:"81.270-200"},
+  1079:{nm:"Max São José",cnpj:"76.430.438/0079-31",uf:"PR",end:"Avenida Rua Barbosa, 6131, Jardim Aviação",cep:"83.065-260"},
+  1084:{nm:"Max Zona Norte SJRP",cnpj:"76.430.438/0084-07",uf:"SP",end:"Av. Dr. Antonio Marques dos Santos, S/N, Jardim Seyon",cep:"15.050-500"},
+  1085:{nm:"Max Arapongas",cnpj:"76.430.438/0085-80",uf:"PR",end:"Rua Tinguaçu, 763, Vila Industrial",cep:"86.706-176"},
+  1086:{nm:"Max Foz BR 277",cnpj:"76.430.438/0086-60",uf:"PR",end:"Avenida Getulio Vargas, 672, Parque Presidente",cep:"85.863-350"},
+  1089:{nm:"Max Pinhais",cnpj:"76.430.438/0089-03",uf:"PR",end:"Rua Ayrton Senna da Silva, 2806, Centro",cep:"83.323-290"},
+  1090:{nm:"Max FRG",cnpj:"76.430.438/0090-47",uf:"PR",end:"Av. Nossa Senhora Aparecida, 228, Santa Terezinha",cep:"83.829-018"},
+  1091:{nm:"Max Araucária",cnpj:"76.430.438/0091-28",uf:"PR",end:"Rua Doutor Vital Brasil, 170, Estação",cep:"83.705-174"},
+  1092:{nm:"Max Chapada Ponta Grossa",cnpj:"76.430.438/0092-09",uf:"PR",end:"Avenida Souza Naves, 2420, Chapada",cep:"84.062-000"},
+  1093:{nm:"Max Rolandia",cnpj:"76.430.438/0093-90",uf:"PR",end:"Av. Presidente Getulio Vargas, 3634, Jardim Caviuna",cep:"86.605-306"},
+  1094:{nm:"Max Tito Muffato",cnpj:"76.430.438/0094-70",uf:"PR",end:"Avenida Tito Muffato, 91, Santo Onofre",cep:"85.806-728"},
+  1097:{nm:"Max Catanduva",cnpj:"76.430.438/0097-13",uf:"SP",end:"Avenida São Domingos, 1491, Vila Guzzo",cep:"15.803-010"},
+  1102:{nm:"Max Toledo",cnpj:"76.430.438/0102-15",uf:"PR",end:"Avenida Ministro Cirne Lima, 4022, Tocantins",cep:"85.904-460"},
+  1104:{nm:"Max Bela Vista",cnpj:"76.430.438/0104-87",uf:"PR",end:"Rua Bela Vista, 99, Vila Santa Terezinha",cep:"86.802-330"},
+  1105:{nm:"Max Guanabara",cnpj:"76.430.438/0105-68",uf:"SP",end:"Av. Presidente Juscelino Kubitschek, 7764, Jardim Guanabara",cep:"19.033-390"},
+  1106:{nm:"Max Ourinhos",cnpj:"76.430.438/0106-49",uf:"SP",end:"Rua Cardoso Ribeiro, 861, Vila Boa Esperança",cep:"19.912-120"},
+  1107:{nm:"Max Fernandópolis",cnpj:"76.430.438/0107-20",uf:"SP",end:"Avenida Luiz Brambatti, 3938, Brasilandia",cep:"15.606-172"},
+  1109:{nm:"Max Beltão",cnpj:"76.430.438/0109-91",uf:"PR",end:"Rua Guapore, 301, Presidente Kennedy",cep:"85.605-315"},
+  1110:{nm:"Max Cambé",cnpj:"76.430.438/0110-25",uf:"PR",end:"Av. Gabriel Freceiro de Miranda, 1516, Jardim Santo Amaro",cep:"86.185-010"},
+  1111:{nm:"Max Colombo RMC",cnpj:"76.430.438/0111-06",uf:"PR",end:"Avenida São Gabriel, 647, Campo Pequeno",cep:"83.404-642"},
+  1112:{nm:"Max Medianeira",cnpj:"76.430.438/0112-97",uf:"PR",end:"Rua Minuano, 937, Jardim Belo Horizonte",cep:"85.884-000"},
+  1113:{nm:"Max Campo Largo",cnpj:"76.430.438/0113-78",uf:"PR",end:"Av. Padre Natal Pigato, 362, Vila Bancaria",cep:"83.601-630"},
+  1114:{nm:"Max Cianorte",cnpj:"76.430.438/0114-59",uf:"PR",end:"Avenida Leopoldina, 1005, Novo Centro",cep:"87.200-190"},
+  1116:{nm:"Max Jardim Carvalho",cnpj:"76.430.438/0116-10",uf:"PR",end:"Avenida Monteiro Lobato, 2493, Jardim Carvalho",cep:"84.015-480"},
+  1118:{nm:"Max Sorocaba Ipanema",cnpj:"76.430.438/0118-82",uf:"SP",end:"Av. Ipanema, S/N, Vila Nova Sorocaba",cep:"18.070-671"},
+  1120:{nm:"Max Marechal",cnpj:"76.430.438/0120-05",uf:"PR",end:"Avenida Irio Jacob Welp, 2297, Jardim Lider",cep:"85.960-000"},
+  1122:{nm:"Max Hauer",cnpj:"76.430.438/0122-69",uf:"PR",end:"Av. Marechal Floriano Peixoto, 5350, Hauer",cep:"81.630-000"},
+  1123:{nm:"Max Pioneiros",cnpj:"76.430.438/0123-40",uf:"PR",end:"Estrada dos Pioneiros, 2155, Jardim Morumbi",cep:"86.036-370"},
+  1126:{nm:"Max Taubaté",cnpj:"76.430.438/0126-92",uf:"SP",end:"Avenida dos Imigrantes, 111, Bairro Quiririm",cep:"12.043-490"},
+  1127:{nm:"Max Sorocaba Norte",cnpj:"76.430.438/0127-73",uf:"SP",end:"Rua João Ribeiro de Barros, 1411, Vila Odim Antao",cep:"18.090-602"},
+  1128:{nm:"Max São José dos Campos",cnpj:"76.430.438/0128-54",uf:"SP",end:"Rua Patativa, 280, Vila Tatetuba",cep:"12.220-140"},
+  1129:{nm:"Max Lapa",cnpj:"76.430.438/0129-35",uf:"SP",end:"Rua Cenno Sbrighi, 700, Bairro Água Branca",cep:"05.036-011"},
+  1130:{nm:"Max Eldorado Rio Preto",cnpj:"76.430.438/0130-79",uf:"SP",end:"Av. Alberto Olivieri Esq. Av. S. Gonçalves de Souza, 2200, Bairro Eldorado",cep:"15044-216"},
+  1131:{nm:"Max Santo André",cnpj:"76.430.438/0131-50",uf:"SP",end:"Avenida dos Estados, 7439, Santa Terezinha",cep:"09.290-520"},
+  1132:{nm:"Max Votorantin",cnpj:"76.430.438/0132-30",uf:"SP",end:"Rodovia Raposo Tavares, KM 104, Jardim Novo Mundo",cep:"18.052-250"},
+  1133:{nm:"Max Guarulhos",cnpj:"76.430.438/0133-11",uf:"SP",end:"Rua Carlos Leal Evans, 252, Jardim Santa Francisca",cep:"07.024-020"},
+  1134:{nm:"Max Piracicaba",cnpj:"76.430.438/0134-00",uf:"SP",end:"Avenida Dois Córregos, 3005, Bairro dos Córregos",cep:"13.420-835"},
+  1135:{nm:"Max Cedral",cnpj:"76.430.438/0135-83",uf:"SP",end:"Avenida Joaquim Constantino, 7204, Parque Cedral",cep:"19.067-550"},
+  1136:{nm:"Max Interlagos",cnpj:"76.430.438/0136-64",uf:"SP",end:"Rua Domingas Galleteri Blotta, 507, Vila Campo Grande",cep:"04.456-110"},
+  1137:{nm:"Max Butantã",cnpj:"76.430.438/0137-45",uf:"SP",end:"Rua Carlos Lisdegno Carlucci, 519, Jardim Peri Peri",cep:"05.536-900"},
+  1138:{nm:"Max Marília",cnpj:"76.430.438/0138-26",uf:"SP",end:"Rua Kanetario Mitishita, 60, Parque das Industrias",cep:"17.519-730"},
+  1139:{nm:"Max Mogi",cnpj:"76.430.438/0139-07",uf:"SP",end:"Rua Carlos Baratino, 494, Vila Mogilar",cep:"08.773-600"},
+  1140:{nm:"Max São Bernardo",cnpj:"76.430.438/0140-40",uf:"SP",end:"Rua Frei Damião, 355, Pauliceia",cep:"09.695-100"},
+  1141:{nm:"Max Campinas",cnpj:"76.430.438/0141-21",uf:"SP",end:"Av. Ricardo Bassoli Cezare, 1567, Jardim das Bandeiras",cep:"13.050-080"},
+  1142:{nm:"Max Assis",cnpj:"76.430.438/0142-02",uf:"SP",end:"Avenida Dom Antonio, 2515, Vila Tenis Clube",cep:"19.806-173"},
+  1144:{nm:"Max JK Foz",cnpj:"76.430.438/0144-74",uf:"PR",end:"Avenida Juscelino Kubitschek, 2404, Monjolo",cep:"85.864-498"},
+  1145:{nm:"Max João Bettega",cnpj:"76.430.438/0145-55",uf:"PR",end:"Rua Senador Accioly Filho, 2005, Cidade Industrial",cep:"81.350-200"},
+  1146:{nm:"Max Oficinas",cnpj:"76.430.438/0146-36",uf:"PR",end:"Avenida Visconde de Mauá, 2975, Oficinas",cep:"84.045-100"},
+  1148:{nm:"Max Jaçanã",cnpj:"76.430.438/0148-06",uf:"SP",end:"Rua Manuel Gaya, 390, Vila Nova Mazzei",cep:"02.313-000"},
+  1149:{nm:"Max Morumbi",cnpj:"76.430.438/0149-89",uf:"SP",end:"Avenida Giovanni Gronchi, 5800, Vila Andrade",cep:"05.724-002"},
+  1150:{nm:"Max Safira",cnpj:"76.430.438/0150-12",uf:"PR",end:"Avenida Safira, 1050, Porto Meira",cep:"85.854-000"},
+  1151:{nm:"Max Olímpia",cnpj:"76.430.438/0151-01",uf:"SP",end:"Avenida João Rimoli Neto, 1320, Jardim Leonor",cep:"15.400-000"},
+  1152:{nm:"Max Castro",cnpj:"76.430.438/0152-84",uf:"PR",end:"Avenida Vicente Fiorillo, 100, Castroville",cep:"84.172-540"},
+  1153:{nm:"Max Torres",cnpj:"76.430.438/0153-65",uf:"PR",end:"Avenida Comendador Franco, 6992, Uberaba",cep:"86.188-060"},
+  1154:{nm:"Max Votuporanga",cnpj:"76.430.438/0154-46",uf:"SP",end:"Avenida Nasser Marão, 2519, Parque Industrial I",cep:"15.503-005"},
+  1155:{nm:"Max Guaíra",cnpj:"76.430.438/0155-27",uf:"PR",end:"Rua Osvaldo Cruz, 1095, Parque do Lago",cep:"85.983-071"},
+  1156:{nm:"Max Sarandi",cnpj:"76.430.438/0156-08",uf:"PR",end:"Rua José Munhoz, 287, Centro",cep:"87.111-610"},
+  1157:{nm:"Max Umuarama",cnpj:"76.430.438/0157-99",uf:"PR",end:"Rua Jamil Helu, 4035, Colonia Nucleo Cruzeiro",cep:"87.507-015"},
+  1158:{nm:"Max Marília Norte",cnpj:"76.430.438/0158-70",uf:"SP",end:"Rua 17, 611, Jardim Nazareth",cep:"17.512-751"}
+};
+
+// CNPJ → código da loja (para lookup via NF)
+const CNPJ_TO_LOJA = {};
+Object.entries(LOJAS).forEach(([cod,l])=>{ CNPJ_TO_LOJA[l.cnpj.replace(/\D/g,'')]=parseInt(cod); });
+
+/* ═══════════ ESTADO ═══════════ */
+let mercs=[], mid=0, apiKey='';
+let nfsCarregadas=[];
+let crlvsCarregados=[]; // [{is_reboque:bool, data:{}}]
+const DEFAULT_BACKEND='https://ordem-coleta-backend-production.up.railway.app';
+let backendUrl=DEFAULT_BACKEND, sessionToken='';
+
+/* ═══════════ INIT ═══════════ */
+(function init(){
+  try{
+    const sk=localStorage.getItem('oc_apikey');
+    if(sk){apiKey=sk;document.getElementById('apiKey').value=sk;}
+    // URL do backend já embutida — campo oculto, apenas pré-preenche para referência
+    document.getElementById('backendUrl').value=DEFAULT_BACKEND;
+    const st=localStorage.getItem('oc_token');
+    if(st)sessionToken=st;
+  }catch(e){}
+  updateConnStatus();
+  document.getElementById('f_data').value = new Date().toISOString().split('T')[0];
+  document.getElementById('d_num').textContent = genNum();
+  addMerc();
+  buildStoreDrop('');
+  upd();
+})();
+
+function genNum(){
+  const d=new Date();
+  return 'OC-'+String(d.getFullYear()).slice(2)+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());
+}
+function pad(n){return String(n).padStart(2,'0')}
+
+function printDoc(){
+  // Monta o nome do arquivo a partir dos campos preenchidos
+  const loja = (document.getElementById('storeSearch')?.value||'').trim();
+  const emp  = (document.getElementById('f_emp')?.value||'').trim();
+  const partes = ['Max Atacadista'];
+  if(loja) partes.push(loja.replace(/–/g,'-').replace(/[\/\\:*?"<>|]/g,''));
+  if(emp)  partes.push(emp.replace(/[\/\\:*?"<>|]/g,''));
+  const titulo = partes.join(' - ');
+  const original = document.title;
+  document.title = titulo;
+  window.print();
+  // Restaura após a impressão
+  setTimeout(()=>{ document.title = original; }, 2000);
+}
+function saveKey(){
+  apiKey=document.getElementById('apiKey').value.trim();
+  try{if(apiKey)localStorage.setItem('oc_apikey',apiKey);else localStorage.removeItem('oc_apikey');}catch(e){}
+}
+function saveBackend(){
+  backendUrl=document.getElementById('backendUrl').value.trim().replace(/\/$/,'');
+  try{if(backendUrl)localStorage.setItem('oc_backend',backendUrl);else localStorage.removeItem('oc_backend');}catch(e){}
+  // ao trocar URL, invalida token anterior
+  sessionToken='';
+  try{localStorage.removeItem('oc_token');}catch(e){}
+  updateConnStatus();
+}
+function updateConnStatus(){
+  const dot=document.getElementById('connDot');
+  const lbl=document.getElementById('connLabel');
+  const btnL=document.getElementById('btnLogin');
+  const btnO=document.getElementById('btnLogout');
+  if(!dot)return;
+  if(backendUrl && sessionToken){
+    dot.className='api-dot on';
+    lbl.textContent='Conectado';lbl.style.color='#22c55e';
+    btnL.classList.add('hidden');btnO.classList.remove('hidden');
+  }else if(backendUrl){
+    dot.className='api-dot off';
+    lbl.textContent='Não autenticado';lbl.style.color='#e31e24';
+    btnL.classList.remove('hidden');btnO.classList.add('hidden');
+  }else{
+    dot.className='api-dot';
+    lbl.textContent='Sem backend configurado';lbl.style.color='#555';
+    btnL.classList.remove('hidden');btnO.classList.add('hidden');
+  }
+}
+function showLogin(){
+  document.getElementById('loginErr').textContent='';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginOverlay').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('loginUser').focus(),100);
+}
+function hideLogin(){document.getElementById('loginOverlay').classList.add('hidden');}
+async function doLogin(){
+  const url=backendUrl||document.getElementById('backendUrl').value.trim().replace(/\/$/,'');
+  if(!url){document.getElementById('loginErr').textContent='Configure a URL do backend primeiro.';return;}
+  const user=document.getElementById('loginUser').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  if(!user||!pass){document.getElementById('loginErr').textContent='Preencha usuário e senha.';return;}
+  const btn=document.getElementById('btnDoLogin');
+  btn.disabled=true;btn.textContent='Entrando...';
+  document.getElementById('loginErr').textContent='';
+  try{
+    const r=await fetch(url+'/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:user,password:pass})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Erro ao fazer login');
+    sessionToken=d.token;
+    backendUrl=url;
+    try{localStorage.setItem('oc_token',sessionToken);localStorage.setItem('oc_backend',backendUrl);}catch(e){}
+    hideLogin();
+    updateConnStatus();
+  }catch(err){
+    document.getElementById('loginErr').textContent=err.message;
+  }finally{
+    btn.disabled=false;btn.textContent='Entrar';
+  }
+}
+async function doLogout(){
+  if(backendUrl&&sessionToken){
+    try{await fetch(backendUrl+'/logout',{method:'POST',headers:{authorization:'Bearer '+sessionToken}});}catch(e){}
+  }
+  sessionToken='';
+  try{localStorage.removeItem('oc_token');}catch(e){}
+  updateConnStatus();
+}
+
+/* ═══════════ STORE DROPDOWN ═══════════ */
+function buildStoreDrop(q){
+  const drop=document.getElementById('storeDrop');
+  const list=Object.entries(LOJAS).sort((a,b)=>a[0]-b[0]);
+  const filtered=q?list.filter(([c,l])=>String(c).includes(q)||l.nm.toLowerCase().includes(q.toLowerCase())):list;
+  drop.innerHTML=filtered.slice(0,30).map(([c,l])=>
+    `<div class="store-opt" onmousedown="selectLoja(${c})">
+      <span class="cod">${c}</span>${l.nm}<span class="uf-tag">${l.uf}</span>
+    </div>`
+  ).join('')+(filtered.length>30?`<div class="store-opt" style="color:#555;cursor:default">+${filtered.length-30} mais...</div>`:'');
+}
+function filterStores(){buildStoreDrop(document.getElementById('storeSearch').value);openDrop()}
+function openDrop(){document.getElementById('storeDrop').classList.add('open')}
+function closeDrop(){document.getElementById('storeDrop').classList.remove('open')}
+
+function selectLoja(cod, source){
+  const l=LOJAS[cod];
+  if(!l)return;
+  document.getElementById('storeSearch').value=`${cod} – ${l.nm}`;
+  document.getElementById('f_loja_nm').value=`MAX ATACADISTA – ${l.nm} (Loja ${cod})`;
+  document.getElementById('f_loja_cnpj').value=l.cnpj;
+  document.getElementById('f_loja_end').value=`${l.end} – ${l.uf}, CEP ${l.cep}`;
+  if(source==='ai') badge('b_loja','ai'); else badge('b_loja','manual');
+  upd();
+}
+
+/* ═══════════ MERCADORIAS ═══════════ */
+function addMerc(desc,qtd,nf,data){
+  const id=++mid;
+  mercs.push({id,desc:desc||'',pallets:'',qtd:qtd||'',nf:nf||'',data:data||''});
+  renderMercs();
+}
+function removeMerc(id){mercs=mercs.filter(m=>m.id!==id);if(!mercs.length)addMerc();else renderMercs()}
+function setMerc(id,f,v){const m=mercs.find(m=>m.id===id);if(m){m[f]=v;upd()}}
+function renderMercs(){
+  const list=document.getElementById('mercs-list');
+  list.innerHTML='';
+  mercs.forEach((m,i)=>{
+    const d=document.createElement('div');
+    d.className='merc-item';
+    d.innerHTML=`<button class="rm" onclick="removeMerc(${m.id})">✕</button>
+      <div class="fg" style="margin-bottom:6px"><label>Produto ${i+1}</label>
+        <input type="text" placeholder="Ex: CERVEJA SKOL LATA 350ML" value="${esc(m.desc)}"
+          oninput="setMerc(${m.id},'desc',this.value.toUpperCase())" style="text-transform:uppercase"></div>
+      <div class="fr">
+        <div class="fg"><label>Qtd / Pallets</label>
+          <input type="text" placeholder="Ex: 3 PALLETS" value="${esc(m.pallets)}"
+            oninput="setMerc(${m.id},'pallets',this.value.toUpperCase())"></div>
+        <div class="fg"><label>Qtd / Volume</label>
+          <input type="text" placeholder="Ex: 720 UN" value="${esc(m.qtd)}"
+            oninput="setMerc(${m.id},'qtd',this.value.toUpperCase())"></div>
+        <div class="fg"><label>Nº NF</label>
+          <input type="text" placeholder="000000000" value="${esc(m.nf)}"
+            oninput="setMerc(${m.id},'nf',this.value)"></div>
+        <div class="fg"><label>Data NF</label>
+          <input type="text" placeholder="DD/MM/AAAA" value="${esc(m.data)}"
+            oninput="setMerc(${m.id},'data',this.value)"></div>
+      </div>`;
+    list.appendChild(d);
+  });
+  upd();
+}
+function esc(s){return (s||'').replace(/"/g,'&quot;')}
+
+/* ═══════════ UPDATE DOC ═══════════ */
+function g(id){return (document.getElementById(id)?.value||'').trim()}
+function set(id,txt,ph){
+  const el=document.getElementById(id);if(!el)return;
+  el.textContent=txt||ph||'—';
+  txt?el.classList.remove('ph'):el.classList.add('ph');
+}
+function fmtDate(s){
+  if(!s)return'___/___/______';
+  const[y,m,d]=s.split('-');
+  const ms=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  return`${parseInt(d)} de ${ms[parseInt(m)-1]} de ${y}`;
+}
+function badge(id,type){
+  const el=document.getElementById(id);if(!el)return;
+  el.style.display='inline-block';
+  el.className='field-badge '+(type==='ai'?'badge-ai':'badge-manual');
+  el.textContent=type==='ai'?'IA':'manual';
+}
+
+function upd(){
+  const emp=g('f_emp'),cnpj=g('f_cnpj'),resp=g('f_resp');
+  const lnm=g('f_loja_nm'),lend=g('f_loja_end');
+  const mot=g('f_mot'),rg=g('f_rg'),cpf=g('f_cpf');
+  const pl1=g('f_pl1').toUpperCase(),pl2=g('f_pl2').toUpperCase(),vei=g('f_vei');
+  const data=g('f_data'),obs=g('f_obs');
+  set('d_emp',emp,'[EMPRESA]');set('d_cnpj',cnpj,'[CNPJ]');
+  set('d_mot_n',mot,'[MOTORISTA]');set('d_cpf_n',cpf,'[CPF]');
+  set('d_loja_n',lnm,'[LOJA]');set('d_end_n',lend,'[ENDEREÇO]');
+  set('d_mn',mot);set('d_mr',rg);set('d_mc',cpf);
+  set('d_p1',pl1);set('d_vm',vei);
+  const p2r=document.getElementById('d_p2r');
+  if(pl2){p2r.style.display='flex';set('d_p2v',pl2)}else p2r.style.display='none';
+  document.getElementById('d_data').textContent=fmtDate(data);
+  // Assinatura 1 — Empresa Faturada
+  set('d_sig_emp',emp,'—');
+  set('d_sig_cnpj',cnpj?'CNPJ: '+cnpj:'—');
+  // Assinatura 2 — Motorista
+  set('d_snm',mot,'—');
+  set('d_smot_cpf',cpf?'CPF: '+cpf:'—');
+  set('d_smot_rg',rg?'RG: '+rg:'—');
+  document.getElementById('d_obs_x').textContent=obs?' '+obs:'';
+  // CNPJ da loja na narrativa e assinatura
+  const lojaCnpj=g('f_loja_cnpj');
+  set('d_loja_cnpj_nar',lojaCnpj,'[CNPJ LOJA]');
+  const sigCnpjEl=document.getElementById('d_sig_loja_cnpj');
+  if(sigCnpjEl)sigCnpjEl.textContent=lojaCnpj?'CNPJ: '+lojaCnpj:'CNPJ: 76.430.438/0001-71';
+  const tbody=document.getElementById('d_mercs');
+  const valid=mercs.filter(m=>m.desc||m.qtd);
+  tbody.innerHTML=valid.length?valid.map((m,i)=>`<tr>
+    <td class="cn">${i+1}</td>
+    <td>${m.desc||'<span style="color:#ccc;font-style:italic">—</span>'}</td>
+    <td class="cq">${m.pallets||'—'}</td>
+    <td class="cq">${fmtQtd(m.qtd)||'—'}</td>
+    <td class="cf">${m.nf||'—'}</td>
+    <td class="cf">${m.data||'—'}</td>
+  </tr>`).join(''):`<tr><td class="cn">1</td><td><span style="color:#ccc;font-style:italic">—</span></td><td class="cq" style="color:#ccc">—</td><td class="cq" style="color:#ccc">—</td><td class="cf" style="color:#ccc">—</td><td class="cf" style="color:#ccc">—</td></tr>`;
+}
+
+/* ═══════════ FILE HANDLING ═══════════ */
+function drop(e,type){
+  e.preventDefault();
+  const files=[...e.dataTransfer.files];
+  if(type==='nf'||type==='crlv')files.forEach(f=>processFile(f,type));
+  else if(files[0])processFile(files[0],type);
+}
+function handleFile(e,type){const f=e.target.files[0];if(f)processFile(f,type)}
+function handleFileMulti(e,type){
+  const files=[...e.target.files];
+  if(type==='nf')files.forEach(f=>processFile(f,'nf'));
+  else if(files[0])processFile(files[0],type);
+}
+
+async function processFile(file,type){
+  const zoneId={nf:'upNF',cnh:'upCNH',crlv:'upCRLV'}[type];
+  setZone(zoneId,'loading','Lendo...');
+  setMsg('Processando '+file.name+'...');
+  try{
+    const b64=await toBase64(file);
+    const mime=file.type||'application/pdf';
+    if(!apiKey){
+      // regex fallback
+      const text=await extractText(file);
+      if(type==='nf') parseNF_regex(text);
+      else if(type==='cnh') parseCNH_regex(text);
+      else parseCRLV_regex(text);
+      setZone(zoneId,'done','✓ Lido (regex)');
+      setMsg('⚠ Sem chave API: extração básica por texto. Configure a chave para maior precisão.');
+    } else {
+      const result=await callClaude(b64,mime,type);
+      applyExtraction(result,type);
+      setZone(zoneId,'done','✓ Preenchido');
+      setMsg('✓ Campos preenchidos automaticamente por IA');
+    }
+  }catch(err){
+    setZone(zoneId,'error','Erro');
+    setMsg('Erro: '+err.message+'. Preencha manualmente.');
+    console.error(err);
+  }
+}
+
+function setZone(id,state,label){
+  const z=document.getElementById(id);
+  z.className='upz '+state;
+  z.querySelector('.upz-label').textContent=label;
+}
+function setMsg(txt){document.getElementById('extractMsg').textContent=txt}
+
+function toBase64(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>res(e.target.result.split(',')[1]);
+    r.onerror=rej;
+    r.readAsDataURL(file);
+  });
+}
+
+/* ═══════════ CLAUDE API ═══════════ */
+const PROMPTS={
+  nf:`Este é um DANFE (Documento Auxiliar NF-e) brasileiro. Extraia em JSON:
+{"emitente_cnpj":"CNPJ do EMITENTE — é a empresa que EMITIU a nota, aparece no cabeçalho superior do DANFE junto com o logo/nome da empresa emissora. Geralmente no campo 'CNPJ' do bloco do emitente ou 'INSC.EST.SUBST.TRIB./CNPJ'. Retorne somente dígitos.",
+"emitente_nome":"razão social do EMITENTE — empresa no cabeçalho superior, ANTES da seção DESTINATÁRIO/REMETENTE",
+"nf_numero":"número da NF no campo 'Nº' do DANFE (ex: 000205827)",
+"nf_data":"data de emissão no campo 'DATA DE EMISSÃO' formato DD/MM/AAAA",
+"dest_nome":"razão social do DESTINATÁRIO — seção 'DESTINATÁRIO/REMETENTE', campo 'NOME/RAZÃO SOCIAL'",
+"dest_cnpj":"CNPJ do DESTINATÁRIO — seção 'DESTINATÁRIO/REMETENTE', campo 'CNPJ/CPF'. Retorne somente dígitos. ATENÇÃO: é diferente do CNPJ do emitente.",
+"dest_end":"endereço completo do destinatário",
+"produtos":[{"descricao":"nome do produto em maiúsculas","qtd":"quantidade formatada (ex: 39.312 UN)"}]}
+Retorne APENAS o JSON válido, sem explicações.`,
+
+  cnh:`Esta é uma CNH brasileira (Carteira Nacional de Habilitação). Extraia em JSON:
+{"nome":"nome do TITULAR da CNH — use o campo '2 e 1 NOME E SOBRENOME' (primeira linha de nome no documento, acima da foto). Se houver código MRZ no rodapé (ex: OLIVEIRA<<MARCIO<SILVA), use-o como confirmação. NUNCA use nomes da seção FILIAÇÃO — filiação é pai/mãe, não o titular. Retorne em maiúsculas","cpf":"campo '4d CPF' — retorne com pontos e hífen (ex: 776.432.834-00)","rg":"campo '4c DOC. IDENTIDADE / ÓRG. EMISSOR / UF' — retorne número e órgão emissor (ex: 504678711 SSP SP)"}
+Retorne APENAS o JSON válido.`,
+
+  crlv:`Este é um CRLV brasileiro. Extraia exatamente os campos abaixo em JSON:
+{"placa":"placa do veículo","modelo":"MARCA/MODELO/VERSÃO completo","ano_fab":"ano fabricação","ano_mod":"ano modelo","cor":"cor predominante","especie_tipo":"campo ESPÉCIE/TIPO exatamente como consta no documento","combustivel":"tipo de combustível (ex: DIESEL, GASOLINA) — retorne null se o campo estiver em branco ou não preenchido","potencia":"valor do campo POTÊNCIA/CILINDRADA — retorne null se estiver em branco, zerado (0CV) ou não preenchido","motor":"número do motor — retorne null se estiver em branco, não aplicável ou contiver apenas asteriscos"}
+Retorne APENAS o JSON válido, sem texto adicional.`
+};
+
+async function callClaude(b64,mime,type){
+  const content=mime==='application/pdf'||mime==='application/octet-stream'
+    ?{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}}
+    :{type:'image',source:{type:'base64',media_type:mime,data:b64}};
+  const body={
+    model:'claude-haiku-4-5-20251001',
+    max_tokens:1000,
+    messages:[{role:'user',content:[content,{type:'text',text:PROMPTS[type]}]}]
+  };
+  let resp;
+  if(backendUrl&&sessionToken){
+    // ── MODO NUVEM: chama o backend ──
+    resp=await fetch(backendUrl+'/api/claude',{
+      method:'POST',
+      headers:{'content-type':'application/json','authorization':'Bearer '+sessionToken},
+      body:JSON.stringify(body)
+    });
+    if(resp.status===401){
+      sessionToken='';try{localStorage.removeItem('oc_token');}catch(e){}
+      updateConnStatus();showLogin();
+      throw new Error('Sessão expirada. Faça login novamente.');
+    }
+  }else if(apiKey){
+    // ── MODO LOCAL: chama Anthropic diretamente ──
+    resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'x-api-key':apiKey,'anthropic-version':'2023-06-01',
+        'content-type':'application/json',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify(body)
+    });
+  }else{
+    throw new Error('Configure o backend (modo nuvem) ou a chave API (modo local) para usar leitura automática.');
+  }
+  if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||e.error||resp.statusText)}
+  const data=await resp.json();
+  const txt=data.content[0].text;
+  const m=txt.match(/\{[\s\S]*\}/);
+  if(!m)throw new Error('JSON não encontrado na resposta');
+  return JSON.parse(m[0]);
+}
+
+function fmtQtd(q){
+  if(!q)return'';
+  // limpa notação científica/decimal excessiva: "3.360,000 UN" → "3.360 UN"
+  return q.replace(/,0+(\s)/g,'$1').replace(/\.000(\s)/g,'$1').trim();
+}
+
+function applyExtraction(data,type){
+  if(type==='nf'){
+    const cnpjEmit=(data.emitente_cnpj||'').replace(/\D/g,'');
+    const cnpjDest=(data.dest_cnpj||'').replace(/\D/g,'');
+    // Validar consistência com NFs anteriores
+    if(nfsCarregadas.length>0){
+      const primeiro=nfsCarregadas[0];
+      if(cnpjEmit && primeiro.cnpj_emit && cnpjEmit!==primeiro.cnpj_emit){
+        const fmt=c=>c.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5');
+        throw new Error(`NF rejeitada — Emitente (loja) diferente!\nNF anterior: ${fmt(primeiro.cnpj_emit)}\nEsta NF: ${fmt(cnpjEmit)}\nTodas as NFs devem ser da mesma filial.`);
+      }
+      if(cnpjDest && primeiro.cnpj_dest && cnpjDest!==primeiro.cnpj_dest){
+        const fmt=c=>c.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5');
+        throw new Error(`NF rejeitada — Destinatário (empresa) diferente!\nNF anterior: ${fmt(primeiro.cnpj_dest)}\nEsta NF: ${fmt(cnpjDest)}\nTodas as NFs devem ser do mesmo cliente.`);
+      }
+    }
+    // Registrar esta NF
+    nfsCarregadas.push({cnpj_emit:cnpjEmit,cnpj_dest:cnpjDest,numero:data.nf_numero||''});
+    // Atualizar contador no botão
+    const lbl=document.getElementById('upNF-label');
+    if(lbl)lbl.innerHTML=nfsCarregadas.length===1?'✓ 1 NF<br>carregada':`✓ ${nfsCarregadas.length} NFs<br>carregadas`;
+    // Identificar loja pelo CNPJ emitente (só na primeira NF)
+    if(nfsCarregadas.length===1){
+      const cod=CNPJ_TO_LOJA[cnpjEmit];
+      if(cod)selectLoja(cod,'ai');
+      else if(data.emitente_nome)setField('f_loja_nm',data.emitente_nome,'ai');
+      // destinatário = empresa (só primeira NF)
+      if(data.dest_nome)setField('f_emp',data.dest_nome,'ai');
+      if(cnpjDest){
+        const cn=cnpjDest.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5');
+        setField('f_cnpj',cn,'ai');
+      }
+    }
+    // Adicionar produtos desta NF (acumula, não substitui)
+    if(data.produtos?.length){
+      // Remover linha em branco se for a única
+      if(mercs.length===1&&!mercs[0].desc&&!mercs[0].qtd){mercs=[];mid=0;}
+      data.produtos.forEach(p=>addMerc(p.descricao,p.qtd,data.nf_numero||'',data.nf_data||''));
+      // Ordenar por data de emissão (DD/MM/AAAA) → da mais antiga para a mais recente
+      const parseNFDate=d=>{if(!d)return 0;const[dd,mm,aa]=(d).split('/');return new Date(aa,mm-1,dd).getTime()||0;};
+      mercs.sort((a,b)=>{
+        const da=parseNFDate(a.data),db=parseNFDate(b.data);
+        if(da!==db)return da-db;
+        return parseInt((a.nf||'0').replace(/\D/g,''))-parseInt((b.nf||'0').replace(/\D/g,''));
+      });
+      renderMercs();
+      badge('b_mercs','ai');
+    }
+  }else if(type==='cnh'){
+    if(data.nome)setField('f_mot',data.nome,'ai',()=>badge('b_mot','ai'));
+    if(data.rg)setField('f_rg',data.rg,'ai',()=>badge('b_rg','ai'));
+    if(data.cpf)setField('f_cpf',data.cpf,'ai',()=>badge('b_cpf','ai'));
+  }else if(type==='crlv'){
+    // Identifica veículo vs reboque 100% no JS, sem depender do modelo de IA para essa decisão
+    // Critério principal: combustível — reboques NUNCA têm combustível próprio
+    const comb=(data.combustivel||'').toString().trim().toLowerCase();
+    const mot=(data.motor||'').toString().trim();
+    const pot=(data.potencia||'').toString().trim().toLowerCase();
+    const et=(data.especie_tipo||'').toUpperCase();
+    const temCombustivel = comb!==''&&comb!=='null'&&comb!=='undefined';
+    const temMotorReal   = mot!==''&&mot!=='null'&&mot!=='undefined'&&!/^\*[\*\. ]*$/.test(mot);
+    const temPotencia    = pot!==''&&pot!=='null'&&pot!=='undefined'&&pot!=='0cv'&&!pot.startsWith('0');
+    const tipoReboque    = et.includes('REBOQUE')||et.includes('SEMI-REBOQUE');
+    // Reboque = sem combustível (critério principal) OU tipo descritivo de reboque OU sem motor E sem potência
+    const isReb = !temCombustivel || tipoReboque || (!temMotorReal && !temPotencia);
+    // Validar se já temos 2 CRLVs
+    if(crlvsCarregados.length>=2){
+      throw new Error('Já foram carregados 2 CRLVs (veículo + reboque). Clique em Limpar tudo para recomeçar.');
+    }
+    // Se já temos 1, validar se os tipos são diferentes
+    if(crlvsCarregados.length===1){
+      const existeReb=crlvsCarregados[0].is_reboque;
+      if(existeReb&&isReb){
+        throw new Error('Os dois documentos são REBOQUES. Envie 1 veículo trator + 1 reboque (ou apenas 1 veículo).');
+      }
+      if(!existeReb&&!isReb){
+        throw new Error('Os dois documentos são VEÍCULOS. Envie 1 veículo trator + 1 reboque (ou apenas 1 veículo).');
+      }
+    }
+    // Registra este CRLV
+    crlvsCarregados.push({is_reboque:isReb,data});
+    // Monta string do modelo
+    const fmtModelo=(d)=>`${d.modelo||''}${d.ano_fab?` (${d.ano_fab}/${d.ano_mod||d.ano_fab})`:''}${d.cor?' – '+d.cor:''}`;
+    if(crlvsCarregados.length===2){
+      // Temos os dois — popula veículo e reboque separadamente
+      const veiDt=crlvsCarregados.find(c=>!c.is_reboque).data;
+      const rebDt=crlvsCarregados.find(c=>c.is_reboque).data;
+      if(veiDt.placa)setField('f_pl1',veiDt.placa.toUpperCase(),'ai',()=>badge('b_pl1','ai'));
+      const mv=fmtModelo(veiDt);
+      if(mv.trim())setField('f_vei',mv,'ai',()=>badge('b_vei','ai'));
+      if(rebDt.placa)setField('f_pl2',rebDt.placa.toUpperCase(),'ai');
+      const lbl=document.getElementById('upCRLV-label');
+      if(lbl)lbl.innerHTML='✓ Veículo<br>+ Reboque';
+      setZone('upCRLV','done','✓ Veículo + Reboque');
+      setMsg('✓ Veículo ('+veiDt.placa+') e Reboque ('+rebDt.placa+') identificados automaticamente.');
+    }else{
+      // Apenas 1 — popula conforme tipo
+      if(!isReb){
+        if(data.placa)setField('f_pl1',data.placa.toUpperCase(),'ai',()=>badge('b_pl1','ai'));
+        const mv=fmtModelo(data);
+        if(mv.trim())setField('f_vei',mv,'ai',()=>badge('b_vei','ai'));
+        const lbl=document.getElementById('upCRLV-label');
+        if(lbl)lbl.innerHTML='✓ Veículo lido<br>Reboque opcional';
+        setMsg('✓ Veículo identificado ('+data.placa+'). Envie o CRLV do reboque se houver.');
+      }else{
+        if(data.placa)setField('f_pl2',data.placa.toUpperCase(),'ai');
+        const lbl=document.getElementById('upCRLV-label');
+        if(lbl)lbl.innerHTML='✓ Reboque lido<br>Envie veículo';
+        setMsg('✓ Reboque identificado ('+data.placa+'). Envie também o CRLV do veículo trator.');
+      }
+    }
+  }
+  upd();
+}
+
+function setField(id,val,source,cb){
+  const el=document.getElementById(id);if(!el)return;
+  el.value=val;
+  if(cb)cb();
+  upd();
+}
+
+/* ═══════════ REGEX FALLBACK (sem API) ═══════════ */
+async function extractText(file){
+  return new Promise(res=>{
+    const r=new FileReader();
+    r.onload=e=>res(e.target.result||'');
+    r.readAsText(file,'latin1');
+  });
+}
+function parseNF_regex(txt){
+  const cnpj=txt.match(/CNPJ[\s:]*(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})/);
+  if(cnpj){const num=cnpj[1].replace(/\D/g,'');const cod=CNPJ_TO_LOJA[num];if(cod)selectLoja(cod,'ai')}
+  const dest=txt.match(/DESTINAT[^:]*:?\s*\n?\s*([A-Z][A-Z\s&]+LTDA|ME|SA|S\.A\.)/i);
+  if(dest)setField('f_emp',dest[1].trim(),'ai');
+}
+function parseCNH_regex(txt){
+  const cpf=txt.match(/CPF[\s:]*(\d{3}[\.\s]?\d{3}[\.\s]?\d{3}[-\s]?\d{2})/);
+  if(cpf)setField('f_cpf',cpf[1],'ai');
+  const nome=txt.match(/NOME[^:]*:?\s*([A-Z][A-Z\s]+)\n/);
+  if(nome)setField('f_mot',nome[1].trim(),'ai');
+}
+function parseCRLV_regex(txt){
+  const placa=txt.match(/PLACA[\s:]*([A-Z]{3}\d[A-Z\d]\d{2})/i);
+  if(placa)setField('f_pl1',placa[1].toUpperCase(),'ai');
+  const mod=txt.match(/MARCA\s*\/\s*MODELO[^:]*:?\s*([A-Z0-9\/\s\.]+)\n/i);
+  if(mod)setField('f_vei',mod[1].trim(),'ai');
+}
+
+/* ═══════════ LIMPAR ═══════════ */
+function clearAll(){
+  if(!confirm('Limpar todos os dados?'))return;
+  ['f_emp','f_cnpj','f_resp','f_loja_nm','f_loja_cnpj','f_loja_end','storeSearch',
+   'f_mot','f_rg','f_cpf','f_pl1','f_pl2','f_vei','f_obs'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('f_data').value=new Date().toISOString().split('T')[0];
+  ['b_emp','b_cnpj','b_loja','b_mot','b_rg','b_cpf','b_pl1','b_vei','b_mercs'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='none';
+  });
+  ['upNF','upCNH','upCRLV'].forEach(id=>setZone(id,'',''));
+  document.querySelectorAll('.upz').forEach(z=>{z.className='upz'});
+  document.querySelectorAll('.upz .upz-label').forEach((l,i)=>{
+    l.textContent=[['NF-e','da Loja'],['CNH','Motorista'],['CRLV','Veículo']][i].join('\n');
+  });
+  setMsg('');
+  nfsCarregadas=[];crlvsCarregados=[];
+  mercs=[];mid=0;
+  document.getElementById('d_num').textContent=genNum();
+  addMerc();
+}
+</script>
+</body>
+</html>
