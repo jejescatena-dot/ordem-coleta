@@ -1369,17 +1369,21 @@ function parseNF_regex(text){
   if(!lojaCnpj&&cnpjAll.length>1){lojaCnpj=cnpjAll[1];empresaCnpj=cnpjAll[0];}
   else if(!empresaCnpj&&cnpjAll[0]&&cnpjAll[0]!==lojaCnpj){empresaCnpj=cnpjAll[0];}
 
-  /* Empresa emitente (fornecedor): CNPJ + tenta extrair razão social próxima ao CNPJ */
+  /* Empresa emitente (fornecedor): CNPJ + extrai razão social próxima ao CNPJ */
   if(empresaCnpj){
     document.getElementById('f_cnpj').value=empresaCnpj;badge('b_cnpj','ai');
-    /* Tenta pegar o nome da empresa próximo ao CNPJ no texto */
-    const idx=text.indexOf(empresaCnpj);
-    if(idx>0){
-      const before=text.slice(Math.max(0,idx-200),idx);
-      const nm=before.match(/([A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇa-záàâãéêíóôõúüç0-9\s&\.\/\-]{4,60}?)\s*$/);
-      if(nm&&nm[1]&&nm[1].trim().length>4){
-        document.getElementById('f_emp').value=nm[1].trim();badge('b_emp','ai');
-      }
+    /* Busca o nome da empresa no texto: procura sufixos típicos de pessoa jurídica */
+    const empNmM=text.match(/([A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇa-záàâãéêíóôõúüç0-9\s&\.\/\-]{3,60}?(?:LTDA|S\.?A\.?|EIRELI|\bME\b|\bEPP\b|CIA|COMERCIAL|DISTRIBUIDORA|INDUSTRIA|MERCADO|SUPERMERCADO|ATACADO|ALIMENTOS)[A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇa-záàâãéêíóôõúüç\s\.\-]*)/g);
+    if(empNmM&&empNmM.length){
+      /* Remove rótulos de NF que possam ter sido capturados junto */
+      const LABELS=/NOME\s*[\/]?\s*RAZ[AÃ]O\s*SOCIAL|DENOMINAÇ[AÃ]O|EMITENTE|DESTINAT[AÁ]RIO|REMETENTE/gi;
+      const nomes=empNmM.map(n=>n.replace(LABELS,'').trim()).filter(n=>n.length>4);
+      /* Pega o nome que NÃO pertence a uma loja Max (o fornecedor externo) */
+      const nomeEmp=nomes.find(n=>{
+        const palavras=n.toUpperCase();
+        return !palavras.includes('MAX ATACADISTA')&&!palavras.includes('IRM')&&!palavras.includes('MUFFATO');
+      })||nomes[0];
+      if(nomeEmp){document.getElementById('f_emp').value=nomeEmp.trim();badge('b_emp','ai');}
     }
   }
 
@@ -1474,23 +1478,4 @@ function syncMobDot(){
 
 /* ═══════════ MOBILE SWITCH ═════════════════════════════════════════════════ */
 function mobSwitch(tab){
-  const fp=document.querySelector('.fp');
-  const pp=document.getElementById('ppPanel');
-  document.querySelectorAll('.mob-tab').forEach(t=>t.classList.remove('active'));
-  const ids={form:'mtForm',prev:'mtPrev',pdf:'mtPrint'};
-  const act=document.getElementById(ids[tab]);
-  if(act)act.classList.add('active');
-  if(tab==='form'){
-    fp.classList.remove('mob-hide');
-    pp.classList.remove('mob-show');
-  } else if(tab==='prev'){
-    fp.classList.add('mob-hide');
-    pp.classList.add('mob-show');
-    setTimeout(scaleDoc,50);
-  }
-}
-
-/* sem segundo init — o IIFE acima já inicializa tudo */
-</script>
-</body>
-</html>
+  const fp=document.query
