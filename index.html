@@ -65,7 +65,7 @@ body{font-family:Arial,sans-serif;background:#0e0e1a;color:#ddd;font-size:13px}
 .upz-btns{display:flex;gap:3px;margin-top:6px;width:100%}
 .upz-btn{flex:1;padding:4px 2px;font-size:8px;font-weight:700;border-radius:3px;cursor:pointer;border:1px solid #1e1e30;background:#0c0c1c;color:#666;text-transform:uppercase;letter-spacing:.3px;line-height:1.4;transition:all .15s}
 .upz-btn:hover{border-color:#e31e24;color:#e31e24;background:#1a0a0a}
-.upz-btn.ca-{border-color:#f59e0b44;color:#f59e0b88}
+.upz-btn.cam{border-color:#f59e0b44;color:#f59e0b88}
 .upz-btn.cam:hover{border-color:#f59e0b;color:#f59e0b;background:#1a150a}
 .upz.done .upz-btn{border-color:#22c55e44;color:#22c55e88}
 .upz.done .upz-btn:hover{border-color:#22c55e;color:#22c55e}
@@ -239,7 +239,7 @@ body{font-family:Arial,sans-serif;background:#0e0e1a;color:#ddd;font-size:13px}
 </div>
 <div class="fp-inner">
   <div class="brand">MAX ATACADISTA</div>
-  <div class="brand-sub">Ordem de Coleta · Preenchimento Automático</div>
+  <div class="brand-sub">Ordem de Coleta · Preenchimento Automático <span style="font-size:8px;color:#444;font-weight:700;letter-spacing:0">v1.1.0</span></div>
 
   <!-- API / BACKEND -->
   <details class="api-bar" id="apiDetails">
@@ -537,76 +537,76 @@ body{font-family:Arial,sans-serif;background:#0e0e1a;color:#ddd;font-size:13px}
 <script>
 /* ═══════════ DADOS DAS LOJAS ═══════════ */
 const LOJAS = {
-  1025:{nm:"Max Debret",cnpj:"76.430.438/0025-49",uf:"PR",end:"Rua das Missões, 2550, Vila Portes",cep:"85.853-100"},
-  1037:{nm:"Max Tiradentes",cnpj:"76.430.438/0037-82",uf:"PR",end:"Avenida Tiradentes, 2200, Rodocentro",cep:"86.071-000"},
-  1050:{nm:"Max Eldorado Prudente",cnpj:"76.430.438/0050-50",uf:"SP",end:"Avenida Salin Farah Maluf, 170, Jardim Eldorado",cep:"19.026-140"},
-  1057:{nm:"Max Floresta",cnpj:"76.430.438/0057-26",uf:"PR",end:"Rua Altemar Dutra, 1327, Brasilia",cep:"85.815-460"},
-  1060:{nm:"Max Apucarana",cnpj:"76.430.438/0060-21",uf:"PR",end:"Avenida Minas Gerais, S/N, Jardim Apucarana",cep:"85.804-000"},
-  1065:{nm:"Max Colombo",cnpj:"76.430.438/0065-36",uf:"PR",end:"Av. Colombo Esq. Rua Bolivia, 2720, Vila Morangueira",cep:"87.045-000"},
-  1066:{nm:"Max São Cristóvão",cnpj:"76.430.438/0066-17",uf:"PR",end:"Avenida Brasil, 900, São Cristovão",cep:"85.816-290"},
-  1067:{nm:"Max Paranaguá",cnpj:"76.430.438/0067-06",uf:"PR",end:"Avenida Coronel José Lobo, 939, Oceania",cep:"83.203-340"},
-  1070:{nm:"Max Linha Verde",cnpj:"76.430.438/0070-01",uf:"PR",end:"Rua Lothario Boutin, 554, Pinheirinho",cep:"81.110-522"},
-  1073:{nm:"Max Potirendaba",cnpj:"76.430.438/0073-46",uf:"SP",end:"Avenida Potirendaba, 2937, Parque Quinta das Paineiras",cep:"15.080-480"},
-  1075:{nm:"Max Bairro Alto",cnpj:"76.430.438/0075-08",uf:"PR",end:"Avenida Caviuna, 472, Bairro Alto",cep:"82.840-123"},
-  1076:{nm:"Max Campo Comprido",cnpj:"76.430.438/0076-99",uf:"PR",end:"Av. Juscelino Kubitschek de Oliveira, 2651, Cidade Industrial",cep:"81.270-200"},
-  1079:{nm:"Max São José",cnpj:"76.430.438/0079-31",uf:"PR",end:"Avenida Rua Barbosa, 6131, Jardim Aviação",cep:"83.065-260"},
-  1084:{nm:"Max Zona Norte SJRP",cnpj:"76.430.438/0084-07",uf:"SP",end:"Av. Dr. Antonio Marques dos Santos, S/N, Jardim Seyon",cep:"15.050-500"},
-  1085:{nm:"Max Arapongas",cnpj:"76.430.438/0085-80",uf:"PR",end:"Rua Tinguaçu, 763, Vila Industrial",cep:"86.706-176"},
-  1086:{nm:"Max Foz BR 277",cnpj:"76.430.438/0086-60",uf:"PR",end:"Avenida Getulio Vargas, 672, Parque Presidente",cep:"85.863-350"},
-  1089:{nm:"Max Pinhais",cnpj:"76.430.438/0089-03",uf:"PR",end:"Rua Ayrton Senna da Silva, 2806, Centro",cep:"83.323-290"},
-  1090:{nm:"Max FRG",cnpj:"76.430.438/0090-47",uf:"PR",end:"Av. Nossa Senhora Aparecida, 228, Santa Terezinha",cep:"83.829-018"},
-  1091:{nm:"Max Araucária",cnpj:"76.430.438/0091-28",uf:"PR",end:"Rua Doutor Vital Brasil, 170, Estação",cep:"83.705-174"},
-  1092:{nm:"Max Chapada Ponta Grossa",cnpj:"76.430.438/0092-09",uf:"PR",end:"Avenida Souza Naves, 2420, Chapada",cep:"84.062-000"},
-  1093:{nm:"Max Rolandia",cnpj:"76.430.438/0093-90",uf:"PR",end:"Av. Presidente Getulio Vargas, 3634, Jardim Caviuna",cep:"86.605-306"},
-  1094:{nm:"Max Tito Muffato",cnpj:"76.430.438/0094-70",uf:"PR",end:"Avenida Tito Muffato, 91, Santo Onofre",cep:"85.806-728"},
-  1097:{nm:"Max Catanduva",cnpj:"76.430.438/0097-13",uf:"SP",end:"Avenida São Domingos, 1491, Vila Guzzo",cep:"15.803-010"},
-  1102:{nm:"Max Toledo",cnpj:"76.430.438/0102-15",uf:"PR",end:"Avenida Ministro Cirne Lima, 4022, Tocantins",cep:"85.904-460"},
-  1104:{nm:"Max Bela Vista",cnpj:"76.430.438/0104-87",uf:"PR",end:"Rua Bela Vista, 99, Vila Santa Terezinha",cep:"86.802-330"},
-  1105:{nm:"Max Guanabara",cnpj:"76.430.438/0105-68",uf:"SP",end:"Av. Presidente Juscelino Kubitschek, 7764, Jardim Guanabara",cep:"19.033-390"},
-  1106:{nm:"Max Ourinhos",cnpj:"76.430.438/0106-49",uf:"SP",end:"Rua Cardoso Ribeiro, 861, Vila Boa Esperança",cep:"19.912-120"},
-  1107:{nm:"Max Fernandópolis",cnpj:"76.430.438/0107-20",uf:"SP",end:"Avenida Luiz Brambatti, 3938, Brasilandia",cep:"15.606-172"},
-  1109:{nm:"Max Beltão",cnpj:"76.430.438/0109-91",uf:"PR",end:"Rua Guapore, 301, Presidente Kennedy",cep:"85.605-315"},
-  1110:{nm:"Max Cambé",cnpj:"76.430.438/0110-25",uf:"PR",end:"Av. Gabriel Freceiro de Miranda, 1516, Jardim Santo Amaro",cep:"86.185-010"},
-  1111:{nm:"Max Colombo RMC",cnpj:"76.430.438/0111-06",uf:"PR",end:"Avenida São Gabriel, 647, Campo Pequeno",cep:"83.404-642"},
-  1112:{nm:"Max Medianeira",cnpj:"76.430.438/0112-97",uf:"PR",end:"Rua Minuano, 937, Jardim Belo Horizonte",cep:"85.884-000"},
-  1113:{nm:"Max Campo Largo",cnpj:"76.430.438/0113-78",uf:"PR",end:"Av. Padre Natal Pigato, 362, Vila Bancaria",cep:"83.601-630"},
-  1114:{nm:"Max Cianorte",cnpj:"76.430.438/0114-59",uf:"PR",end:"Avenida Leopoldina, 1005, Novo Centro",cep:"87.200-190"},
-  1116:{nm:"Max Jardim Carvalho",cnpj:"76.430.438/0116-10",uf:"PR",end:"Avenida Monteiro Lobato, 2493, Jardim Carvalho",cep:"84.015-480"},
-  1118:{nm:"Max Sorocaba Ipanema",cnpj:"76.430.438/0118-82",uf:"SP",end:"Av. Ipanema, S/N, Vila Nova Sorocaba",cep:"18.070-671"},
-  1120:{nm:"Max Marechal",cnpj:"76.430.438/0120-05",uf:"PR",end:"Avenida Irio Jacob Welp, 2297, Jardim Lider",cep:"85.960-000"},
-  1122:{nm:"Max Hauer",cnpj:"76.430.438/0122-69",uf:"PR",end:"Av. Marechal Floriano Peixoto, 5350, Hauer",cep:"81.630-000"},
-  1123:{nm:"Max Pioneiros",cnpj:"76.430.438/0123-40",uf:"PR",end:"Estrada dos Pioneiros, 2155, Jardim Morumbi",cep:"86.036-370"},
-  1126:{nm:"Max Taubaté",cnpj:"76.430.438/0126-92",uf:"SP",end:"Avenida dos Imigrantes, 111, Bairro Quiririm",cep:"12.043-490"},
-  1127:{nm:"Max Sorocaba Norte",cnpj:"76.430.438/0127-73",uf:"SP",end:"Rua João Ribeiro de Barros, 1411, Vila Odim Antao",cep:"18.090-602"},
-  1128:{nm:"Max São José dos Campos",cnpj:"76.430.438/0128-54",uf:"SP",end:"Rua Patativa, 280, Vila Tatetuba",cep:"12.220-140"},
-  1129:{nm:"Max Lapa",cnpj:"76.430.438/0129-35",uf:"SP",end:"Rua Cenno Sbrighi, 700, Bairro Água Branca",cep:"05.036-011"},
-  1130:{nm:"Max Eldorado Rio Preto",cnpj:"76.430.438/0130-79",uf:"SP",end:"Av. Alberto Olivieri Esq. Av. S. Gonçalves de Souza, 2200, Bairro Eldorado",cep:"15044-216"},
-  1131:{nm:"Max Santo André",cnpj:"76.430.438/0131-50",uf:"SP",end:"Avenida dos Estados, 7439, Santa Terezinha",cep:"09.290-520"},
-  1132:{nm:"Max Votorantin",cnpj:"76.430.438/0132-30",uf:"SP",end:"Rodovia Raposo Tavares, KM 104, Jardim Novo Mundo",cep:"18.052-250"},
-  1133:{nm:"Max Guarulhos",cnpj:"76.430.438/0133-11",uf:"SP",end:"Rua Carlos Leal Evans, 252, Jardim Santa Francisca",cep:"07.024-020"},
-  1134:{nm:"Max Piracicaba",cnpj:"76.430.438/0134-00",uf:"SP",end:"Avenida Dois Córregos, 3005, Bairro dos Córregos",cep:"13.420-835"},
-  1135:{nm:"Max Cedral",cnpj:"76.430.438/0135-83",uf:"SP",end:"Avenida Joaquim Constantino, 7204, Parque Cedral",cep:"19.067-550"},
-  1136:{nm:"Max Interlagos",cnpj:"76.430.438/0136-64",uf:"SP",end:"Rua Domingas Galleteri Blotta, 507, Vila Campo Grande",cep:"04.456-110"},
-  1137:{nm:"Max Butantã",cnpj:"76.430.438/0137-45",uf:"SP",end:"Rua Carlos Lisdegno Carlucci, 519, Jardim Peri Peri",cep:"05.536-900"},
-  1138:{nm:"Max Marília",cnpj:"76.430.438/0138-26",uf:"SP",end:"Rua Kanetario Mitishita, 60, Parque das Industrias",cep:"17.519-730"},
-  1139:{nm:"Max Mogi",cnpj:"76.430.438/0139-07",uf:"SP",end:"Rua Carlos Baratino, 494, Vila Mogilar",cep:"08.773-600"},
-  1140:{nm:"Max São Bernardo",cnpj:"76.430.438/0140-40",uf:"SP",end:"Rua Frei Damião, 355, Pauliceia",cep:"09.695-100"},
-  1141:{nm:"Max Campinas",cnpj:"76.430.438/0141-21",uf:"SP",end:"Av. Ricardo Bassoli Cezare, 1567, Jardim das Bandeiras",cep:"13.050-080"},
-  1142:{nm:"Max Assis",cnpj:"76.430.438/0142-02",uf:"SP",end:"Avenida Dom Antonio, 2515, Vila Tenis Clube",cep:"19.806-173"},
-  1144:{nm:"Max JK Foz",cnpj:"76.430.438/0144-74",uf:"PR",end:"Avenida Juscelino Kubitschek, 2404, Monjolo",cep:"85.864-498"},
-  1145:{nm:"Max João Bettega",cnpj:"76.430.438/0145-55",uf:"PR",end:"Rua SeNador Accioly Filho, 2005, Cidade Industrial",cep:"81.350-200"},
-  1146:{nm:"Max Oficinas",cnpj:"76.430.438/0146-36",uf:"PR",end:"Avenida Visconde de Mauá, 2975, Oficinas",cep:"84.045-100"},
-  1148:{nm:"Max Jaçanã",cnpj:"76.430.438/0148-06",uf:"SP",end:"Rua Manuel Gaya, 390, Vila Nova Mazzei",cep:"02.313-000"},
-  1149:{nm:"Max Morumbi",cnpj:"76.430.438/0149-89",uf:"SP",end:"Avenida Giovanni Gronchi, 5800, Vila Andrade",cep:"05.724-002"},
-  1150:{nm:"Max Safira",cnpj:"76.430.438/0150-12",uf:"PR",end:"Avenida Safira, 1050, Porto Meira",cep:"85.854-000"},
-  1151:{nm:"Max Olímpia",cnpj:"76.430.438/0151-01",uf:"SP",end:"Avenida João Rimoli Neto, 1320, Jardim Leonor",cep:"15.400-000"},
-  1152:{nm:"Max Castro",cnpj:"76.430.438/0152-84",uf:"PR",end:"Avenida Vicente Fiorillo, 100, Castroville",cep:"84.172-540"},
-  1153:{nm:"Max Torres",cnpj:"76.430.438/0153-65",uf:"PR",end:"Avenida Comendador Franco, 6992, Uberaba",cep:"86.188-060"},
-  1154:{nm:"Max Votuporanga",cnpj:"76.430.438/0154-46",uf:"SP",end:"Avenida Nasser Marão, 2519, Parque Industrial I",cep:"15.503-005"},
-  1155:{nm:"Max Guaíra",cnpj:"76.430.438/0155-27",uf:"PR",end:"Rua Osvaldo Cruz, 1095, Parque do Lago",cep:"85.983-071"},
-  1156:{nm:"Max Sarandi",cnpj:"76.430.438/0156-08",uf:"PR",end:"Rua José Munhoz, 287, Centro",cep:"87.111-610"},
-  1157:{nm:"Max Umuarama",cnpj:"76.430.438/0157-99",uf:"PR",end:"Rua$Jamil Helu, 4035, Colonia Nucleo Cruzeiro",cep:"87.507-015"},
-  1158:{nm:"Max Marília Norte",cnpj:"76.430.438/0158-70",uf:"SP",end:"Rua 17, 611, Jardim Nazareth",cep:"17.512-751"}
+  1025:{nm:"Max Debret",cnpj:"76.430.438/0025-49",uf:"PR",end:"Rua das Missões, 2550, Vila Portes",cep:"85.853-100",cidade:"Foz do Iguaçu"},
+  1037:{nm:"Max Tiradentes",cnpj:"76.430.438/0037-82",uf:"PR",end:"Avenida Tiradentes, 2200, Rodocentro",cep:"86.071-000",cidade:"Londrina"},
+  1050:{nm:"Max Eldorado Prudente",cnpj:"76.430.438/0050-50",uf:"SP",end:"Avenida Salin Farah Maluf, 170, Jardim Eldorado",cep:"19.026-140",cidade:"Presidente Prudente"},
+  1057:{nm:"Max Floresta",cnpj:"76.430.438/0057-26",uf:"PR",end:"Rua Altemar Dutra, 1327, Brasilia",cep:"85.815-460",cidade:"Cascavel"},
+  1060:{nm:"Max Apucarana",cnpj:"76.430.438/0060-21",uf:"PR",end:"Avenida Minas Gerais, S/N, Jardim Apucarana",cep:"85.804-000",cidade:"Cascavel"},
+  1065:{nm:"Max Colombo",cnpj:"76.430.438/0065-36",uf:"PR",end:"Av. Colombo Esq. Rua Bolivia, 2720, Vila Morangueira",cep:"87.045-000",cidade:"Maringá"},
+  1066:{nm:"Max São Cristóvão",cnpj:"76.430.438/0066-17",uf:"PR",end:"Avenida Brasil, 900, São Cristovão",cep:"85.816-290",cidade:"Cascavel"},
+  1067:{nm:"Max Paranaguá",cnpj:"76.430.438/0067-06",uf:"PR",end:"Avenida Coronel José Lobo, 939, Oceania",cep:"83.203-340",cidade:"Paranaguá"},
+  1070:{nm:"Max Linha Verde",cnpj:"76.430.438/0070-01",uf:"PR",end:"Rua Lothario Boutin, 554, Pinheirinho",cep:"81.110-522",cidade:"Curitiba"},
+  1073:{nm:"Max Potirendaba",cnpj:"76.430.438/0073-46",uf:"SP",end:"Avenida Potirendaba, 2937, Parque Quinta das Paineiras",cep:"15.080-480",cidade:"São José do Rio Preto"},
+  1075:{nm:"Max Bairro Alto",cnpj:"76.430.438/0075-08",uf:"PR",end:"Avenida Caviuna, 472, Bairro Alto",cep:"82.840-123",cidade:"Curitiba"},
+  1076:{nm:"Max Campo Comprido",cnpj:"76.430.438/0076-99",uf:"PR",end:"Av. Juscelino Kubitschek de Oliveira, 2651, Cidade Industrial",cep:"81.270-200",cidade:"Curitiba"},
+  1079:{nm:"Max São José",cnpj:"76.430.438/0079-31",uf:"PR",end:"Avenida Rua Barbosa, 6131, Jardim Aviação",cep:"83.065-260",cidade:"São José dos Pinhais"},
+  1084:{nm:"Max Zona Norte SJRP",cnpj:"76.430.438/0084-07",uf:"SP",end:"Av. Dr. Antonio Marques dos Santos, S/N, Jardim Seyon",cep:"15.050-500",cidade:"São José do Rio Preto"},
+  1085:{nm:"Max Arapongas",cnpj:"76.430.438/0085-80",uf:"PR",end:"Rua Tinguaçu, 763, Vila Industrial",cep:"86.706-176",cidade:"Arapongas"},
+  1086:{nm:"Max Foz BR 277",cnpj:"76.430.438/0086-60",uf:"PR",end:"Avenida Getulio Vargas, 672, Parque Presidente",cep:"85.863-350",cidade:"Foz do Iguaçu"},
+  1089:{nm:"Max Pinhais",cnpj:"76.430.438/0089-03",uf:"PR",end:"Rua Ayrton Senna da Silva, 2806, Centro",cep:"83.323-290",cidade:"Pinhais"},
+  1090:{nm:"Max FRG",cnpj:"76.430.438/0090-47",uf:"PR",end:"Av. Nossa Senhora Aparecida, 228, Santa Terezinha",cep:"83.829-018",cidade:"Fazenda Rio Grande"},
+  1091:{nm:"Max Araucária",cnpj:"76.430.438/0091-28",uf:"PR",end:"Rua Doutor Vital Brasil, 170, Estação",cep:"83.705-174",cidade:"Araucária"},
+  1092:{nm:"Max Chapada Ponta Grossa",cnpj:"76.430.438/0092-09",uf:"PR",end:"Avenida Souza Naves, 2420, Chapada",cep:"84.062-000",cidade:"Ponta Grossa"},
+  1093:{nm:"Max Rolandia",cnpj:"76.430.438/0093-90",uf:"PR",end:"Av. Presidente Getulio Vargas, 3634, Jardim Caviuna",cep:"86.605-306",cidade:"Rolândia"},
+  1094:{nm:"Max Tito Muffato",cnpj:"76.430.438/0094-70",uf:"PR",end:"Avenida Tito Muffato, 91, Santo Onofre",cep:"85.806-728",cidade:"Cascavel"},
+  1097:{nm:"Max Catanduva",cnpj:"76.430.438/0097-13",uf:"SP",end:"Avenida São Domingos, 1491, Vila Guzzo",cep:"15.803-010",cidade:"Catanduva"},
+  1102:{nm:"Max Toledo",cnpj:"76.430.438/0102-15",uf:"PR",end:"Avenida Ministro Cirne Lima, 4022, Tocantins",cep:"85.904-460",cidade:"Toledo"},
+  1104:{nm:"Max Bela Vista",cnpj:"76.430.438/0104-87",uf:"PR",end:"Rua Bela Vista, 99, Vila Santa Terezinha",cep:"86.802-330",cidade:"Apucarana"},
+  1105:{nm:"Max Guanabara",cnpj:"76.430.438/0105-68",uf:"SP",end:"Av. Presidente Juscelino Kubitschek, 7764, Jardim Guanabara",cep:"19.033-390",cidade:"Presidente Prudente"},
+  1106:{nm:"Max Ourinhos",cnpj:"76.430.438/0106-49",uf:"SP",end:"Rua Cardoso Ribeiro, 861, Vila Boa Esperança",cep:"19.912-120",cidade:"Ourinhos"},
+  1107:{nm:"Max Fernandópolis",cnpj:"76.430.438/0107-20",uf:"SP",end:"Avenida Luiz Brambatti, 3938, Brasilandia",cep:"15.606-172",cidade:"Fernandópolis"},
+  1109:{nm:"Max Beltão",cnpj:"76.430.438/0109-91",uf:"PR",end:"Rua Guapore, 301, Presidente Kennedy",cep:"85.605-315",cidade:"Francisco Beltrão"},
+  1110:{nm:"Max Cambé",cnpj:"76.430.438/0110-25",uf:"PR",end:"Av. Gabriel Freceiro de Miranda, 1516, Jardim Santo Amaro",cep:"86.185-010",cidade:"Cambé"},
+  1111:{nm:"Max Colombo RMC",cnpj:"76.430.438/0111-06",uf:"PR",end:"Avenida São Gabriel, 647, Campo Pequeno",cep:"83.404-642",cidade:"Colombo"},
+  1112:{nm:"Max Medianeira",cnpj:"76.430.438/0112-97",uf:"PR",end:"Rua Minuano, 937, Jardim Belo Horizonte",cep:"85.884-000",cidade:"Medianeira"},
+  1113:{nm:"Max Campo Largo",cnpj:"76.430.438/0113-78",uf:"PR",end:"Av. Padre Natal Pigato, 362, Vila Bancaria",cep:"83.601-630",cidade:"Campo Largo"},
+  1114:{nm:"Max Cianorte",cnpj:"76.430.438/0114-59",uf:"PR",end:"Avenida Leopoldina, 1005, Novo Centro",cep:"87.200-190",cidade:"Cianorte"},
+  1116:{nm:"Max Jardim Carvalho",cnpj:"76.430.438/0116-10",uf:"PR",end:"Avenida Monteiro Lobato, 2493, Jardim Carvalho",cep:"84.015-480",cidade:"Ponta Grossa"},
+  1118:{nm:"Max Sorocaba Ipanema",cnpj:"76.430.438/0118-82",uf:"SP",end:"Av. Ipanema, S/N, Vila Nova Sorocaba",cep:"18.070-671",cidade:"Sorocaba"},
+  1120:{nm:"Max Marechal",cnpj:"76.430.438/0120-05",uf:"PR",end:"Avenida Irio Jacob Welp, 2297, Jardim Lider",cep:"85.960-000",cidade:"Marechal Cândido Rondon"},
+  1122:{nm:"Max Hauer",cnpj:"76.430.438/0122-69",uf:"PR",end:"Av. Marechal Floriano Peixoto, 5350, Hauer",cep:"81.630-000",cidade:"Curitiba"},
+  1123:{nm:"Max Pioneiros",cnpj:"76.430.438/0123-40",uf:"PR",end:"Estrada dos Pioneiros, 2155, Jardim Morumbi",cep:"86.036-370",cidade:"Londrina"},
+  1126:{nm:"Max Taubaté",cnpj:"76.430.438/0126-92",uf:"SP",end:"Avenida dos Imigrantes, 111, Bairro Quiririm",cep:"12.043-490",cidade:"Taubaté"},
+  1127:{nm:"Max Sorocaba Norte",cnpj:"76.430.438/0127-73",uf:"SP",end:"Rua João Ribeiro de Barros, 1411, Vila Odim Antao",cep:"18.090-602",cidade:"Sorocaba"},
+  1128:{nm:"Max São José dos Campos",cnpj:"76.430.438/0128-54",uf:"SP",end:"Rua Patativa, 280, Vila Tatetuba",cep:"12.220-140",cidade:"São José dos Campos"},
+  1129:{nm:"Max Lapa",cnpj:"76.430.438/0129-35",uf:"SP",end:"Rua Cenno Sbrighi, 700, Bairro Água Branca",cep:"05.036-011",cidade:"São Paulo"},
+  1130:{nm:"Max Eldorado Rio Preto",cnpj:"76.430.438/0130-79",uf:"SP",end:"Av. Alberto Olivieri Esq. Av. S. Gonçalves de Souza, 2200, Bairro Eldorado",cep:"15044-216",cidade:"São José do Rio Preto"},
+  1131:{nm:"Max Santo André",cnpj:"76.430.438/0131-50",uf:"SP",end:"Avenida dos Estados, 7439, Santa Terezinha",cep:"09.290-520",cidade:"Santo André"},
+  1132:{nm:"Max Votorantin",cnpj:"76.430.438/0132-30",uf:"SP",end:"Rodovia Raposo Tavares, KM 104, Jardim Novo Mundo",cep:"18.052-250",cidade:"Votorantim"},
+  1133:{nm:"Max Guarulhos",cnpj:"76.430.438/0133-11",uf:"SP",end:"Rua Carlos Leal Evans, 252, Jardim Santa Francisca",cep:"07.024-020",cidade:"Guarulhos"},
+  1134:{nm:"Max Piracicaba",cnpj:"76.430.438/0134-00",uf:"SP",end:"Avenida Dois Córregos, 3005, Bairro dos Córregos",cep:"13.420-835",cidade:"Piracicaba"},
+  1135:{nm:"Max Cedral",cnpj:"76.430.438/0135-83",uf:"SP",end:"Avenida Joaquim Constantino, 7204, Parque Cedral",cep:"19.067-550",cidade:"Presidente Prudente"},
+  1136:{nm:"Max Interlagos",cnpj:"76.430.438/0136-64",uf:"SP",end:"Rua Domingas Galleteri Blotta, 507, Vila Campo Grande",cep:"04.456-110",cidade:"São Paulo"},
+  1137:{nm:"Max Butantã",cnpj:"76.430.438/0137-45",uf:"SP",end:"Rua Carlos Lisdegno Carlucci, 519, Jardim Peri Peri",cep:"05.536-900",cidade:"São Paulo"},
+  1138:{nm:"Max Marília",cnpj:"76.430.438/0138-26",uf:"SP",end:"Rua Kanetario Mitishita, 60, Parque das Industrias",cep:"17.519-730",cidade:"Marília"},
+  1139:{nm:"Max Mogi",cnpj:"76.430.438/0139-07",uf:"SP",end:"Rua Carlos Baratino, 494, Vila Mogilar",cep:"08.773-600",cidade:"Mogi das Cruzes"},
+  1140:{nm:"Max São Bernardo",cnpj:"76.430.438/0140-40",uf:"SP",end:"Rua Frei Damião, 355, Pauliceia",cep:"09.695-100",cidade:"São Bernardo do Campo"},
+  1141:{nm:"Max Campinas",cnpj:"76.430.438/0141-21",uf:"SP",end:"Av. Ricardo Bassoli Cezare, 1567, Jardim das Bandeiras",cep:"13.050-080",cidade:"Campinas"},
+  1142:{nm:"Max Assis",cnpj:"76.430.438/0142-02",uf:"SP",end:"Avenida Dom Antonio, 2515, Vila Tenis Clube",cep:"19.806-173",cidade:"Assis"},
+  1144:{nm:"Max JK Foz",cnpj:"76.430.438/0144-74",uf:"PR",end:"Avenida Juscelino Kubitschek, 2404, Monjolo",cep:"85.864-498",cidade:"Foz do Iguaçu"},
+  1145:{nm:"Max João Bettega",cnpj:"76.430.438/0145-55",uf:"PR",end:"Rua Senador Accioly Filho, 2005, Cidade Industrial",cep:"81.350-200",cidade:"Curitiba"},
+  1146:{nm:"Max Oficinas",cnpj:"76.430.438/0146-36",uf:"PR",end:"Avenida Visconde de Mauá, 2975, Oficinas",cep:"84.045-100",cidade:"Ponta Grossa"},
+  1148:{nm:"Max Jaçanã",cnpj:"76.430.438/0148-06",uf:"SP",end:"Rua Manuel Gaya, 390, Vila Nova Mazzei",cep:"02.313-000",cidade:"São Paulo"},
+  1149:{nm:"Max Morumbi",cnpj:"76.430.438/0149-89",uf:"SP",end:"Avenida Giovanni Gronchi, 5800, Vila Andrade",cep:"05.724-002",cidade:"São Paulo"},
+  1150:{nm:"Max Safira",cnpj:"76.430.438/0150-12",uf:"PR",end:"Avenida Safira, 1050, Porto Meira",cep:"85.854-000",cidade:"Foz do Iguaçu"},
+  1151:{nm:"Max Olímpia",cnpj:"76.430.438/0151-01",uf:"SP",end:"Avenida João Rimoli Neto, 1320, Jardim Leonor",cep:"15.400-000",cidade:"Olímpia"},
+  1152:{nm:"Max Castro",cnpj:"76.430.438/0152-84",uf:"PR",end:"Avenida Vicente Fiorillo, 100, Castroville",cep:"84.172-540",cidade:"Castro"},
+  1153:{nm:"Max Torres",cnpj:"76.430.438/0153-65",uf:"PR",end:"Avenida Comendador Franco, 6992, Uberaba",cep:"86.188-060",cidade:"Cambé"},
+  1154:{nm:"Max Votuporanga",cnpj:"76.430.438/0154-46",uf:"SP",end:"Avenida Nasser Marão, 2519, Parque Industrial I",cep:"15.503-005",cidade:"Votuporanga"},
+  1155:{nm:"Max Guaíra",cnpj:"76.430.438/0155-27",uf:"PR",end:"Rua Osvaldo Cruz, 1095, Parque do Lago",cep:"85.983-071",cidade:"Guaíra"},
+  1156:{nm:"Max Sarandi",cnpj:"76.430.438/0156-08",uf:"PR",end:"Rua José Munhoz, 287, Centro",cep:"87.111-610",cidade:"Sarandi"},
+  1157:{nm:"Max Umuarama",cnpj:"76.430.438/0157-99",uf:"PR",end:"Rua Jamil Helu, 4035, Colonia Nucleo Cruzeiro",cep:"87.507-015",cidade:"Umuarama"},
+  1158:{nm:"Max Marília Norte",cnpj:"76.430.438/0158-70",uf:"SP",end:"Rua 17, 611, Jardim Nazareth",cep:"17.512-751",cidade:"Marília"}
 };
 
 // CNPJ → código da loja (para lookup via NF)
@@ -762,7 +762,25 @@ async function gerarPDF(){
         return;
       }
     }
-    pdf.save(nomeArq);
+    // ── Salvar PDF ──────────────────────────────────────────────────────
+    try {
+      if (window.showSaveFilePicker) {
+        const blob = pdf.output('blob');
+        const handle = await window.showSaveFilePicker({
+          suggestedName: nomeArq,
+          startIn: 'desktop',
+          types: [{ description: 'Documento PDF', accept: { 'application/pdf': ['.pdf'] } }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        _showPdfToast('✅ PDF salvo na Área de Trabalho!', 100);
+      } else {
+        pdf.save(nomeArq);   // fallback navegadores antigos / Firefox
+      }
+    } catch(saveErr) {
+      if (saveErr.name !== 'AbortError') { pdf.save(nomeArq); }
+    }
     setTimeout(_hidePdfToast, 1800);
 
   } catch(err){
@@ -913,7 +931,7 @@ function selectLoja(cod, source){
   document.getElementById('storeSearch').value=`${cod} – ${l.nm}`;
   document.getElementById('f_loja_nm').value=`MAX ATACADISTA – ${l.nm} (Loja ${cod})`;
   document.getElementById('f_loja_cnpj').value=l.cnpj;
-  document.getElementById('f_loja_end').value=`${l.end} – ${l.uf}, CEP ${l.cep}`;
+  document.getElementById('f_loja_end').value=`${l.end} – ${l.cidade ? l.cidade + ', ' : ''}${l.uf}, CEP ${l.cep}`;
   if(source==='ai') badge('b_loja','ai'); else badge('b_loja','manual');
   upd();
 }
@@ -1013,7 +1031,30 @@ function upd(){
     <td class="cf">${m.nf||'—'}</td>
     <td class="cf">${m.data||'—'}</td>
   </tr>`).join(''):`<tr><td class="cn">1</td><td><span style="color:#ccc;font-style:italic">—</span></td><td class="cq" style="color:#ccc">—</td><td class="cq" style="color:#ccc">—</td><td class="cf" style="color:#ccc">—</td><td class="cf" style="color:#ccc">—</td></tr>`;
+  scaleDoc();
 }
+
+/* ═══════════ AUTO-SCALE PRÉVIA MOBILE ══════════════════════════════════════ */
+function scaleDoc(){
+  if(window.innerWidth>768)return;
+  const wrap=document.getElementById('docScaleWrap');
+  const doc=document.getElementById('doc');
+  if(!wrap||!doc)return;
+  // Remove escala anterior para medir largura real
+  doc.style.transform='';
+  doc.style.transformOrigin='';
+  wrap.style.height='';
+  const wrapW=wrap.clientWidth-2;
+  const docW=doc.offsetWidth||794;
+  if(docW>wrapW){
+    const sc=wrapW/docW;
+    doc.style.transform=`scale(${sc})`;
+    doc.style.transformOrigin='top left';
+    wrap.style.height=Math.ceil(doc.offsetHeight*sc)+'px';
+    wrap.style.overflow='hidden';
+  }
+}
+window.addEventListener('resize',scaleDoc);
 
 /* ═══════════ FILE HANDLING ═══════════ */
 function drop(e,type){
@@ -1060,4 +1101,396 @@ async function processFile(file,type,fromCamera=false){
           const aviso=result.reason?': '+result.reason:'';
           setMsg('⚠ Qualidade parcial'+aviso+' — confira os campos antes de gerar a ordem.');
           applyExtraction(result,type);
-          setZon
+          setZone(zoneId,'done','✓ Verificado');
+        }
+      } else {
+        applyExtraction(result,type);
+        setZone(zoneId,'done','✓ Preenchido');
+        setMsg('✓ Campos preenchidos automaticamente por IA');
+      }
+    }
+  }catch(err){
+    setZone(zoneId,'error','Erro');
+    setMsg('Erro: '+err.message+'. Preencha manualmente.');
+    console.error(err);
+  }
+}
+
+/* ═══════════ ZONE / MSG HELPERS ═══════════════════════════════════════════ */
+function setZone(id,state,label){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.className='upz'+(state?' '+state:'');
+  const lbl=document.getElementById(id+'-label');
+  if(lbl&&label)lbl.textContent=label;
+}
+function setMsg(msg){
+  const el=document.getElementById('extractMsg');
+  if(el)el.textContent=msg||'';
+}
+
+/* ═══════════ BASE64 ════════════════════════════════════════════════════════ */
+function toBase64(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>res(e.target.result.split(',')[1]);
+    r.onerror=rej;
+    r.readAsDataURL(file);
+  });
+}
+
+/* ═══════════ EXTRACT TEXT (PDF.js) ════════════════════════════════════════ */
+async function extractText(file){
+  const url=URL.createObjectURL(file);
+  try{
+    if(!window.pdfjsLib){
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        s.onload=res; s.onerror=rej;
+        document.head.appendChild(s);
+      });
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc=
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+    const pdfDoc=await window.pdfjsLib.getDocument(url).promise;
+    let text='';
+    for(let i=1;i<=Math.min(pdfDoc.numPages,5);i++){
+      const page=await pdfDoc.getPage(i);
+      const tc=await page.getTextContent();
+      text+=tc.items.map(it=>it.str).join('\n')+'\n';
+    }
+    return text;
+  }finally{URL.revokeObjectURL(url);}
+}
+
+/* ═══════════ CLAUDE API CALL ═══════════════════════════════════════════════ */
+async function callClaude(b64,mime,type){
+  const PROMPTS={
+    nf:`Você é um extrator de NF-e (Nota Fiscal Eletrônica) brasileira — formato DANFE.
+Extraia os dados EXATAMENTE conforme a estrutura da NF, sem inferências:
+- empresa_* = dados do EMITENTE (quem emitiu/vendeu, seção superior da NF)
+- loja_* = dados do DESTINATÁRIO (quem recebeu/comprou, seção inferior da NF)
+Retorne SOMENTE JSON válido (sem markdown, sem texto extra):
+{
+  "empresa_razao": "razão social do EMITENTE conforme consta na NF",
+  "empresa_cnpj": "CNPJ do EMITENTE formatado XX.XXX.XXX/XXXX-XX",
+  "loja_cnpj": "CNPJ do DESTINATÁRIO formatado XX.XXX.XXX/XXXX-XX",
+  "loja_nome": "razão social do DESTINATÁRIO conforme consta na NF",
+  "loja_end": "endereço do DESTINATÁRIO (logradouro, número, bairro)",
+  "loja_cidade": "cidade do DESTINATÁRIO",
+  "loja_uf": "UF do DESTINATÁRIO (2 letras)",
+  "loja_cep": "CEP do DESTINATÁRIO",
+  "nf_numero": "número da nota fiscal",
+  "nf_data": "data de emissão DD/MM/AAAA",
+  "produtos": [{"desc":"descrição completa","qtd":"quantidade com unidade"}]
+}`,
+    nf_cam:`Você é um extrator de NF-e fotografada. Avalie a qualidade da imagem e extraia os dados EXATAMENTE conforme a estrutura da NF:
+- empresa_* = EMITENTE (seção superior, quem vendeu/emitiu)
+- loja_* = DESTINATÁRIO (seção inferior, quem comprou/recebeu)
+Retorne SOMENTE JSON válido:
+{
+  "confidence": "high|medium|low",
+  "reason": "motivo se low ou medium",
+  "empresa_razao": "razão social do EMITENTE",
+  "empresa_cnpj": "CNPJ do EMITENTE XX.XXX.XXX/XXXX-XX",
+  "loja_cnpj": "CNPJ do DESTINATÁRIO XX.XXX.XXX/XXXX-XX",
+  "loja_nome": "razão social do DESTINATÁRIO",
+  "loja_end": "endereço do DESTINATÁRIO",
+  "loja_cidade": "cidade do DESTINATÁRIO",
+  "loja_uf": "UF do DESTINATÁRIO",
+  "loja_cep": "CEP do DESTINATÁRIO",
+  "nf_numero": "número da NF",
+  "nf_data": "DD/MM/AAAA",
+  "produtos": [{"desc":"...","qtd":"..."}]
+}`,
+    cnh:`Você é um extrator de CNH (Carteira Nacional de Habilitação) brasileira de qualquer estado.
+Extraia e retorne SOMENTE JSON válido:
+{
+  "nome": "nome completo do habilitado",
+  "cpf": "CPF formatado XXX.XXX.XXX-XX",
+  "rg": "número do RG (somente dígitos e traço verificador)",
+  "categoria": "categoria(s) de habilitação ex: AB"
+}`,
+    crlv:`Você é um extrator de CRLV (Certificado de Registro e Licenciamento de Veículo) brasileiro.
+Extraia e retorne SOMENTE JSON válido:
+{
+  "placa": "placa no padrão ABC1D23 ou ABC-1234",
+  "modelo": "marca/modelo completo",
+  "renavam": "número RENAVAM",
+  "ano_fab": "ano de fabricação",
+  "ano_mod": "ano do modelo"
+}`
+  };
+
+  const prompt=PROMPTS[type]||PROMPTS.nf;
+
+  // PDFs → source type "document", imagens → "image"
+  const srcType=mime==='application/pdf'?'document':'image';
+  const contentPart=srcType==='document'
+    ?{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}}
+    :{type:'image',source:{type:'base64',media_type:mime,data:b64}};
+
+  // Payload completo Anthropic
+  const payload={
+    model:'claude-haiku-4-5-20251001',
+    max_tokens:1024,
+    messages:[{role:'user',content:[contentPart,{type:'text',text:prompt}]}]
+  };
+
+  // ── Modo backend: proxy /api/claude ──────────────────────────────────────
+  if(sessionToken && backendUrl){
+    const r=await fetch(backendUrl+'/api/claude',{
+      method:'POST',
+      headers:{'content-type':'application/json','authorization':'Bearer '+sessionToken},
+      body:JSON.stringify(payload)
+    });
+    if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error||'Erro no backend ('+r.status+')');}
+    const d=await r.json();
+    const txt=d.content?.[0]?.text||'{}';
+    const jm=txt.match(/\{[\s\S]*\}/);
+    if(!jm)throw new Error('Resposta inválida do backend');
+    return JSON.parse(jm[0]);
+  }
+
+  // ── Modo direto (API key local) ───────────────────────────────────────────
+  if(!apiKey)throw new Error('Sem chave API configurada');
+
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'content-type':'application/json',
+      'x-api-key':apiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-beta':'pdfs-2024-09-25'
+    },
+    body:JSON.stringify(payload)
+  });
+  if(!r.ok){
+    const e=await r.json().catch(()=>({}));
+    throw new Error((e.error?.message)||'Erro na API Anthropic ('+r.status+')');
+  }
+  const d=await r.json();
+  const txt=d.content?.[0]?.text||'{}';
+  const jm=txt.match(/\{[\s\S]*\}/);
+  if(!jm)throw new Error('Resposta inválida da API');
+  return JSON.parse(jm[0]);
+}
+
+/* ═══════════ FORMAT QTD ════════════════════════════════════════════════════ */
+function fmtQtd(v){return (v||'').toString().trim();}
+
+/* ═══════════ APPLY EXTRACTION ══════════════════════════════════════════════ */
+function applyExtraction(data,type){
+  if(!data)return;
+  if(type==='nf'||type==='nf_cam'){
+    /* Determina qual CNPJ pertence a uma loja Max Atacadista (CNPJ_TO_LOJA).
+       Quem casar = loja; quem não casar = empresa emitente/fornecedor.
+       Isso corrige o caso em que a IA inverte emitente e destinatário. */
+    const cnpjEmpNum=(data.empresa_cnpj||'').replace(/\D/g,'');
+    const cnpjLojNum=(data.loja_cnpj||'').replace(/\D/g,'');
+    const codDeEmp=cnpjEmpNum?CNPJ_TO_LOJA[cnpjEmpNum]:null;
+    const codDeLoj=cnpjLojNum?CNPJ_TO_LOJA[cnpjLojNum]:null;
+
+    if(codDeLoj){
+      /* loja_* é de fato uma loja Max — mapeamento correto da IA */
+      if(data.empresa_razao){const el=document.getElementById('f_emp');if(el){el.value=data.empresa_razao;badge('b_emp','ai');}}
+      if(data.empresa_cnpj){const el=document.getElementById('f_cnpj');if(el){el.value=data.empresa_cnpj;badge('b_cnpj','ai');}}
+      selectLoja(codDeLoj,'ai');
+    } else if(codDeEmp){
+      /* empresa_* é na verdade a loja Max (IA inverteu emitente/destinatário)
+         → usa loja_* como empresa (fornecedor/emitente) e empresa_* como loja */
+      if(data.loja_nome){const el=document.getElementById('f_emp');if(el){el.value=data.loja_nome;badge('b_emp','ai');}}
+      if(data.loja_cnpj){const el=document.getElementById('f_cnpj');if(el){el.value=data.loja_cnpj;badge('b_cnpj','ai');}}
+      selectLoja(codDeEmp,'ai');
+    } else {
+      /* Nenhum CNPJ é de loja conhecida — preenche como veio, sem sobrescrever seleção manual */
+      if(data.empresa_razao){const el=document.getElementById('f_emp');if(el){el.value=data.empresa_razao;badge('b_emp','ai');}}
+      if(data.empresa_cnpj){const el=document.getElementById('f_cnpj');if(el){el.value=data.empresa_cnpj;badge('b_cnpj','ai');}}
+      const alreadySelected=document.getElementById('storeSearch').value.trim();
+      if(!alreadySelected){
+        if(data.loja_nome){const el=document.getElementById('f_loja_nm');if(el){el.value=data.loja_nome;badge('b_loja','ai');}}
+        if(data.loja_cnpj){const el=document.getElementById('f_loja_cnpj');if(el)el.value=data.loja_cnpj;}
+        if(data.loja_end){
+          const parts=[data.loja_end];
+          if(data.loja_cidade)parts.push(data.loja_cidade);
+          if(data.loja_uf)parts.push(data.loja_uf);
+          if(data.loja_cep)parts.push('CEP '+data.loja_cep);
+          const el=document.getElementById('f_loja_end');
+          if(el)el.value=parts.join(', ');
+        }
+      }
+    }
+    if(data.produtos&&data.produtos.length){
+      if(!mercs.length||!mercs[0].desc){mercs=[];mid=0;}
+      data.produtos.forEach(p=>addMerc((p.desc||'').toUpperCase(),p.qtd||'',data.nf_numero||'',data.nf_data||''));
+      if(mercs.length)badge('b_mercs','ai');
+    }
+  } else if(type==='cnh'){
+    if(data.nome)setField('f_mot',data.nome,'ai');
+    if(data.cpf) setField('f_cpf',data.cpf,'ai');
+    if(data.rg)  setField('f_rg',data.rg,'ai');
+  } else if(type==='crlv'){
+    if(data.placa){
+      const pl=data.placa.replace(/[^A-Z0-9]/gi,'').toUpperCase();
+      const p1=document.getElementById('f_pl1');
+      if(p1&&!p1.value)setField('f_pl1',pl,'ai');
+      else setField('f_pl2',pl,'ai');
+    }
+    if(data.modelo)setField('f_vei',data.modelo,'ai');
+  }
+  upd();
+}
+
+/* ═══════════ SET FIELD ═════════════════════════════════════════════════════ */
+function setField(id,val,source){
+  const el=document.getElementById(id);
+  if(!el||val===undefined||val===null||val==='')return;
+  el.value=val;
+  const bid='b_'+id.replace(/^f_/,'');
+  badge(bid,source||'ai');
+  upd();
+}
+
+/* ═══════════ PARSE NF REGEX ════════════════════════════════════════════════ */
+function parseNF_regex(text){
+  if(!text)return;
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  const cnpjAll=[...text.matchAll(/\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/g)].map(m=>m[0]);
+
+  /* Varre todos os CNPJs e acha qual pertence a uma loja Max Atacadista */
+  let lojaCod=null, lojaCnpj='', empresaCnpj='';
+  for(const c of cnpjAll){
+    const num=c.replace(/\D/g,'');
+    const cod=CNPJ_TO_LOJA[num];
+    if(cod&&!lojaCod){lojaCod=cod;lojaCnpj=c;}
+    else if(!empresaCnpj&&c!==lojaCnpj){empresaCnpj=c;}
+  }
+  if(!lojaCnpj&&cnpjAll.length>1){lojaCnpj=cnpjAll[1];empresaCnpj=cnpjAll[0];}
+  else if(!empresaCnpj&&cnpjAll[0]&&cnpjAll[0]!==lojaCnpj){empresaCnpj=cnpjAll[0];}
+
+  /* Empresa emitente (fornecedor): CNPJ + tenta extrair razão social próxima ao CNPJ */
+  if(empresaCnpj){
+    document.getElementById('f_cnpj').value=empresaCnpj;badge('b_cnpj','ai');
+    /* Tenta pegar o nome da empresa próximo ao CNPJ no texto */
+    const idx=text.indexOf(empresaCnpj);
+    if(idx>0){
+      const before=text.slice(Math.max(0,idx-200),idx);
+      const nm=before.match(/([A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇa-záàâãéêíóôõúüç0-9\s&\.\/\-]{4,60}?)\s*$/);
+      if(nm&&nm[1]&&nm[1].trim().length>4){
+        document.getElementById('f_emp').value=nm[1].trim();badge('b_emp','ai');
+      }
+    }
+  }
+
+  /* Loja Max Atacadista */
+  if(lojaCod){
+    selectLoja(lojaCod,'ai');
+  } else if(lojaCnpj){
+    const alreadySelected=document.getElementById('storeSearch').value.trim();
+    if(!alreadySelected){
+      document.getElementById('f_loja_cnpj').value=lojaCnpj;
+      const cidadeM=text.match(/([A-ZÀ-Ú][a-zà-ú A-ZÀ-Ú]{3,})\s*\/\s*([A-Z]{2})\s*\n\s*(\d{5}-\d{3})/);
+      if(cidadeM){const el=document.getElementById('f_loja_end');if(el&&!el.value)el.value=`${cidadeM[1].trim()}, ${cidadeM[2]}, CEP ${cidadeM[3]}`;}
+    }
+  }
+  const nfNumM=text.match(/(?:N[º°o]\s*\.?\s*|NÚMERO\s*[:\s])(\d{6,9})/i);
+  const dataM=text.match(/(\d{2}\/\d{2}\/\d{4})/);
+  const prodLines=[];
+  let inProd=false;
+  for(const ln of lines){
+    if(/DESCRI[ÇC][AÃ]O\s*DO\s*PRODUTO|DADOS\s*DO\s*PRODUTO/i.test(ln)){inProd=true;continue;}
+    if(inProd){
+      if(/^\d+\s/.test(ln)){const desc=ln.replace(/^\d+\s+/,'').split(/\s{2,}/)[0].trim();if(desc.length>3)prodLines.push(desc);if(prodLines.length>=8)break;}
+      else if(/TOTAL|VALOR\s+TOTAL|FATURA/i.test(ln)){break;}
+    }
+  }
+  if(prodLines.length){
+    if(!mercs.length||!mercs[0].desc){mercs=[];mid=0;}
+    prodLines.forEach(d=>addMerc(d.toUpperCase(),'',(nfNumM&&nfNumM[1])||'',(dataM&&dataM[1])||''));
+    badge('b_mercs','ai');
+  }
+  upd();
+}
+
+/* ═══════════ PARSE CNH REGEX (multi-estado) ════════════════════════════════ */
+function parseCNH_regex(text){
+  if(!text)return;
+  let nome='';
+  const nomePatterns=[
+    /(?:2\s*e\s*1\s+NOME\s+E\s+SOBRENOME)[^\n]*\n([A-ZÀÁÂÃÉÊÍÓÔÕÚÜÇ ]{5,})/,
+    /(?:1\s*[-–]?\s*NOME\s*(?:E\s*SOBRENOME)?|NOME\s+COMPLETO)[^\n]*\n([A-ZÀÁÂÃÉÊÍÓÔÕÚÜÇ ]{5,})/,
+    /\bNOME\b[:\s]*\n([A-ZÀÁÂÃÉÊÍÓÔÕÚÜÇ ]{5,})/,
+    /^([A-ZÀÁÂÃÉÊÍÓÔÕÚÜÇ]{2}[A-ZÀÁÂÃÉÊÍÓÔÕÚÜÇ ]{4,})\n[\s\S]{0,80}?\d{3}\.\d{3}\.\d{3}-\d{2}/m
+  ];
+  for(const p of nomePatterns){const m=text.match(p);if(m&&m[1]&&m[1].trim().split(/\s+/).length>=2){nome=m[1].trim();break;}}
+  const cpfM=text.match(/(\d{3}[\.\s]?\d{3}[\.\s]?\d{3}[\-\s]?\d{2})/);
+  let cpf='';
+  if(cpfM){const d=cpfM[1].replace(/\D/g,'');if(d.length===11)cpf=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9);}
+  let rg='';
+  const rgPatterns=[
+    /(?:4[ab]?\s+DOC\.?\s*(?:IDENTIDADE|IDENT\.?)[^\n]*\n?|RG\s*[:\n]\s*)([0-9][0-9\.\-\/X]{4,14})/i,
+    /(?:REGISTRO\s*(?:GERAL|DE\s*IDENTIDADE))\s*[:\n]\s*([0-9][0-9\.\-\/X]{4,14})/i,
+    /\b(\d{6,10})\s+(?:SSP|PC|PM|IFP|DETRAN|IIRGD)\w{0,4}/,
+    /\bRG\b[^\n]*?(\d[\d\.\-]{5,12})/i
+  ];
+  for(const p of rgPatterns){const m=text.match(p);if(m&&m[1]){rg=m[1].trim();break;}}
+  if(nome)setField('f_mot',nome,'ai');
+  if(cpf) setField('f_cpf',cpf,'ai');
+  if(rg)  setField('f_rg',rg,'ai');
+  upd();
+}
+
+/* ═══════════ PARSE CRLV REGEX ══════════════════════════════════════════════ */
+function parseCRLV_regex(text){
+  if(!text)return;
+  const placaM=text.match(/\b([A-Z]{3}[\s\-]?[0-9][A-Z0-9][0-9]{2})\b/i)||text.match(/\b([A-Z]{3}[\s\-]?[0-9]{4})\b/i);
+  const modeloM=text.match(/(?:MARCA[\/\s]+MODELO|MODELO)[:\s\n]+([^\n]{3,50})/i);
+  if(placaM){const pl=placaM[1].replace(/[\s\-]/g,'').toUpperCase();const p1=document.getElementById('f_pl1');if(p1&&!p1.value)setField('f_pl1',pl,'ai');else setField('f_pl2',pl,'ai');}
+  if(modeloM)setField('f_vei',modeloM[1].trim(),'ai');
+  upd();
+}
+
+/* ═══════════ CLEAR ALL ═════════════════════════════════════════════════════ */
+function clearAll(){
+  ['f_emp','f_cnpj','f_loja_nm','f_loja_cnpj','f_loja_end','f_mot','f_rg','f_cpf','f_pl1','f_pl2','f_vei','f_data','f_obs']
+  .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('storeSearch').value='';
+  document.querySelectorAll('.field-badge').forEach(b=>{b.style.display='none';b.textContent='';});
+  mercs=[];mid=0;addMerc();
+  ['upNF','upCNH','upCRLV'].forEach(id=>setZone(id,'',''));
+  const nfLbl=document.getElementById('upNF-label');if(nfLbl)nfLbl.innerHTML='NF-e<br>da Loja';
+  const crlvLbl=document.getElementById('upCRLV-label');if(crlvLbl)crlvLbl.innerHTML='CRLV<br>Veículo/Reboque';
+  setMsg('');
+  upd();
+}
+
+/* ═══════════ MOBILE DOT SYNC ═══════════════════════════════════════════════ */
+function syncMobDot(){
+  const d=document.getElementById('mobConnDot');
+  const src=document.getElementById('connDot');
+  if(d&&src){const cls=src.className;d.style.background=cls.includes('on')?'#22c55e':cls.includes('off')?'#e31e24':'#555';}
+}
+
+/* ═══════════ MOBILE SWITCH ═════════════════════════════════════════════════ */
+function mobSwitch(tab){
+  const fp=document.querySelector('.fp');
+  const pp=document.getElementById('ppPanel');
+  document.querySelectorAll('.mob-tab').forEach(t=>t.classList.remove('active'));
+  const ids={form:'mtForm',prev:'mtPrev',pdf:'mtPrint'};
+  const act=document.getElementById(ids[tab]);
+  if(act)act.classList.add('active');
+  if(tab==='form'){
+    fp.classList.remove('mob-hide');
+    pp.classList.remove('mob-show');
+  } else if(tab==='prev'){
+    fp.classList.add('mob-hide');
+    pp.classList.add('mob-show');
+    setTimeout(scaleDoc,50);
+  }
+}
+
+/* sem segundo init — o IIFE acima já inicializa tudo */
+</script>
+</body>
+</html>
