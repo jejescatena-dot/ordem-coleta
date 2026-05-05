@@ -1,0 +1,1965 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastro com Prazo – Max Atacadista</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* ===== THEME OVERRIDES ===== */
+html[data-theme="dark"] body{background:#0a0a14;color:#f0f0f5}
+html[data-theme="dark"] .stepper-wrap{background:#0f0f1e;border-bottom-color:rgba(255,255,255,.08)}
+html[data-theme="dark"] .step-circle{background:#1a1a2e;border-color:#2a2a40;color:#666}
+html[data-theme="dark"] .step-line{background:#2a2a40}
+html[data-theme="dark"] .card{background:#13131f;box-shadow:0 1px 4px rgba(0,0,0,.4);color:#f0f0f5}
+html[data-theme="dark"] .card-header{border-bottom-color:rgba(255,255,255,.08)}
+html[data-theme="dark"] .card-header h2{color:#f0f0f5}
+html[data-theme="dark"] .card-header p{color:rgba(240,240,245,.5)}
+html[data-theme="dark"] .field label{color:rgba(240,240,245,.65)}
+html[data-theme="dark"] .field input,html[data-theme="dark"] .field select,html[data-theme="dark"] .field textarea{background:#1a1a2e;border-color:#2a2a40;color:#f0f0f5}
+html[data-theme="dark"] .field input:focus,html[data-theme="dark"] .field select:focus{background:#202035;border-color:#c8102e}
+html[data-theme="dark"] .field input::placeholder,html[data-theme="dark"] .field textarea::placeholder{color:rgba(240,240,245,.3)}
+html[data-theme="dark"] .hint{color:rgba(240,240,245,.4)}
+html[data-theme="dark"] .guide-step{background:#1a1a2e;border-color:#2a2a40}
+html[data-theme="dark"] .guide-step .gs-text{color:rgba(240,240,245,.75)}
+html[data-theme="dark"] .guide-step .gs-text strong{color:#f0f0f5}
+html[data-theme="dark"] .summary-box,html[data-theme="dark"] .summary-row{background:#1a1a2e;border-color:#2a2a40;color:#f0f0f5}
+html[data-theme="dark"] .sec-body{background:#13131f}
+html[data-theme="dark"] #chkFixedBar{background:rgba(15,15,30,.97);border-bottom-color:rgba(255,255,255,.08)}
+html[data-theme="dark"] #chkBarMsg,html[data-theme="dark"] #chkBarCount{color:rgba(240,240,245,.7)}
+html[data-theme="dark"] #chkBarWrap{background:#2a2a40}
+html[data-theme="dark"] .check-item{background:#1a1a2e;border-color:#2a2a40;color:#f0f0f5}
+html[data-theme="dark"] .doc-item{background:#1a1a2e;border-color:#2a2a40;color:#f0f0f5}
+html[data-theme="dark"] .upload-zone{background:#1a1a2e;border-color:#2a2a40;color:rgba(240,240,245,.7)}
+html[data-theme="dark"] .file-chip{background:#2a2a40;color:#f0f0f5}
+html[data-theme="dark"] .dyn-table thead th{background:#1a1a2e;color:rgba(240,240,245,.7);border-color:#2a2a40}
+html[data-theme="dark"] .dyn-table tbody td{border-color:#2a2a40}
+html[data-theme="dark"] .dyn-table input{background:#1a1a2e;border-color:#2a2a40;color:#f0f0f5}
+html[data-theme="dark"] .btn-outline{background:transparent;color:#ff5f63;border-color:#c8102e}
+html[data-theme="dark"] .btn-gray{background:#2a2a40;color:#f0f0f5}
+html[data-theme="dark"] .alert-blue{background:rgba(59,130,246,.12);color:#a8c8ff}
+html[data-theme="dark"] .alert-yellow{background:rgba(245,158,11,.12);color:#ffd58a}
+html[data-theme="dark"] .alert-green{background:rgba(34,197,94,.12);color:#86efac}
+html[data-theme="dark"] .alert-red{background:rgba(227,30,36,.12);color:#fca5a5}
+html[data-theme="dark"] .loading-card{background:#13131f;color:#f0f0f5}
+html[data-theme="dark"] .step-item .step-label,html[data-theme="dark"] .step-item .step-hint{color:rgba(240,240,245,.4)}
+html[data-theme="dark"] .stepper{color:#f0f0f5}
+html[data-theme="dark"] .site-guide{background:#1a1a2e;border-color:#2a2a40}
+html[data-theme="dark"] .site-guide-url{background:#13131f;border-color:#2a2a40;color:#f0f0f5}
+html[data-theme="dark"] .completion-banner,html[data-theme="dark"] .alert{color:#f0f0f5}
+/* Theme toggle */
+.theme-toggle{display:inline-flex;align-items:center;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:3px;gap:2px;flex-shrink:0;margin-left:auto}
+.theme-toggle button{background:transparent;border:none;cursor:pointer;width:30px;height:26px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;color:rgba(255,255,255,.7);transition:color .2s;padding:0}
+.theme-toggle button:hover{color:#fff}
+.theme-toggle button.active{background:#fff;color:#c8102e}
+.theme-toggle button svg{width:14px;height:14px}
+</style>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-size:14px}
+
+/* ===== HEADER ===== */
+.site-header{background:#c8102e;color:#fff;padding:14px 28px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,.2);position:sticky;top:0;z-index:100}
+.logo-box{background:#fff;border-radius:6px;padding:3px 10px;font-weight:900;font-size:18px;color:#c8102e;letter-spacing:1px;flex-shrink:0}
+.header-text h1{font-size:16px;font-weight:700}
+.header-text p{font-size:11px;opacity:.85;margin-top:1px}
+
+/* ===== STEPPER ===== */
+.stepper-wrap{background:#fff;border-bottom:1px solid #e8e8e8;padding:18px 28px}
+.stepper{display:flex;align-items:center;max-width:900px;margin:0 auto}
+.step-item{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;position:relative;cursor:pointer;user-select:none}
+.step-circle{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;border:2.5px solid #ddd;background:#fff;color:#bbb;transition:all .25s}
+.step-label{font-size:11px;font-weight:600;color:#bbb;text-align:center;transition:color .25s;letter-spacing:.2px}
+.step-hint{font-size:10px;color:#bbb;text-align:center;transition:opacity .25s;opacity:0;letter-spacing:.2px}
+.step-line{flex:1;height:3px;background:#e0e0e0;margin:0 4px;margin-bottom:20px;transition:background .35s;max-width:120px}
+.step-item.active .step-circle{background:#c8102e;border-color:#c8102e;color:#fff;box-shadow:0 0 0 4px rgba(200,16,46,.15)}
+.step-item.active .step-label{color:#c8102e}
+.step-item.active{cursor:default}
+.step-item.done .step-circle{background:#43a047;border-color:#43a047;color:#fff}
+.step-item.done .step-label{color:#43a047}
+.step-item.done .step-hint{color:#43a047}
+.step-item.done~.step-line,.step-line.done{background:#43a047}
+.step-item:not(.active):hover .step-circle{transform:scale(1.1);box-shadow:0 0 0 4px rgba(200,16,46,.12)}
+.step-item:not(.active):hover .step-hint{opacity:1}
+.step-item.done:hover .step-circle{box-shadow:0 0 0 4px rgba(67,160,71,.2)}
+
+/* ===== CONTAINER ===== */
+.container{max-width:900px;margin:28px auto 100px;padding:0 16px}
+
+/* ===== PHASE PANEL ===== */
+.phase{display:none}
+.phase.active{display:block}
+
+/* ===== CARDS ===== */
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:18px;overflow:hidden}
+.card-header{padding:12px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f0f0f0}
+.card-header .ch-icon{font-size:20px}
+.card-header h2{font-size:14px;font-weight:700;color:#222}
+.card-header p{font-size:12px;color:#888;margin-top:2px}
+.card-body{padding:20px}
+
+/* ===== PHASE INTRO BANNER ===== */
+.phase-banner{background:linear-gradient(135deg,#c8102e 0%,#9b0d22 100%);color:#fff;border-radius:12px;padding:22px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+.phase-banner .pb-num{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;flex-shrink:0}
+.phase-banner h2{font-size:18px;font-weight:800;margin-bottom:4px}
+.phase-banner p{font-size:13px;opacity:.9;line-height:1.5}
+
+/* ===== FIELDS ===== */
+.field-grid{display:grid;gap:14px 16px}
+.col-2{grid-template-columns:1fr 1fr}
+.col-3{grid-template-columns:1fr 1fr 1fr}
+.col-4{grid-template-columns:1fr 1fr 1fr 1fr}
+.field label{display:block;font-size:11px;font-weight:700;color:#555;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px}
+.field label .req{color:#c8102e;margin-left:2px}
+.field input,.field select,.field textarea{width:100%;border:1.5px solid #ddd;border-radius:7px;padding:9px 11px;font-size:13px;color:#222;background:#fafafa;outline:none;transition:border-color .2s,box-shadow .2s}
+.field input:focus,.field select:focus{border-color:#c8102e;box-shadow:0 0 0 3px rgba(200,16,46,.1);background:#fff}
+.field input.invalid,.field select.invalid{border-color:#e53935;background:#fff5f5}
+.field .err{color:#e53935;font-size:11px;margin-top:3px;display:none}
+.field input.invalid~.err,.field select.invalid~.err{display:block}
+.hint{font-size:11px;color:#999;margin-top:4px}
+
+/* ===== BUTTONS ===== */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .2s;text-decoration:none}
+.btn-red{background:#c8102e;color:#fff}
+.btn-red:hover{background:#a50d25}
+.btn-green{background:#2e7d32;color:#fff}
+.btn-green:hover{background:#1b5e20}
+.btn-outline{background:#fff;color:#c8102e;border:2px solid #c8102e}
+.btn-outline:hover{background:#fff0f3}
+.btn-gray{background:#f5f5f5;color:#555;border:1px solid #ddd}
+.btn-gray:hover{background:#ebebeb}
+.btn-blue{background:#1565c0;color:#fff}
+.btn-blue:hover{background:#0d47a1}
+.btn-lg{padding:14px 28px;font-size:15px;border-radius:10px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:6px}
+
+/* ===== SITE GUIDE ===== */
+.site-guide{border:2px solid #e3f2fd;border-radius:10px;background:#f8fcff;padding:16px}
+.site-guide-url{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid #bbdefb;border-radius:8px;padding:10px 14px;margin-bottom:14px}
+.site-guide-url .url-icon{font-size:20px;flex-shrink:0}
+.site-guide-url .url-text{font-size:12px;color:#1565c0;font-weight:600;word-break:break-all}
+.steps-guide{display:flex;flex-direction:column;gap:10px}
+.guide-step{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:#fff;border-radius:8px;border:1px solid #e8e8e8}
+.guide-step .gs-num{width:26px;height:26px;border-radius:50%;background:#c8102e;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.guide-step .gs-text{font-size:13px;color:#333;line-height:1.5}
+.guide-step .gs-text strong{color:#222}
+
+/* ===== PRE-ANALYSIS RESULT ===== */
+.result-options{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px}
+.result-card{border:2.5px solid #e0e0e0;border-radius:10px;padding:16px;cursor:pointer;transition:all .25s;text-align:center}
+.result-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.result-card.selected-ok{border-color:#43a047;background:#f1faf2}
+.result-card.selected-pending{border-color:#e65100;background:#fff8f0}
+.result-card.selected-fail{border-color:#e53935;background:#fff5f5}
+.result-card .rc-icon{font-size:36px;margin-bottom:8px}
+.result-card h3{font-size:14px;font-weight:700;margin-bottom:4px}
+.result-card p{font-size:12px;color:#666;line-height:1.4}
+
+/* ===== ALERT BOX ===== */
+.alert{border-radius:8px;padding:12px 16px;font-size:13px;line-height:1.5;display:flex;gap:10px;align-items:flex-start}
+.alert-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.alert-red{background:#fff5f5;border:1px solid #ffcdd2;color:#b71c1c}
+.alert-green{background:#f1faf2;border:1px solid #c8e6c9;color:#1b5e20}
+.alert-orange{background:#fff8f0;border:1px solid #ffcc80;color:#bf360c}
+.alert-blue{background:#e8f4fd;border:1px solid #bbdefb;color:#0d47a1}
+.alert-yellow{background:#fffde7;border:1px solid #fff176;color:#5d4037}
+
+/* ===== DOCUMENT REQUEST LIST ===== */
+.doc-list{display:flex;flex-direction:column;gap:8px}
+.doc-item{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-radius:8px;border:1.5px solid #e8e8e8;background:#fafafa}
+.doc-item .di-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.doc-item .di-text{flex:1}
+.doc-item .di-text strong{font-size:13px;color:#222;display:block;margin-bottom:2px}
+.doc-item .di-text span{font-size:12px;color:#666}
+.doc-item.conditional{border-color:#ffe082;background:#fffde7}
+
+/* ===== BARRA FIXA DE PROGRESSO ===== */
+#chkFixedBar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:2px solid #e8e8e8;box-shadow:0 -2px 12px rgba(0,0,0,.1);padding:10px 24px;z-index:200;display:none;align-items:center;gap:14px;transition:background .4s,border-color .4s}
+#chkFixedBar.bar-complete{background:#f1faf2;border-top-color:#43a047}
+#chkFixedBar.bar-complete #chkBarMsg{color:#2e7d32}
+#chkBarIcon{font-size:20px;flex-shrink:0}
+#chkBarMsg{font-size:12px;font-weight:700;color:#555;white-space:nowrap;flex-shrink:0}
+#chkBarWrap{flex:1;background:#e8e8e8;border-radius:99px;height:10px;overflow:hidden;min-width:60px}
+#chkBarFill{height:100%;border-radius:99px;background:#c8102e;width:0%;transition:width .4s,background .4s}
+#chkFixedBar.bar-complete #chkBarFill{background:#43a047}
+#chkBarCount{font-size:13px;font-weight:800;color:#555;flex-shrink:0;min-width:40px;text-align:right}
+#chkFixedBar.bar-complete #chkBarCount{color:#2e7d32}
+#chkBarSuccess{font-size:12px;font-weight:700;color:#2e7d32;display:none;white-space:nowrap}
+#chkFixedBar.bar-complete #chkBarSuccess{display:block}
+#chkFixedBar.bar-complete #chkBarMsg{display:none}
+@media print{#chkFixedBar{display:none!important}}
+
+/* ===== WHATSAPP PREVIEW ===== */
+.wa-preview{background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:10px;padding:14px;font-family:'Segoe UI',sans-serif;font-size:13px;line-height:1.6;color:#1b5e20;white-space:pre-wrap;word-break:break-word;max-height:260px;overflow-y:auto}
+
+/* ===== CHECKLIST (Phase 3) ===== */
+.checklist{display:flex;flex-direction:column;gap:10px}
+.chk-group-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:#888;margin-top:12px;margin-bottom:0;padding:0 4px;border-left:3px solid #c8102e;padding-left:8px}
+.chk-group-label:first-child{margin-top:0}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-radius:8px;border:1.5px solid #e8e8e8;background:#fafafa;transition:border-color .3s,background .3s}
+.check-item.manual{cursor:pointer}
+.check-item.manual:hover{border-color:#1565c0;background:#f0f4ff}
+.check-item.checked{border-color:#43a047!important;background:#f1faf2!important}
+.check-item input[type=checkbox]{width:18px;height:18px;accent-color:#43a047;margin-top:2px;flex-shrink:0}
+.check-item.auto input[type=checkbox]{pointer-events:none}
+.check-body{flex:1}
+.check-text{font-size:13px;color:#333;display:block}
+.check-text strong{color:#222}
+.check-badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;margin-left:6px;vertical-align:middle;text-transform:uppercase;letter-spacing:.4px}
+.badge-auto{background:#e3f2fd;color:#1565c0}
+.badge-manual{background:#fff3e0;color:#e65100}
+.badge-form{background:#e8f5e9;color:#2e7d32}
+.check-status{font-size:11px;margin-top:3px;color:#aaa;transition:color .3s}
+.check-item.checked .check-status{color:#43a047}
+
+/* ===== DYNAMIC TABLES ===== */
+.dyn-table{width:100%;border-collapse:collapse;margin-bottom:10px}
+.dyn-table thead th{background:#f5f5f5;border:1px solid #e0e0e0;padding:7px 10px;font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.3px;text-align:left}
+.dyn-table tbody td{border:1px solid #e8e8e8;padding:5px}
+.dyn-table tbody td input,.dyn-table tbody td select{width:100%;border:1.5px solid #ddd;border-radius:5px;padding:6px 8px;font-size:12px;background:#fafafa;outline:none;transition:border-color .2s}
+.dyn-table tbody td input:focus{border-color:#c8102e;background:#fff}
+.dyn-table tbody td input.invalid{border-color:#e53935;background:#fff5f5}
+.td-btn{width:32px;text-align:center}
+.btn-remove{background:none;border:none;cursor:pointer;color:#bbb;font-size:18px;transition:color .2s;padding:2px}
+.btn-remove:hover{color:#e53935}
+.btn-add{background:none;border:1.5px dashed #c8102e;color:#c8102e;font-size:12px;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;transition:background .2s}
+.btn-add:hover{background:#fff0f3}
+
+/* ===== UPLOAD ===== */
+.upload-zone{border:2px dashed #ddd;border-radius:8px;padding:16px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;background:#fafafa}
+.upload-zone:hover{border-color:#c8102e;background:#fff5f7}
+.upload-zone input[type=file]{display:none}
+.upload-zone .uz-icon{font-size:26px;margin-bottom:5px}
+.upload-zone .uz-label{font-size:13px;color:#666}
+.upload-zone .uz-hint{font-size:11px;color:#aaa;margin-top:3px}
+.upload-zone.has-files{border-color:#43a047;background:#f1faf2}
+.upload-zone.missing{border-color:#e53935!important;background:#fff5f5!important}
+.file-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.file-chip{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #e0e0e0;border-radius:20px;padding:4px 10px 4px 8px;font-size:12px;color:#333}
+.file-chip .chip-remove{background:none;border:none;cursor:pointer;color:#bbb;font-size:14px;padding:0;margin-left:4px}
+.file-chip .chip-remove:hover{color:#e53935}
+
+/* ===== PROGRESS BAR ===== */
+.prog-wrap{background:#f0f0f0;height:6px;border-radius:99px;overflow:hidden;margin-top:6px}
+.prog-fill{height:100%;background:#c8102e;border-radius:99px;transition:width .4s}
+
+/* ===== SUMMARY BOX ===== */
+.summary-box{background:#f8f9fa;border:1px solid #e0e0e0;border-radius:8px;padding:12px 16px}
+.summary-box .sb-row{display:flex;gap:8px;padding:4px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.summary-box .sb-row:last-child{border-bottom:none}
+.summary-box .sb-label{color:#888;font-weight:600;font-size:11px;text-transform:uppercase;min-width:130px}
+.summary-box .sb-val{color:#222;font-weight:500}
+
+/* ===== LOADING OVERLAY ===== */
+#loadingOverlay{display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.65);flex-direction:column;align-items:center;justify-content:center}
+#loadingOverlay.show{display:flex}
+.loading-card{background:#fff;border-radius:14px;padding:32px 40px;text-align:center;min-width:300px;box-shadow:0 8px 40px rgba(0,0,0,.3)}
+.spinner{width:44px;height:44px;border:4px solid #f0f0f0;border-top-color:#c8102e;border-radius:50%;margin:0 auto 16px;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-steps{margin-top:14px;text-align:left}
+.loading-step{display:flex;align-items:center;gap:8px;font-size:12px;color:#888;padding:3px 0;transition:color .3s}
+.loading-step.done{color:#2e7d32}
+.loading-step.active{color:#c8102e;font-weight:600}
+.loading-step .si{font-size:14px;width:20px;text-align:center}
+.prog-steps{width:100%;height:4px;background:#f0f0f0;border-radius:99px;margin-top:14px;overflow:hidden}
+.prog-steps-fill{height:100%;background:#c8102e;border-radius:99px;width:0%;transition:width .5s}
+
+/* ===== TOAST ===== */
+#toast{position:fixed;bottom:24px;right:24px;background:#323232;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:transform .3s,opacity .3s;z-index:9999;max-width:360px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.success{background:#2e7d32}
+#toast.error{background:#c62828}
+
+/* ===== SECTION HEADER (fase 3) ===== */
+.sec-header{background:#c8102e;color:#fff;padding:10px 20px;font-size:13px;font-weight:700;letter-spacing:.4px;display:flex;align-items:center;gap:8px}
+.sec-body{padding:18px 20px}
+
+/* ===== CHECKBOX INLINE ===== */
+.cb-group{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.cb-group label{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
+.cb-group input[type=checkbox]{width:16px;height:16px;accent-color:#c8102e}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:640px){
+  .col-2,.col-3,.col-4{grid-template-columns:1fr}
+  .result-options{grid-template-columns:1fr}
+  .stepper{gap:0}
+  .step-label{font-size:10px}
+}
+
+/* ===== PRINT ===== */
+@media print{
+  @page{size:A4;margin:8mm 10mm}
+  body{background:#fff}
+  .site-header,.stepper-wrap,.btn-row,.btn,.submit-area,#toast,#loadingOverlay,.upload-zone,.file-preview,.checklist,.phase-banner,.alert,.wa-preview,#chkFixedBar{display:none!important}
+  .container{max-width:100%;margin:0;padding:0}
+  .card{box-shadow:none;border:1px solid #ccc;margin-bottom:6px;break-inside:avoid}
+  .sec-header{padding:5px 10px;font-size:8pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sec-body{padding:8px 10px}
+  .field label{font-size:7pt}
+  .field input,.field select{border:none;border-bottom:1px solid #999;border-radius:0;padding:2px;font-size:9pt;background:transparent!important}
+  .dyn-table thead th{font-size:7pt;padding:3px 5px}
+  .dyn-table tbody td input{border:none;border-bottom:1px solid #999;border-radius:0;font-size:8pt;background:transparent!important}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <a href="index.html" style="color:#fff;text-decoration:none;font-size:13px;font-weight:600;opacity:.85;display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:6px;background:rgba(255,255,255,.1);transition:all .2s;flex-shrink:0" onmouseover="this.style.opacity=1;this.style.background='rgba(255,255,255,.18)'" onmouseout="this.style.opacity=.85;this.style.background='rgba(255,255,255,.1)'">← Portal</a>
+  <div style="width:1px;height:36px;background:rgba(255,255,255,.3);flex-shrink:0"></div>
+  <div style="display:flex;flex-direction:column;line-height:1.1;flex-shrink:0">
+    <span style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-1px">Credi<span style="font-weight:900">FF</span>ato</span>
+    <span style="font-size:9px;color:rgba(255,255,255,.65);letter-spacing:2px;text-transform:uppercase;margin-top:3px;font-weight:700">GRUPO MUFFATO</span>
+  </div>
+  <div style="width:1px;height:36px;background:rgba(255,255,255,.3);flex-shrink:0"></div>
+  <div class="header-text">
+    <h1>Central de Crédito e Cadastro</h1>
+    <p>Televendas · Grupo Muffato</p>
+  </div>
+</header>
+
+<!-- STEPPER -->
+<div class="stepper-wrap" id="stepperWrap" style="display:none">
+  <div class="stepper">
+    <div class="step-item" id="si1" onclick="jumpToPhase(1)">
+      <div class="step-circle">1</div>
+      <div class="step-label">Pré-Análise</div>
+      <div class="step-hint">Ir para Fase 1</div>
+    </div>
+    <div class="step-line" id="sl1"></div>
+    <div class="step-item" id="si2" onclick="jumpToPhase(2)">
+      <div class="step-circle">2</div>
+      <div class="step-label">Solicitar Documentos</div>
+      <div class="step-hint">Ir para Fase 2</div>
+    </div>
+    <div class="step-line" id="sl2"></div>
+    <div class="step-item" id="si3" onclick="jumpToPhase(3)">
+      <div class="step-circle">3</div>
+      <div class="step-label">Verificação e Envio</div>
+      <div class="step-hint">Ir para Fase 3</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ╔══════════════════════════════════════╗
+     ║  FASE 0 – SELEÇÃO DE FLUXO         ║
+     ╚══════════════════════════════════════╝ -->
+<div class="phase active" id="phase0">
+
+  <div class="phase-banner" style="background:linear-gradient(135deg,#1a237e 0%,#283593 100%)">
+    <div style="flex-shrink:0;line-height:1.1">
+      <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-1px">Credi<span style="font-weight:900">FF</span>ato</div>
+      <div style="font-size:9px;color:rgba(255,255,255,.6);letter-spacing:2px;text-transform:uppercase;margin-top:4px;font-weight:700">GRUPO MUFFATO</div>
+    </div>
+    <div style="width:1px;height:40px;background:rgba(255,255,255,.25);flex-shrink:0"></div>
+    <div>
+      <h2 style="font-size:17px;font-weight:800;margin-bottom:4px">Central de Crédito e Cadastro</h2>
+      <p style="font-size:13px;opacity:.9">Selecione abaixo a situação do cliente para seguir o fluxo correto.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">❓</span>
+      <div><h2>Qual é a situação do cliente?</h2><p>Escolha uma opção para iniciar o processo correto</p></div>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+        <div class="result-card" onclick="selectFlow('novo')" style="cursor:pointer">
+          <div class="rc-icon">🆕</div>
+          <h3 style="color:#1565c0">Novo Cadastro com Prazo</h3>
+          <p>Cliente sem cadastro de prazo. Inicia pré-análise e cadastro completo no Crediffato.</p>
+        </div>
+
+        <div class="result-card" onclick="selectFlow('aumento')" style="cursor:pointer">
+          <div class="rc-icon">📈</div>
+          <h3 style="color:#2e7d32">Aumento de Limite</h3>
+          <p>Cliente já cadastrado e ativo. Solicita revisão para um limite de crédito maior.</p>
+        </div>
+
+        <div class="result-card" onclick="selectFlow('reativacao')" style="cursor:pointer">
+          <div class="rc-icon">🔄</div>
+          <h3 style="color:#e65100">Reativação de Prazo</h3>
+          <p>Cliente com cadastro inativo. Precisa de reativação pelo suporte do Crediffato.</p>
+        </div>
+
+        <div class="result-card" onclick="selectFlow('vista')" style="cursor:pointer">
+          <div class="rc-icon">🛒</div>
+          <h3 style="color:#6a1b9a">Cadastro à Vista</h3>
+          <p>Novo cliente para compras à vista (PF ou PJ). Solicitação via chat do Crediffato.</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div><!-- /phase0 -->
+
+
+<!-- ╔══════════════════════════════════════╗
+     ║  FASE 1 – PRÉ-ANÁLISE DE CRÉDITO   ║
+     ╚══════════════════════════════════════╝ -->
+<div class="phase" id="phase1">
+
+  <div class="phase-banner">
+    <div class="pb-num">1</div>
+    <div>
+      <h2>Pré-Análise de Crédito</h2>
+      <p>Antes de solicitar documentos ao cliente, verifique se ele passa pela pré-análise. Isso evita retrabalho caso o crédito não seja aprovado.</p>
+    </div>
+  </div>
+
+  <!-- Dados básicos do cliente -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">🏢</span>
+      <div>
+        <h2>Dados Básicos do Cliente</h2>
+        <p>Consulte o CNPJ na Receita Federal e copie os dados para preencher abaixo</p>
+      </div>
+    </div>
+    <div class="card-body">
+
+      <!-- Banner Receita Federal -->
+      <div class="site-guide" style="margin-bottom:18px;border-color:#c8e6c9;background:#f1fdf3">
+        <div class="site-guide-url" style="border-color:#a5d6a7">
+          <span class="url-icon">🏛️</span>
+          <div>
+            <div style="font-size:10px;color:#888;margin-bottom:2px">CONSULTA CNPJ – RECEITA FEDERAL</div>
+            <div class="url-text" style="color:#2e7d32;font-size:11px">solucoes.receita.fazenda.gov.br/servicos/cnpjreva/cnpjreva_solicitacao.asp</div>
+          </div>
+          <a href="https://solucoes.receita.fazenda.gov.br/servicos/cnpjreva/cnpjreva_solicitacao.asp" target="_blank" class="btn btn-green" style="margin-left:auto;flex-shrink:0;white-space:nowrap">🔍 Consultar CNPJ</a>
+        </div>
+        <p style="font-size:12px;color:#444;margin-top:10px;line-height:1.6">
+          1. Abra o site acima e digite o CNPJ do cliente.<br>
+          2. Copie a <strong>Razão Social</strong> e a <strong>Data de Abertura</strong> exatamente como aparecem no resultado.<br>
+          3. Cole nos campos abaixo.
+        </p>
+      </div>
+
+      <!-- CNPJ + Data de Abertura -->
+      <div class="field-grid col-2" style="margin-bottom:14px">
+        <div class="field">
+          <label>CNPJ <span class="req">*</span></label>
+          <input type="text" id="f1_cnpj" placeholder="00.000.000/0000-00" maxlength="18">
+          <div class="err">Campo obrigatório</div>
+        </div>
+        <div class="field">
+          <label>Data de Abertura <span class="req">*</span></label>
+          <input type="date" id="f1_dataAbertura" onchange="verificarIdadeEmpresa()">
+          <p class="hint">ℹ️ Copie do resultado da consulta na Receita Federal</p>
+          <div class="err">Campo obrigatório</div>
+        </div>
+      </div>
+
+      <!-- Alerta empresa < 1 ano -->
+      <div id="alert_jovem" style="display:none;margin-bottom:14px">
+        <div class="alert alert-red">
+          <span class="alert-icon">🚫</span>
+          <div><strong>Empresa com menos de 1 ano de abertura.</strong> O cadastro de solicitação de prazo só pode ser realizado por empresas com mais de 1 ano. Este cliente não pode prosseguir com a solicitação de crédito no momento.</div>
+        </div>
+      </div>
+
+      <!-- Razão Social + aviso documento -->
+      <div class="field-grid col-2" style="margin-bottom:14px">
+        <div class="field">
+          <label>Razão Social <span class="req">*</span></label>
+          <input type="text" id="f1_razao" placeholder="Copie do site da Receita Federal">
+          <p class="hint">ℹ️ Copie exatamente como aparece na Receita Federal</p>
+          <div class="err">Campo obrigatório</div>
+        </div>
+        <div>
+          <div class="alert alert-blue" style="height:100%;align-items:flex-start">
+            <span class="alert-icon">🪪</span>
+            <div style="font-size:12px;line-height:1.6"><strong>Documento do sócio solicitante:</strong> verifique se o sócio que está fazendo a solicitação está com <strong>CNH ou RG</strong> em mãos — em PDF ou foto (imagem). O vendedor precisará anexar esse documento diretamente no site Crediffato.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filial / Limite / Vendedor / E-mail -->
+      <div class="field-grid col-2" style="margin-bottom:14px">
+        <div class="field">
+          <label>Filial de Atendimento <span class="req">*</span></label>
+          <select id="f1_filial">
+            <option value="">Selecione a loja...</option>
+            <option>1025 - Debret</option><option>1037 - Max Tiradentes</option><option>1050 - Max Eldorado Prudente</option><option>1057 - Max Floresta</option><option>1060 - Max Apucarana</option><option>1065 - Colombo</option><option>1066 - Max São Cristóvão</option><option>1067 - Max Paranaguá</option><option>1070 - Max Linha Verde</option><option>1073 - Potirendaba</option><option>1075 - Max Bairro Alto</option><option>1076 - Max Campo Comprido</option><option>1079 - Max São José</option><option>1084 - Max Zona Norte SJRP</option><option>1085 - Max Arapongas</option><option>1086 - Max Foz BR 277</option><option>1089 - Max Pinhais</option><option>1090 - Max FRG</option><option>1091 - Max Araucária</option><option>1092 - Max Chapada Ponta Grossa</option><option>1093 - Max Rolandia</option><option>1094 - Max Tito Muffato</option><option>1097 - Max Catanduva</option><option>1102 - Max Toledo</option><option>1104 - Max Bela Vista</option><option>1105 - Max Guanabara</option><option>1106 - Max Ourinhos</option><option>1107 - Max Fernandópolis</option><option>1109 - Max Beltao</option><option>1110 - Max Cambé</option><option>1111 - Max Colombo RMC</option><option>1112 - Max Medianeira</option><option>1113 - Campo Largo</option><option>1114 - Max Cianorte</option><option>1116 - Max Jardim Carvalho</option><option>1118 - Max Sorocaba Ipanema</option><option>1120 - Max Marechal</option><option>1122 - Max Hauer</option><option>1123 - Max Pioneiros</option><option>1126 - Max Taubaté</option><option>1127 - Max Sorocaba Norte</option><option>1128 - Max São José dos Campos</option><option>1129 - Max Lapa</option><option>1130 - Max Eldorado Rio Preto</option><option>1131 - Max Santo André</option><option>1132 - Max Votorantin</option><option>1133 - Max Guarulhos</option><option>1134 - Max Piracicaba</option><option>1135 - Max Cedral</option><option>1136 - Max Interlagos</option><option>1137 - Max Butantã</option><option>1138 - Max Marília</option><option>1139 - Max Mogi</option><option>1140 - Max São Bernardo</option><option>1141 - Max Campinas</option><option>1142 - Max Assis</option><option>1144 - Max JK Foz</option><option>1145 - Max João Bettega</option><option>1146 - Max Oficinas</option><option>1148 - Max Jaçanã (Manuel Gaya)</option><option>1149 - Max Morumbi (Giovanni Gronchi)</option><option>1150 - Max Safira</option><option>1151 - Max Olímpia</option><option>1152 - Max Castro</option><option>1153 - Max Torres</option><option>1154 - Max Votuporanga</option><option>1155 - Max Guaíra</option><option>1156 - Max Sarandi</option><option>1157 - Max Umuarama</option><option>1158 - Max Marília Norte</option>
+          </select>
+          <div class="err">Selecione a filial</div>
+        </div>
+        <div class="field">
+          <label>Limite Solicitado (R$)</label>
+          <input type="text" id="f1_limite" placeholder="R$ 0,00">
+          <p class="hint">ℹ️ Acima de R$ 45.000 exige DRE e Balancete</p>
+        </div>
+      </div>
+      <div class="field-grid col-2">
+        <div class="field">
+          <label>Vendedor Responsável</label>
+          <input type="text" id="f1_vendedor" placeholder="Seu nome">
+        </div>
+        <div class="field">
+          <label>E-mail do Vendedor</label>
+          <input type="email" id="f1_email_vendedor" placeholder="seu.email@muffato.com.br">
+          <p class="hint">ℹ️ Será incluído na mensagem do WhatsApp para o cliente enviar documentos</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Guia passo a passo do site -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">🌐</span>
+      <div>
+        <h2>Acesse o Site de Pré-Análise</h2>
+        <p>Siga os passos abaixo para lançar a pré-proposta no Crediffato</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="site-guide">
+        <div class="site-guide-url">
+          <span class="url-icon">🔗</span>
+          <div>
+            <div style="font-size:10px;color:#888;margin-bottom:2px">SITE DE PRÉ-ANÁLISE DE CRÉDITO</div>
+            <div class="url-text">crediffato.onboarding.smilego.io/app/captacao/propostas/home</div>
+          </div>
+          <a href="https://crediffato.onboarding.smilego.io/app/captacao/propostas/home" target="_blank" class="btn btn-blue" style="margin-left:auto;flex-shrink:0">🚀 Abrir Site</a>
+        </div>
+        <div class="steps-guide">
+          <div class="guide-step">
+            <div class="gs-num">1</div>
+            <div class="gs-text"><strong>Clique no botão "+" (seta verde)</strong> localizado no canto inferior direito da tela para iniciar uma nova pré-proposta.</div>
+          </div>
+          <div class="guide-step">
+            <div class="gs-num">2</div>
+            <div class="gs-text"><strong>Preencha os Dados da Empresa:</strong> Razão Social, Nome Fantasia, CNPJ, Inscrição Estadual e Data de Abertura da empresa.</div>
+          </div>
+          <div class="guide-step">
+            <div class="gs-num">3</div>
+            <div class="gs-text"><strong>Preencha os Dados do Solicitante</strong> (seção "Solicitante"): Nome completo, CPF e Data de Nascimento do responsável pela empresa.</div>
+          </div>
+          <div class="guide-step">
+            <div class="gs-num">4</div>
+            <div class="gs-text"><strong>Assine os Termos de Uso e Política de Privacidade:</strong> clique no botão <strong>"Assinar"</strong> e faça a assinatura com o mouse na tela. <em>O próprio vendedor pode assinar.</em></div>
+          </div>
+          <div class="guide-step">
+            <div class="gs-num">5</div>
+            <div class="gs-text"><strong>Volte à lista de pré-propostas</strong> e localize o cliente. O status aparecerá ao lado do nome — pode ser <em>Aguardando Preenchimento</em>, <em>Em Análise</em> ou <em>Recusado</em>.</div>
+          </div>
+          <div class="guide-step">
+            <div class="gs-num">6</div>
+            <div class="gs-text"><strong>Informe o resultado abaixo</strong> para prosseguir ou encerrar o processo.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resultado da pré-análise -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">📊</span>
+      <div>
+        <h2>Resultado da Pré-Análise</h2>
+        <p>Qual foi o status retornado no site após enviar a pré-proposta?</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="result-options" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="result-card" id="rc_ok" onclick="selectResult('ok')">
+          <div class="rc-icon">✅</div>
+          <h3 style="color:#2e7d32">Aguardando Preenchimento</h3>
+          <p>Pré-análise aprovada. O cliente pode prosseguir com a solicitação de crédito.</p>
+        </div>
+        <div class="result-card" id="rc_pending" onclick="selectResult('pending')">
+          <div class="rc-icon">⏳</div>
+          <h3 style="color:#e65100">Em Análise</h3>
+          <p>Documentos enviados. Aguarde a atualização — prazo de 24 a 48 horas úteis.</p>
+        </div>
+        <div class="result-card" id="rc_fail" onclick="selectResult('fail')">
+          <div class="rc-icon">❌</div>
+          <h3 style="color:#c62828">Recusado</h3>
+          <p>O cliente não passou pela pré-análise. Não é necessário coletar documentos. Nova tentativa após <strong>21 dias</strong>.</p>
+        </div>
+      </div>
+
+      <div id="alert_fail" style="display:none;margin-top:14px">
+        <div class="alert alert-red">
+          <span class="alert-icon">🚫</span>
+          <div><strong>Cadastro não prosseguirá.</strong> O cliente não atende aos critérios de pré-análise de crédito. Não solicite documentos ao cliente — isso evita desgaste desnecessário e retrabalho para a equipe.<br><br>⏳ <strong>Nova tentativa:</strong> uma nova análise poderá ser realizada após <strong>21 dias</strong> da data desta consulta.</div>
+        </div>
+      </div>
+
+      <div id="alert_pending" style="display:none;margin-top:14px">
+        <div class="alert alert-orange">
+          <span class="alert-icon">⏳</span>
+          <div><strong>Documentos enviados para análise.</strong> Aguarde a atualização do resultado — o prazo habitual é de <strong>24 a 48 horas úteis</strong>. Retorne ao site Crediffato após esse período para verificar o novo status.</div>
+        </div>
+      </div>
+
+      <div id="alert_ok" style="display:none;margin-top:14px">
+        <div class="alert alert-green">
+          <span class="alert-icon">🎉</span>
+          <div><strong>Pré-análise aprovada!</strong> O cliente tem potencial de crédito. Agora você pode solicitar a documentação completa e avançar para a próxima fase.</div>
+        </div>
+      </div>
+
+      <div id="phase1_nav" style="display:none;margin-top:18px">
+        <div class="btn-row">
+          <button class="btn btn-green btn-lg" onclick="goToPhase(2)">
+            Avançar para Solicitar Documentos →
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /phase1 -->
+
+
+<!-- ╔══════════════════════════════════════════╗
+     ║  FASE 2 – SOLICITAR DOCUMENTOS          ║
+     ╚══════════════════════════════════════════╝ -->
+<div class="phase" id="phase2">
+
+  <div class="phase-banner">
+    <div class="pb-num">2</div>
+    <div>
+      <h2>Solicitar Documentos ao Cliente</h2>
+      <p>A pré-análise foi aprovada. Use a mensagem abaixo para orientar o cliente sobre o que precisa entregar.</p>
+    </div>
+  </div>
+
+  <!-- Resumo do cliente -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">🧾</span>
+      <div><h2>Resumo da Solicitação</h2><p>Dados registrados na Fase 1</p></div>
+    </div>
+    <div class="card-body">
+      <div class="summary-box" id="p2_summary"></div>
+    </div>
+  </div>
+
+  <!-- Lista de documentos a solicitar -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">📋</span>
+      <div><h2>Documentos e Informações a Solicitar</h2><p>Tudo que o cliente precisa trazer ou enviar</p></div>
+    </div>
+    <div class="card-body">
+      <div class="doc-list">
+        <div class="doc-item">
+          <span class="di-icon">📄</span>
+          <div class="di-text">
+            <strong>Ficha Cadastral preenchida, assinada e carimbada</strong>
+            <span>Pelo responsável legal da empresa. Use o botão abaixo para gerar o PDF em branco da ficha.</span>
+          </div>
+        </div>
+        <div class="doc-item">
+          <span class="di-icon">👥</span>
+          <div class="di-text">
+            <strong>Nome completo e telefone dos responsáveis pelas compras</strong>
+            <span>Todas as pessoas que realizarão pedidos na loja, com cargo e e-mail.</span>
+          </div>
+        </div>
+        <div class="doc-item">
+          <span class="di-icon">🤝</span>
+          <div class="di-text">
+            <strong>Nome completo e telefone dos sócios</strong>
+            <span>Conforme consta no Contrato Social.</span>
+          </div>
+        </div>
+        <div class="doc-item">
+          <span class="di-icon">📑</span>
+          <div class="di-text">
+            <strong>Foto do Contrato Social – todas as páginas</strong>
+            <span>Se houver alteração contratual, enviar também. Todas as páginas legíveis.</span>
+          </div>
+        </div>
+        <div class="doc-item">
+          <span class="di-icon">🪪</span>
+          <div class="di-text">
+            <strong>Foto do documento dos sócios – CNH ou RG (frente e verso)</strong>
+            <span>Dentro do prazo de validade. Um documento por sócio.</span>
+          </div>
+        </div>
+        <div class="doc-item">
+          <span class="di-icon">📊</span>
+          <div class="di-text">
+            <strong>Declaração de Faturamento</strong>
+            <span>Assinada e carimbada pelo contador responsável pela empresa.</span>
+          </div>
+        </div>
+        <div class="doc-item conditional" id="doc_dre" style="display:none">
+          <span class="di-icon">📈</span>
+          <div class="di-text">
+            <strong>⚠️ DRE e Balancete dos últimos 2 anos</strong>
+            <span>Obrigatório pois o limite solicitado é superior a R$ 45.000. Deve ser fornecido pelo contador.</span>
+          </div>
+        </div>
+        <div class="doc-item">
+          <span class="di-icon">🏦</span>
+          <div class="di-text">
+            <strong>3 referências comerciais e dados bancários</strong>
+            <span>Nome das empresas, contato e telefone. Banco, agência e conta corrente.</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px" class="btn-row"></div>
+    </div>
+  </div>
+
+  <!-- Mensagem WhatsApp -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">💬</span>
+      <div><h2>Mensagem Pronta para WhatsApp</h2><p>Copie e envie ao cliente ou responsável pela empresa</p></div>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-blue" style="margin-bottom:14px">
+        <span class="alert-icon">ℹ️</span>
+        <span>A mensagem é gerada automaticamente com os dados do cliente. Copie e cole no WhatsApp.</span>
+      </div>
+      <div class="wa-preview" id="wa_msg"></div>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn btn-green" onclick="copiarMensagem()">📋 Copiar Mensagem</button>
+        <button class="btn btn-outline" onclick="abrirWhatsApp()">📱 Abrir WhatsApp Web</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navegação -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">📬</span>
+      <div><h2>Documentos Recebidos?</h2><p>Avance para a próxima fase somente quando tiver todos os documentos em mãos</p></div>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-yellow" style="margin-bottom:16px">
+        <span class="alert-icon">⏳</span>
+        <div>Aguarde o cliente enviar todos os documentos listados acima antes de prosseguir. Na próxima fase você vai verificar se está tudo completo.</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-gray" onclick="goToPhase(1)">← Voltar</button>
+        <button class="btn btn-green btn-lg" onclick="goToPhase(3)">Recebi os documentos – Verificar e Enviar →</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /phase2 -->
+
+
+<!-- ╔═══════════════════════════════════════════════╗
+     ║  FASE 3 – VERIFICAÇÃO, FICHA E ENVIO        ║
+     ╚═══════════════════════════════════════════════╝ -->
+<div class="phase" id="phase3">
+
+  <div class="phase-banner">
+    <div class="pb-num">3</div>
+    <div>
+      <h2>Verificação — Pronto para o Crediffato?</h2>
+      <p>Confirme cada item abaixo antes de abrir o Crediffato. Quando todos estiverem verdes, o cadastro pode ser feito.</p>
+    </div>
+  </div>
+
+  <!-- ── Checklist de conformidade ── -->
+  <div class="card">
+    <div class="sec-header"><span>✅</span> CHECKLIST DE CONFORMIDADE</div>
+    <div class="sec-body">
+      <p style="font-size:12px;color:#666;margin-bottom:14px">
+        Clique em cada item para confirmar. &nbsp;
+        <span style="background:#fff3e0;color:#e65100;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px">DIGITAR</span> dados a inserir no Crediffato. &nbsp;
+        <span style="background:#e3f2fd;color:#1565c0;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px">DOCUMENTO</span> arquivos a carregar no Crediffato. &nbsp;
+        <span style="background:#e8f5e9;color:#2e7d32;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px">FICHA</span> dados da Ficha Cadastral Muffato.
+      </p>
+      <div class="checklist">
+
+        <!-- ── GRUPO A: DADOS PARA O CREDIFFATO ── -->
+        <div class="chk-group-label">🌐 Passo 1 — Dados que o Vendedor vai Digitar no Crediffato</div>
+
+        <div class="check-item manual" id="chkC1" onclick="toggleCheck(this)">
+          <input type="checkbox" id="cbkC1">
+          <div class="check-body">
+            <span class="check-text"><strong>Atividade Primária (CNAE)</strong>, Regime Tributário e Faturamento mensal da empresa <span class="check-badge badge-manual">DIGITAR NO SITE</span></span>
+            <span class="check-status" id="stC1">Confirme ter coletado esses dados</span>
+          </div>
+        </div>
+
+        <div class="check-item manual" id="chkC2" onclick="toggleCheck(this)">
+          <input type="checkbox" id="cbkC2">
+          <div class="check-body">
+            <span class="check-text"><strong>Endereço completo da empresa</strong> + telefone: CEP, rua, número, bairro, cidade, UF e complemento <span class="check-badge badge-manual">DIGITAR NO SITE</span></span>
+            <span class="check-status" id="stC2">Confirme ter o endereço e telefone da empresa</span>
+          </div>
+        </div>
+
+        <div class="check-item manual" id="chkC3" onclick="toggleCheck(this)">
+          <input type="checkbox" id="cbkC3">
+          <div class="check-body">
+            <span class="check-text"><strong>Dados completos dos sócios:</strong> RG, Órgão Emissor, Data de Nascimento, cargo e telefone de cada sócio <span class="check-badge badge-manual">DIGITAR NO SITE</span></span>
+            <span class="check-status" id="stC3">Confirme ter os dados pessoais de todos os sócios</span>
+          </div>
+        </div>
+
+        <div class="check-item manual" id="chkC4" onclick="toggleCheck(this)">
+          <input type="checkbox" id="cbkC4">
+          <div class="check-body">
+            <span class="check-text"><strong>Dados do Solicitante:</strong> Sexo, RG, Órgão Emissor, Nome da Mãe, Profissão, Ocupação, Cargo, Renda, endereço pessoal e telefone <span class="check-badge badge-manual">DIGITAR NO SITE</span></span>
+            <span class="check-status" id="stC4">Confirme ter todos os dados pessoais do solicitante</span>
+          </div>
+        </div>
+
+        <div class="check-item manual" id="chkC5" onclick="toggleCheck(this)">
+          <input type="checkbox" id="cbkC5">
+          <div class="check-body">
+            <span class="check-text"><strong>Dia de vencimento</strong> do boleto e <strong>celular para receber o TAC</strong> definidos com o cliente <span class="check-badge badge-manual">DIGITAR NO SITE</span></span>
+            <span class="check-status" id="stC5">Confirme dia de vencimento e celular para TAC</span>
+          </div>
+        </div>
+
+        <div class="check-item manual" id="chkC6" onclick="toggleCheck(this)">
+          <input type="checkbox" id="cbkC6">
+          <div class="check-body">
+            <span class="check-text"><strong>Documento do solicitante em mãos:</strong> CNH ou RG em PDF ou foto — o vendedor precisará anexar no site Crediffato <span class="check-badge badge-auto">DOCUMENTO</span></span>
+            <span class="check-status" id="stC6">Confirme que o documento está disponível para anexar</span>
+          </div>
+        </div>
+
+        <!-- ── GRUPO B: DOCUMENTOS ── -->
+        <div class="chk-group-label">📎 Passo 2 — Documentos que o Vendedor vai Carregar no Crediffato</div>
+
+        <div class="check-item manual" id="chk2" onclick="toggleCheck(this)">
+          <input type="checkbox" id="cbk2">
+          <div class="check-body">
+            <span class="check-text"><strong>Contrato Social</strong> – todas as páginas e alterações <span class="check-badge badge-auto">DOCUMENTO</span></span>
+            <span class="check-status" id="st2">Confirme ter o Contrato Social em mãos</span>
+          </div>
+        </div>
+
+        <div class="check-item manual" id="chk3" onclick="toggleCheck(this)">
+          <input type="checkbox" id="cbk3">
+          <div class="check-body">
+            <span class="check-text"><strong>Documentos dos sócios</strong> – CNH ou RG frente e verso <span class="check-badge badge-auto">DOCUMENTO</span></span>
+            <span class="check-status" id="st3">Confirme ter os documentos dos sócios</span>
+          </div>
+        </div>
+
+        <div class="check-item manual" id="chk4" onclick="toggleCheck(this)">
+          <input type="checkbox" id="cbk4">
+          <div class="check-body">
+            <span class="check-text"><strong>Declaração de Faturamento</strong> assinada e carimbada pelo contador <span class="check-badge badge-auto">DOCUMENTO</span></span>
+            <span class="check-status" id="st4">Confirme ter a Declaração de Faturamento</span>
+          </div>
+        </div>
+
+        <div class="check-item manual" id="chkDRE" style="display:none" onclick="toggleCheck(this)">
+          <input type="checkbox" id="cbkDRE">
+          <div class="check-body">
+            <span class="check-text"><strong>DRE e Balancete – 2 anos</strong> (obrigatório pois limite &gt; R$ 45.000) <span class="check-badge badge-auto">DOCUMENTO</span></span>
+            <span class="check-status" id="stDRE">Confirme ter DRE e Balancete dos últimos 2 anos</span>
+          </div>
+        </div>
+
+        <!-- ── GRUPO C: FICHA MUFFATO ── -->
+        <div class="chk-group-label">📋 Passo 3 — Ficha Cadastral Muffato (impressa, assinada e carimbada)</div>
+
+        <div class="check-item manual" id="chk1" onclick="toggleCheck(this)">
+          <input type="checkbox" id="cbk1">
+          <div class="check-body">
+            <span class="check-text"><strong>Ficha Cadastral</strong> impressa, assinada e carimbada pelo responsável <span class="check-badge badge-manual">FICHA</span></span>
+            <span class="check-status" id="st1">Confirme após receber a ficha assinada</span>
+          </div>
+        </div>
+
+        <div class="check-item auto" id="chk5">
+          <input type="checkbox" id="cbk5">
+          <div class="check-body">
+            <span class="check-text"><strong>Filial</strong> onde serão realizadas as compras <span class="check-badge badge-form">FICHA</span></span>
+            <span class="check-status" id="st5">Selecione a filial na Fase 1</span>
+          </div>
+        </div>
+
+        <div class="check-item manual" id="chk6" onclick="toggleCheck(this)">
+          <input type="checkbox" id="cbk6">
+          <div class="check-body">
+            <span class="check-text"><strong>3 referências comerciais</strong> – empresa, contato e telefone de cada <span class="check-badge badge-manual">FICHA</span></span>
+            <span class="check-status" id="st6">Confirme ter 3 referências comerciais</span>
+          </div>
+        </div>
+
+        <div class="check-item manual" id="chk7" onclick="toggleCheck(this)">
+          <input type="checkbox" id="cbk7">
+          <div class="check-body">
+            <span class="check-text"><strong>Responsáveis pelas compras</strong> – nome, cargo, telefone e e-mail <span class="check-badge badge-manual">FICHA</span></span>
+            <span class="check-status" id="st7">Confirme ter os dados dos responsáveis pelas compras</span>
+          </div>
+        </div>
+
+        <div class="check-item manual" id="chk8" onclick="toggleCheck(this)">
+          <input type="checkbox" id="cbk8">
+          <div class="check-body">
+            <span class="check-text"><strong>Dados dos sócios</strong> – nome, CPF e telefone de todos os sócios <span class="check-badge badge-manual">FICHA</span></span>
+            <span class="check-status" id="st8">Confirme ter os dados de todos os sócios</span>
+          </div>
+        </div>
+
+      </div>
+      <!-- Progresso inline -->
+      <div style="margin-top:14px;display:flex;align-items:center;gap:10px">
+        <div class="prog-wrap" style="flex:1"><div class="prog-fill" id="chkProgBar" style="width:0%"></div></div>
+        <span id="chkProgPct" style="font-size:12px;font-weight:700;color:#555;min-width:40px">0/14</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Ação final ── -->
+  <div class="card">
+    <div class="sec-body">
+      <div class="alert alert-blue" id="alertAguarda" style="margin-bottom:16px">
+        <span class="alert-icon">⏳</span>
+        <div>Complete todos os itens do checklist acima para liberar o acesso ao Crediffato.</div>
+      </div>
+      <div class="alert" id="alertPronto" style="display:none;margin-bottom:16px;background:#f1faf2;border:1.5px solid #a5d6a7">
+        <span class="alert-icon">🎉</span>
+        <div style="color:#1b5e20"><strong>Tudo certo!</strong> Você tem todas as informações e documentos necessários. Acesse o Crediffato agora para fazer o cadastro.</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-gray" onclick="goToPhase(2)">← Voltar</button>
+        <a class="btn btn-red btn-lg" id="btnCrediffato" href="https://crediffato.muffato.com.br" target="_blank">🌐 Acessar Crediffato</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /phase3 -->
+
+
+<!-- ╔══════════════════════════════════════════╗
+     ║  FASE A – AUMENTO DE LIMITE             ║
+     ╚══════════════════════════════════════════╝ -->
+<div class="phase" id="phaseA">
+
+  <div class="phase-banner" style="background:linear-gradient(135deg,#2e7d32 0%,#1b5e20 100%)">
+    <div class="pb-num">📈</div>
+    <div>
+      <h2>Solicitação de Aumento de Limite</h2>
+      <p>Preencha os dados do cliente para gerar o e-mail de solicitação ao time de cadastro.</p>
+    </div>
+  </div>
+
+  <!-- Dados do cliente -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">🏢</span>
+      <div><h2>Dados do Cliente</h2><p>Preencha para gerar o e-mail automaticamente</p></div>
+    </div>
+    <div class="card-body">
+      <div class="field-grid col-2" style="margin-bottom:14px">
+        <div class="field">
+          <label>Razão Social <span class="req">*</span></label>
+          <input type="text" id="fa_razao" placeholder="Razão Social da empresa" oninput="gerarEmailAumento()">
+        </div>
+        <div class="field">
+          <label>CNPJ <span class="req">*</span></label>
+          <input type="text" id="fa_cnpj" placeholder="00.000.000/0000-00" maxlength="18" oninput="gerarEmailAumento()">
+        </div>
+      </div>
+      <div class="field-grid col-2" style="margin-bottom:14px">
+        <div class="field">
+          <label>Filial de Atendimento <span class="req">*</span></label>
+          <select id="fa_filial" onchange="gerarEmailAumento()">
+            <option value="">Selecione a loja...</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Vendedor Responsável</label>
+          <input type="text" id="fa_vendedor" placeholder="Seu nome" oninput="gerarEmailAumento()">
+        </div>
+      </div>
+      <div class="field-grid col-2">
+        <div class="field">
+          <label>Limite Atual (R$) <span class="req">*</span></label>
+          <input type="text" id="fa_limiteAtual" placeholder="R$ 0,00" oninput="setTimeout(gerarEmailAumento,0)">
+        </div>
+        <div class="field">
+          <label>Novo Limite Almejado (R$) <span class="req">*</span></label>
+          <input type="text" id="fa_limiteNovo" placeholder="R$ 0,00" oninput="atualizarAumento()">
+          <p class="hint" id="fa_dre_hint" style="display:none;color:#e65100">⚠️ Acima de R$ 45.000 — DRE e Balancete obrigatórios</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Documentos necessários -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">📋</span>
+      <div><h2>Documentos a Solicitar ao Cliente</h2><p>Tenha esses documentos em mãos antes de enviar o e-mail</p></div>
+    </div>
+    <div class="card-body">
+      <div class="doc-list">
+        <div class="doc-item">
+          <span class="di-icon">🪪</span>
+          <div class="di-text">
+            <strong>Documento de 1 sócio</strong>
+            <span>CNH ou RG (frente e verso) de um dos sócios da empresa</span>
+          </div>
+        </div>
+        <div class="doc-item conditional" id="fa_doc_dre" style="display:none">
+          <span class="di-icon">📈</span>
+          <div class="di-text">
+            <strong>⚠️ DRE e Balancete dos últimos 2 anos</strong>
+            <span>Obrigatório pois o novo limite solicitado é superior a R$ 45.000. Deve ser fornecido pelo contador.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prévia do e-mail -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">✉️</span>
+      <div><h2>Prévia do E-mail para o Time de Cadastro</h2><p>Revise e copie antes de enviar para <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c3a0a2a7a2b0b7b1aca0afaaa6adb7a683aeb6a5a5a2b7aceda0acaeeda1b1">[email&#160;protected]</a></p></div>
+    </div>
+    <div class="card-body">
+
+      <div id="fa_emailEmpty" style="padding:24px;text-align:center;color:#aaa;font-size:13px;background:#f8f9fa;border-radius:8px;border:1.5px dashed #ddd">
+        ✏️ Preencha os campos acima para gerar o e-mail automaticamente
+      </div>
+
+      <div id="fa_emailPreview" style="display:none">
+        <div style="background:#f8f9fa;border:1.5px solid #e0e0e0;border-radius:10px;padding:18px;margin-bottom:14px;font-size:13px;line-height:1.7">
+          <div style="margin-bottom:6px;display:flex;align-items:center;gap:8px">
+            <strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;min-width:60px">PARA</strong>
+            <span style="color:#1565c0;font-weight:600"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="73101217120007011c101f1a161d0716331e06151512071c5d101c1e5d1101">[email&#160;protected]</a></span>
+          </div>
+          <div style="margin-bottom:12px;display:flex;align-items:flex-start;gap:8px">
+            <strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;min-width:60px;margin-top:2px">ASSUNTO</strong>
+            <span id="fa_emailSubject" style="font-weight:700;color:#222"></span>
+          </div>
+          <hr style="border:none;border-top:1.5px solid #e0e0e0;margin:10px 0">
+          <div id="fa_emailBody" style="white-space:pre-wrap;color:#333"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-green" onclick="copiarEmailAumento()">📋 Copiar E-mail</button>
+          <a class="btn btn-blue" id="fa_btnZimbra" href="https://webmail.muffato.com.br/" target="_blank">✉️ Acessar Email Zimbra</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="card">
+    <div class="card-body">
+      <div class="btn-row">
+        <button class="btn btn-gray" onclick="selectFlow('reset')">← Voltar ao início</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /phaseA -->
+
+
+<!-- ╔══════════════════════════════════════════╗
+     ║  FASE R – REATIVAÇÃO DE PRAZO           ║
+     ╚══════════════════════════════════════════╝ -->
+<div class="phase" id="phaseR">
+
+  <div class="phase-banner" style="background:linear-gradient(135deg,#e65100 0%,#bf360c 100%)">
+    <div class="pb-num">🔄</div>
+    <div>
+      <h2>Reativação de Prazo</h2>
+      <p>O cliente possui cadastro inativo. A reativação é feita diretamente pelo suporte do Crediffato.</p>
+    </div>
+  </div>
+
+  <!-- Dados para mensagem -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">📝</span>
+      <div><h2>Preencha os Dados</h2><p>Gera automaticamente o modelo de mensagem para o chat</p></div>
+    </div>
+    <div class="card-body">
+      <div class="field-grid col-2" style="margin-bottom:14px">
+        <div class="field">
+          <label>Razão Social <span class="req">*</span></label>
+          <input type="text" id="fr_razao" placeholder="Razão Social da empresa" oninput="gerarMsgReativacao()">
+        </div>
+        <div class="field">
+          <label>CNPJ <span class="req">*</span></label>
+          <input type="text" id="fr_cnpj" placeholder="00.000.000/0000-00" maxlength="18" oninput="gerarMsgReativacao()">
+        </div>
+      </div>
+      <div class="field-grid col-2" style="margin-bottom:14px">
+        <div class="field">
+          <label>Filial – Número e Nome <span class="req">*</span></label>
+          <select id="fr_filial" onchange="gerarMsgReativacao()">
+            <option value="">Selecione a loja...</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Nome do Vendedor <span class="req">*</span></label>
+          <input type="text" id="fr_vendedor" placeholder="Seu nome" oninput="gerarMsgReativacao()">
+        </div>
+      </div>
+      <div class="field-grid col-2">
+        <div class="field">
+          <label>Limite que aparece no cadastro do cliente (R$)</label>
+          <input type="text" id="fr_limite" placeholder="R$ 0,00" oninput="setTimeout(gerarMsgReativacao,0)">
+          <p class="hint">ℹ️ Informe o valor exibido no sistema para o time de suporte identificar o cadastro</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat + modelo de mensagem -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">💬</span>
+      <div><h2>Enviar pelo Chat de Atendimento Crediffato</h2><p>Copie o modelo e cole no chat</p></div>
+    </div>
+    <div class="card-body">
+
+      <div class="alert alert-orange" style="margin-bottom:18px">
+        <span class="alert-icon">ℹ️</span>
+        <div>A reativação é feita pelo suporte do Crediffato via chat — o retorno costuma ser em <strong>até 10 minutos</strong>. Copie o modelo, cole no chat e aguarde. Caso a liberação não seja aprovada, uma nova tentativa pode ser feita após <strong>21 dias</strong>.</div>
+      </div>
+
+      <div class="site-guide" style="margin-bottom:16px">
+        <div class="site-guide-url" style="border-color:#ffcc80;background:#fff8f0">
+          <span class="url-icon">💬</span>
+          <div>
+            <div style="font-size:10px;color:#888;margin-bottom:2px">CHAT DE ATENDIMENTO – CREDIFFATO</div>
+            <div class="url-text" style="color:#e65100">conteudo.smartnx.com/crediffato-atendimento-as-lojas</div>
+          </div>
+          <a href="https://conteudo.smartnx.com/crediffato-atendimento-as-lojas" target="_blank" class="btn btn-red" style="margin-left:auto;flex-shrink:0;white-space:nowrap">💬 Abrir Chat</a>
+        </div>
+      </div>
+
+      <!-- Modelo de mensagem -->
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#888;margin-bottom:8px">MODELO DE MENSAGEM — copie e cole no chat</div>
+        <div id="fr_msgEmpty" style="padding:20px;text-align:center;color:#aaa;font-size:13px;background:#f8f9fa;border-radius:8px;border:1.5px dashed #ddd">
+          ✏️ Preencha os campos acima para gerar o modelo
+        </div>
+        <div id="fr_msgPreview" style="display:none">
+          <div class="wa-preview" id="fr_msgBody" style="background:#fff8f0;border-color:#ffcc80;color:#4e342e"></div>
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn btn-green" onclick="copiarMsgReativacao()">📋 Copiar Mensagem</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="card">
+    <div class="card-body">
+      <div class="btn-row">
+        <button class="btn btn-gray" onclick="selectFlow('reset')">← Voltar ao início</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /phaseR -->
+
+
+<!-- ╔══════════════════════════════════════════╗
+     ║  FASE V – CADASTRO À VISTA              ║
+     ╚══════════════════════════════════════════╝ -->
+<div class="phase" id="phaseV">
+
+  <div class="phase-banner" style="background:linear-gradient(135deg,#6a1b9a 0%,#4a148c 100%)">
+    <div class="pb-num">🛒</div>
+    <div>
+      <h2>Cadastro à Vista</h2>
+      <p>Cadastre um novo cliente para compras à vista. A solicitação é feita pelo chat do Crediffato.</p>
+    </div>
+  </div>
+
+  <!-- Tipo de cliente -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">👤</span>
+      <div><h2>Tipo de Cliente</h2><p>Selecione para carregar o formulário correto</p></div>
+    </div>
+    <div class="card-body">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+        <div class="result-card" id="fv_tipoPF" onclick="selecionarTipoVista('pf')" style="cursor:pointer">
+          <div class="rc-icon">👤</div>
+          <h3 style="color:#6a1b9a">Pessoa Física (CPF)</h3>
+          <p>Cliente individual com CPF</p>
+        </div>
+        <div class="result-card" id="fv_tipoPJ" onclick="selecionarTipoVista('pj')" style="cursor:pointer">
+          <div class="rc-icon">🏢</div>
+          <h3 style="color:#1565c0">Pessoa Jurídica (CNPJ)</h3>
+          <p>Empresa com CNPJ</p>
+        </div>
+      </div>
+
+      <!-- Formulário PF -->
+      <div id="fv_formPF" style="display:none">
+        <div class="field-grid col-2" style="margin-bottom:14px">
+          <div class="field">
+            <label>Filial de Atendimento <span class="req">*</span></label>
+            <select id="fv_filialPF" onchange="gerarMsgVistaPF()"><option value="">Selecione a loja...</option></select>
+          </div>
+          <div class="field">
+            <label>Vendedor Responsável</label>
+            <input type="text" id="fv_vendPF" placeholder="Seu nome" oninput="gerarMsgVistaPF()">
+          </div>
+        </div>
+        <div class="field-grid col-2" style="margin-bottom:14px">
+          <div class="field">
+            <label>Nome Completo <span class="req">*</span></label>
+            <input type="text" id="fv_nome" placeholder="Nome completo do cliente" oninput="gerarMsgVistaPF()">
+          </div>
+          <div class="field">
+            <label>CPF</label>
+            <input type="text" id="fv_cpf" placeholder="000.000.000-00" maxlength="14" oninput="gerarMsgVistaPF()">
+          </div>
+        </div>
+        <div class="field-grid col-3" style="margin-bottom:14px">
+          <div class="field">
+            <label>Endereço <span class="req">*</span></label>
+            <input type="text" id="fv_endereco" placeholder="Rua, número" oninput="gerarMsgVistaPF()">
+          </div>
+          <div class="field">
+            <label>Bairro <span class="req">*</span></label>
+            <input type="text" id="fv_bairro" placeholder="Bairro" oninput="gerarMsgVistaPF()">
+          </div>
+          <div class="field">
+            <label>CEP <span class="req">*</span></label>
+            <input type="text" id="fv_cep" placeholder="00000-000" maxlength="9" oninput="gerarMsgVistaPF()">
+          </div>
+        </div>
+        <div class="field-grid col-2" style="margin-bottom:14px">
+          <div class="field">
+            <label>Cidade <span class="req">*</span></label>
+            <input type="text" id="fv_cidade" placeholder="Cidade" oninput="gerarMsgVistaPF()">
+          </div>
+          <div class="field">
+            <label>Celular <span class="req">*</span></label>
+            <input type="text" id="fv_celPF" placeholder="(00) 00000-0000" maxlength="15" oninput="gerarMsgVistaPF()">
+          </div>
+        </div>
+        <div class="field">
+          <label>E-mail <span style="color:#999;font-size:10px;font-weight:400">(opcional)</span></label>
+          <input type="email" id="fv_emailPF" placeholder="email@cliente.com" oninput="gerarMsgVistaPF()">
+        </div>
+      </div>
+
+      <!-- Formulário PJ -->
+      <div id="fv_formPJ" style="display:none">
+        <div class="site-guide" style="margin-bottom:16px;border-color:#c8e6c9;background:#f1fdf3">
+          <div class="site-guide-url" style="border-color:#a5d6a7">
+            <span class="url-icon">🏛️</span>
+            <div>
+              <div style="font-size:10px;color:#888;margin-bottom:2px">CONSULTA CNPJ – RECEITA FEDERAL</div>
+              <div class="url-text" style="color:#2e7d32;font-size:11px">solucoes.receita.fazenda.gov.br</div>
+            </div>
+            <a href="https://solucoes.receita.fazenda.gov.br/servicos/cnpjreva/cnpjreva_solicitacao.asp" target="_blank" class="btn btn-green" style="margin-left:auto;flex-shrink:0;white-space:nowrap">🔍 Consultar CNPJ</a>
+          </div>
+        </div>
+        <div class="field-grid col-2" style="margin-bottom:14px">
+          <div class="field">
+            <label>Filial de Atendimento <span class="req">*</span></label>
+            <select id="fv_filialPJ" onchange="gerarMsgVistaPJ()"><option value="">Selecione a loja...</option></select>
+          </div>
+          <div class="field">
+            <label>Vendedor Responsável</label>
+            <input type="text" id="fv_vendPJ" placeholder="Seu nome" oninput="gerarMsgVistaPJ()">
+          </div>
+        </div>
+        <div class="field-grid col-2" style="margin-bottom:14px">
+          <div class="field">
+            <label>CNPJ <span class="req">*</span></label>
+            <input type="text" id="fv_cnpj" placeholder="00.000.000/0000-00" maxlength="18" oninput="gerarMsgVistaPJ()">
+          </div>
+          <div class="field">
+            <label>Razão Social <span class="req">*</span></label>
+            <input type="text" id="fv_razaoPJ" placeholder="Copie da Receita Federal" oninput="gerarMsgVistaPJ()">
+          </div>
+        </div>
+        <div class="field-grid col-2">
+          <div class="field">
+            <label>Celular <span class="req">*</span></label>
+            <input type="text" id="fv_celPJ" placeholder="(00) 00000-0000" maxlength="15" oninput="gerarMsgVistaPJ()">
+          </div>
+          <div class="field">
+            <label>E-mail <span style="color:#999;font-size:10px;font-weight:400">(opcional)</span></label>
+            <input type="email" id="fv_emailPJ" placeholder="email@empresa.com" oninput="gerarMsgVistaPJ()">
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Preview mensagem -->
+  <div class="card" id="fv_msgCard" style="display:none">
+    <div class="card-header">
+      <span class="ch-icon">💬</span>
+      <div><h2>Mensagem para o Chat Crediffato</h2><p>Copie e cole no chat para solicitar o cadastro</p></div>
+    </div>
+    <div class="card-body">
+      <div class="site-guide" style="margin-bottom:16px">
+        <div class="site-guide-url" style="border-color:#e1bee7;background:#f3e5f5">
+          <span class="url-icon">💬</span>
+          <div>
+            <div style="font-size:10px;color:#888;margin-bottom:2px">CHAT DE ATENDIMENTO – CREDIFFATO</div>
+            <div class="url-text" style="color:#6a1b9a">conteudo.smartnx.com/crediffato-atendimento-as-lojas</div>
+          </div>
+          <a href="https://conteudo.smartnx.com/crediffato-atendimento-as-lojas" target="_blank" class="btn" style="background:#6a1b9a;color:#fff;margin-left:auto;flex-shrink:0;white-space:nowrap">💬 Abrir Chat</a>
+        </div>
+      </div>
+      <div id="fv_msgEmpty" style="padding:20px;text-align:center;color:#aaa;font-size:13px;background:#f8f9fa;border-radius:8px;border:1.5px dashed #ddd">
+        ✏️ Preencha os dados acima para gerar a mensagem
+      </div>
+      <div id="fv_msgPreview" style="display:none">
+        <div class="wa-preview" id="fv_msgBody" style="background:#f3e5f5;border-color:#ce93d8;color:#4a148c"></div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-green" onclick="copiarMsgVista()">📋 Copiar Mensagem</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="card">
+    <div class="card-body">
+      <div class="btn-row">
+        <button class="btn btn-gray" onclick="selectFlow('reset')">← Voltar ao início</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /phaseV -->
+
+
+</div><!-- /container -->
+
+<!-- BARRA FIXA DE PROGRESSO DO CHECKLIST -->
+<div id="chkFixedBar">
+  <span id="chkBarIcon">📋</span>
+  <span id="chkBarMsg">Checklist Crediffato</span>
+  <span id="chkBarSuccess">✅ Tudo certo! Você já tem tudo para cadastrar no Crediffato.</span>
+  <div id="chkBarWrap"><div id="chkBarFill"></div></div>
+  <span id="chkBarCount">0/15</span>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay">
+  <div class="loading-card">
+    <div class="spinner"></div>
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:8px">Gerando pacote...</h3>
+    <p style="font-size:13px;color:#666">Aguarde alguns segundos</p>
+    <div class="loading-steps">
+      <div class="loading-step active" id="lstep1"><span class="si">📋</span> Gerando PDF da ficha em branco...</div>
+      <div class="loading-step" id="lstep2"><span class="si">📦</span> Compactando documentos...</div>
+      <div class="loading-step" id="lstep3"><span class="si">💾</span> Preparando download...</div>
+    </div>
+    <div class="prog-steps"><div class="prog-steps-fill" id="stepsBar"></div></div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ===== ESTADO GLOBAL =====
+let currentPhase = 0;
+const uploadedFiles = {};
+let _historyNav = false; // previne pushState duplo ao navegar via back/forward
+
+// ===== INICIALIZAR HISTÓRICO =====
+history.replaceState({nav:'phase0'}, '', location.href);
+
+// ===== BACK/FORWARD DO NAVEGADOR =====
+window.addEventListener('popstate', function(e){
+  if(!e.state || !e.state.nav) return;
+  _historyNav = true;
+  const nav = e.state.nav;
+  if(['novo','aumento','reativacao','vista'].includes(nav)) selectFlow(nav);
+  else if(nav === 'phase0') selectFlow('reset');
+  else if(nav.startsWith('fase')) _navToPhase(parseInt(nav.replace('fase','')));
+  _historyNav = false;
+});
+
+// ===== SELEÇÃO DE FLUXO (Phase 0) =====
+function selectFlow(type) {
+  if(!_historyNav) {
+    const key = type==='reset' ? 'phase0' : type;
+    history.pushState({nav:key}, '', '#'+key);
+  }
+  const stepperWrap = document.getElementById('stepperWrap');
+  const fixedBar    = document.getElementById('chkFixedBar');
+  document.querySelectorAll('.phase').forEach(p=>p.classList.remove('active'));
+  if(fixedBar) fixedBar.style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  if(type==='novo') {
+    document.getElementById('phase1').classList.add('active');
+    currentPhase=1;
+    if(stepperWrap){stepperWrap.style.display='';updateStepper(1);}
+  } else if(type==='aumento') {
+    document.getElementById('phaseA').classList.add('active');
+    currentPhase='A';
+    if(stepperWrap) stepperWrap.style.display='none';
+    const faFilial=document.getElementById('fa_filial');
+    const f1Filial=document.getElementById('f1_filial');
+    if(faFilial && f1Filial && faFilial.options.length<=1){
+      Array.from(f1Filial.options).slice(1).forEach(o=>faFilial.appendChild(o.cloneNode(true)));
+    }
+    gerarEmailAumento();
+  } else if(type==='reativacao') {
+    document.getElementById('phaseR').classList.add('active');
+    currentPhase='R';
+    if(stepperWrap) stepperWrap.style.display='none';
+    const frFilial=document.getElementById('fr_filial');
+    const f1FilialR=document.getElementById('f1_filial');
+    if(frFilial && f1FilialR && frFilial.options.length<=1){
+      Array.from(f1FilialR.options).slice(1).forEach(o=>frFilial.appendChild(o.cloneNode(true)));
+    }
+    gerarMsgReativacao();
+  } else if(type==='vista') {
+    document.getElementById('phaseV').classList.add('active');
+    currentPhase='V';
+    if(stepperWrap) stepperWrap.style.display='none';
+  } else { // reset / phase0
+    document.getElementById('phase0').classList.add('active');
+    currentPhase=0;
+    if(stepperWrap) stepperWrap.style.display='none';
+  }
+}
+
+// ===== CADASTRO À VISTA =====
+let tipoVistaAtual = null;
+
+function selecionarTipoVista(tipo){
+  tipoVistaAtual=tipo;
+  ['fv_tipoPF','fv_tipoPJ'].forEach(id=>document.getElementById(id).classList.remove('selected-ok'));
+  document.getElementById(tipo==='pf'?'fv_tipoPF':'fv_tipoPJ').classList.add('selected-ok');
+  document.getElementById('fv_formPF').style.display = tipo==='pf' ? 'block' : 'none';
+  document.getElementById('fv_formPJ').style.display = tipo==='pj' ? 'block' : 'none';
+  document.getElementById('fv_msgCard').style.display = 'block';
+  // Clone filiais
+  const f1=document.getElementById('f1_filial');
+  const selPF=document.getElementById('fv_filialPF');
+  const selPJ=document.getElementById('fv_filialPJ');
+  if(selPF && f1 && selPF.options.length<=1) Array.from(f1.options).slice(1).forEach(o=>selPF.appendChild(o.cloneNode(true)));
+  if(selPJ && f1 && selPJ.options.length<=1) Array.from(f1.options).slice(1).forEach(o=>selPJ.appendChild(o.cloneNode(true)));
+  if(tipo==='pf') gerarMsgVistaPF(); else gerarMsgVistaPJ();
+}
+
+function gerarMsgVistaPF(){
+  const filial  = document.getElementById('fv_filialPF').value;
+  const vend    = document.getElementById('fv_vendPF').value.trim();
+  const nome    = document.getElementById('fv_nome').value.trim();
+  const cpf     = document.getElementById('fv_cpf').value.trim();
+  const end     = document.getElementById('fv_endereco').value.trim();
+  const bairro  = document.getElementById('fv_bairro').value.trim();
+  const cidade  = document.getElementById('fv_cidade').value.trim();
+  const cep     = document.getElementById('fv_cep').value.trim();
+  const cel     = document.getElementById('fv_celPF').value.trim();
+  const email   = document.getElementById('fv_emailPF').value.trim();
+  if(!nome || !filial || !cel){
+    document.getElementById('fv_msgPreview').style.display='none';
+    document.getElementById('fv_msgEmpty').style.display='block';
+    return;
+  }
+  const endLine = [end, bairro, cidade, cep ? 'CEP: '+cep : ''].filter(Boolean).join(' – ');
+  const msg =
+`CADASTRO À VISTA – PESSOA FÍSICA
+Loja: ${filial}${vend ? '\nVendedor: '+vend : ''}
+
+Nome: ${nome}${cpf ? '\nCPF: '+cpf : ''}
+Endereço: ${endLine}
+Celular: ${cel}${email ? '\nE-mail: '+email : ''}
+
+Solicitação: Cadastro à vista – cliente PF.`;
+  document.getElementById('fv_msgBody').textContent=msg;
+  document.getElementById('fv_msgPreview').style.display='block';
+  document.getElementById('fv_msgEmpty').style.display='none';
+}
+
+function gerarMsgVistaPJ(){
+  const filial  = document.getElementById('fv_filialPJ').value;
+  const vend    = document.getElementById('fv_vendPJ').value.trim();
+  const cnpj    = document.getElementById('fv_cnpj').value.trim();
+  const razao   = document.getElementById('fv_razaoPJ').value.trim();
+  const cel     = document.getElementById('fv_celPJ').value.trim();
+  const email   = document.getElementById('fv_emailPJ').value.trim();
+  if(!cnpj || !filial || !cel){
+    document.getElementById('fv_msgPreview').style.display='none';
+    document.getElementById('fv_msgEmpty').style.display='block';
+    return;
+  }
+  const msg =
+`CADASTRO À VISTA – PESSOA JURÍDICA
+Loja: ${filial}${vend ? '\nVendedor: '+vend : ''}
+
+CNPJ: ${cnpj}${razao ? '\nRazão Social: '+razao : ''}
+Celular: ${cel}${email ? '\nE-mail: '+email : ''}
+
+Solicitação: Cadastro à vista – cliente PJ.`;
+  document.getElementById('fv_msgBody').textContent=msg;
+  document.getElementById('fv_msgPreview').style.display='block';
+  document.getElementById('fv_msgEmpty').style.display='none';
+}
+
+function copiarMsgVista(){
+  const txt=document.getElementById('fv_msgBody').textContent;
+  navigator.clipboard.writeText(txt)
+    .then(()=>showToast('✅ Mensagem copiada!','success'))
+    .catch(()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ Mensagem copiada!','success');});
+}
+
+// ===== AUMENTO DE LIMITE =====
+function atualizarAumento(){
+  // setTimeout(0) garante que a máscara de moeda (event bubbling no document)
+  // seja aplicada ANTES de lermos o valor para cálculo e geração do e-mail
+  setTimeout(()=>{
+    const novoVal=document.getElementById('fa_limiteNovo').value;
+    const limVal=parseFloat(novoVal.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+    const dre=limVal>45000;
+    document.getElementById('fa_doc_dre').style.display  = dre ? 'flex' : 'none';
+    document.getElementById('fa_dre_hint').style.display = dre ? 'block': 'none';
+    gerarEmailAumento();
+  },0);
+}
+
+function gerarEmailAumento(){
+  const razao     = document.getElementById('fa_razao').value.trim();
+  const cnpj      = document.getElementById('fa_cnpj').value.trim();
+  const filial    = document.getElementById('fa_filial').value;
+  const vend      = document.getElementById('fa_vendedor').value.trim();
+  const limAtual  = document.getElementById('fa_limiteAtual').value.trim();
+  const limNovo   = document.getElementById('fa_limiteNovo').value.trim();
+  const limVal    = parseFloat(limNovo.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  const dre       = limVal > 45000;
+
+  if(!razao || !cnpj || !filial || !limNovo){
+    document.getElementById('fa_emailPreview').style.display='none';
+    document.getElementById('fa_emailEmpty').style.display='block';
+    return;
+  }
+
+  const subject = `Aumento Limite loja "${filial}" cliente "${cnpj}" "${razao}" - ${limNovo}`;
+
+  const dreDoc = dre
+    ? '\n• DRE e Balancete dos últimos 2 anos (obrigatório – novo limite acima de R$ 45.000)\n'
+    : '';
+
+  const assinatura = vend
+    ? `\nAtenciosamente,\n${vend}\nGrupo Muffato – ${filial}`
+    : `\nAtenciosamente,\nEquipe Comercial\nGrupo Muffato – ${filial}`;
+
+  const body =
+`Prezado(a) Time de Cadastro,
+
+Solicito análise de aumento de limite de crédito para o cliente abaixo:
+
+──────────────────────────────
+DADOS DO CLIENTE
+──────────────────────────────
+• Razão Social: ${razao}
+• CNPJ: ${cnpj}
+• Filial: ${filial}
+• Limite Atual: ${limAtual || 'não informado'}
+• Novo Limite Solicitado: ${limNovo}
+──────────────────────────────
+
+DOCUMENTOS ANEXADOS A ESTE E-MAIL:
+• Documento de 1 sócio (CNH ou RG – frente e verso)${dreDoc}
+Por favor, confirmem o recebimento e nos retornem com o resultado da análise.
+
+Agradecemos a atenção.
+${assinatura}`;
+
+  document.getElementById('fa_emailSubject').textContent = subject;
+  document.getElementById('fa_emailBody').textContent    = body;
+
+  document.getElementById('fa_emailPreview').style.display = 'block';
+  document.getElementById('fa_emailEmpty').style.display   = 'none';
+}
+
+function copiarEmailAumento(){
+  const subj = document.getElementById('fa_emailSubject').textContent;
+  const body = document.getElementById('fa_emailBody').textContent;
+  const full = `PARA: cadastrocliente@muffato.com.br\nASSUNTO: ${subj}\n\n${body}`;
+  navigator.clipboard.writeText(full)
+    .then(()=>showToast('✅ E-mail copiado!','success'))
+    .catch(()=>{const ta=document.createElement('textarea');ta.value=full;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ E-mail copiado!','success');});
+}
+
+// ===== REATIVAÇÃO DE PRAZO =====
+function gerarMsgReativacao(){
+  const razao  = document.getElementById('fr_razao').value.trim();
+  const cnpj   = document.getElementById('fr_cnpj').value.trim();
+  const filial = document.getElementById('fr_filial').value;
+  const vend   = document.getElementById('fr_vendedor').value.trim();
+  const limite = document.getElementById('fr_limite').value.trim();
+
+  if(!razao || !cnpj || !filial || !vend){
+    document.getElementById('fr_msgPreview').style.display='none';
+    document.getElementById('fr_msgEmpty').style.display='block';
+    return;
+  }
+
+  const msg =
+`SOLICITAÇÃO TELEVENDAS LOJA
+Loja: ${filial}
+Vendedor: ${vend}
+
+CNPJ: ${cnpj}
+Razão Social: ${razao}${limite ? '\nLimite no cadastro: '+limite : ''}
+
+Assunto: Reativar o limite do cliente no televendas da loja.
+Prazo: 21 dias.`;
+
+  document.getElementById('fr_msgBody').textContent = msg;
+  document.getElementById('fr_msgPreview').style.display='block';
+  document.getElementById('fr_msgEmpty').style.display='none';
+}
+
+function copiarMsgReativacao(){
+  const txt = document.getElementById('fr_msgBody').textContent;
+  navigator.clipboard.writeText(txt)
+    .then(()=>showToast('✅ Mensagem copiada!','success'))
+    .catch(()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ Mensagem copiada!','success');});
+}
+
+// ===== NAVEGAÇÃO DIRETA (clique no stepper) =====
+function jumpToPhase(n) {
+  if(n === currentPhase) return; // já está aqui
+
+  const razao  = document.getElementById('f1_razao').value.trim();
+  const cnpj   = document.getElementById('f1_cnpj').value.trim();
+  const filial = document.getElementById('f1_filial').value;
+
+  // Para avançar às fases 2/3, exige pelo menos os dados básicos de identificação
+  if(n > 1 && (!razao || !cnpj || !filial)) {
+    ['f1_razao','f1_cnpj','f1_filial'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el.value.trim()) el.classList.add('invalid');
+      else el.classList.remove('invalid');
+    });
+    showToast('⚠️ Preencha Razão Social, CNPJ e Filial na Fase 1 para identificar o cliente.','error');
+    // Leva para fase 1 para preencher
+    _navToPhase(1);
+    return;
+  }
+
+  _navToPhase(n);
+  if(n > 1) showToast(`📌 Fase ${n} — continuando cadastro de ${razao||'cliente'}`, '');
+}
+
+// ===== NAVEGAÇÃO INTERNA (usada por goToPhase e jumpToPhase) =====
+function _navToPhase(n) {
+  if(!_historyNav) history.pushState({nav:'fase'+n}, '', '#fase'+n);
+  document.querySelectorAll('.phase').forEach(p=>p.classList.remove('active'));
+  document.getElementById('phase'+n).classList.add('active');
+  currentPhase = n;
+  updateStepper(n);
+  // Garante que o stepper esteja visível ao navegar pelas fases 1/2/3
+  const stepperWrap=document.getElementById('stepperWrap');
+  if(stepperWrap) stepperWrap.style.display='';
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(n===2) buildPhase2();
+  if(n===3) buildPhase3();
+  // Mostra/esconde barra fixa conforme a fase
+  const fixedBar=document.getElementById('chkFixedBar');
+  if(fixedBar) fixedBar.style.display = n===3 ? 'flex' : 'none';
+  if(n===3) updateChkProgress();
+}
+
+// ===== NAVEGAÇÃO ENTRE FASES (botões Próximo/Voltar — com validação completa) =====
+function goToPhase(n) {
+  // Validação antes de avançar da fase 1
+  if(n > 1 && currentPhase === 1) {
+    const razao  = document.getElementById('f1_razao').value.trim();
+    const cnpj   = document.getElementById('f1_cnpj').value.trim();
+    const filial = document.getElementById('f1_filial').value;
+    if(!razao||!cnpj||!filial) {
+      ['f1_razao','f1_cnpj','f1_filial'].forEach(id=>{
+        const el=document.getElementById(id);
+        if(!el.value.trim()) el.classList.add('invalid');
+        else el.classList.remove('invalid');
+      });
+      showToast('⚠️ Preencha Razão Social, CNPJ e Filial antes de avançar.','error');
+      return;
+    }
+    if(n === 2 && !document.getElementById('rc_ok').classList.contains('selected-ok')) {
+      showToast('⚠️ Selecione o resultado da pré-análise antes de avançar.','error');
+      return;
+    }
+  }
+
+  _navToPhase(n);
+}
+
+function updateStepper(n) {
+  [1,2,3].forEach(i=>{
+    const si = document.getElementById('si'+i);
+    si.classList.remove('active','done');
+    if(i < n)  si.classList.add('done');
+    if(i === n) si.classList.add('active');
+  });
+  [1,2].forEach(i=>{
+    const sl = document.getElementById('sl'+i);
+    if(sl) sl.classList.toggle('done', i < n);
+  });
+}
+
+// ===== RESULTADO PRÉ-ANÁLISE =====
+function selectResult(r) {
+  // limpar seleções anteriores
+  document.getElementById('rc_ok').classList.remove('selected-ok');
+  document.getElementById('rc_pending').classList.remove('selected-pending');
+  document.getElementById('rc_fail').classList.remove('selected-fail');
+  document.getElementById('alert_ok').style.display      = 'none';
+  document.getElementById('alert_pending').style.display = 'none';
+  document.getElementById('alert_fail').style.display    = 'none';
+  document.getElementById('phase1_nav').style.display    = 'none';
+
+  if(r==='ok'){
+    document.getElementById('rc_ok').classList.add('selected-ok');
+    document.getElementById('alert_ok').style.display       = 'block';
+    document.getElementById('phase1_nav').style.display     = 'block';
+  } else if(r==='pending'){
+    document.getElementById('rc_pending').classList.add('selected-pending');
+    document.getElementById('alert_pending').style.display  = 'block';
+  } else {
+    document.getElementById('rc_fail').classList.add('selected-fail');
+    document.getElementById('alert_fail').style.display     = 'block';
+  }
+}
+
+// ===== CONSTRUIR FASE 2 =====
+function buildPhase2() {
+  const razao  = document.getElementById('f1_razao').value.trim();
+  const cnpj   = document.getElementById('f1_cnpj').value.trim();
+  const filial = document.getElementById('f1_filial').value;
+  const emailVend = document.getElementById('f1_email_vendedor').value.trim();
+  const limite = document.getElementById('f1_limite').value.trim();
+  const vend   = document.getElementById('f1_vendedor').value.trim();
+
+  // Resumo
+  document.getElementById('p2_summary').innerHTML = `
+    <div class="sb-row"><span class="sb-label">Razão Social</span><span class="sb-val">${razao||'—'}</span></div>
+    <div class="sb-row"><span class="sb-label">CNPJ</span><span class="sb-val">${cnpj||'—'}</span></div>
+    <div class="sb-row"><span class="sb-label">Filial</span><span class="sb-val">${filial||'—'}</span></div>
+    <div class="sb-row"><span class="sb-label">Limite Solicitado</span><span class="sb-val">${limite||'Não informado'}</span></div>
+    <div class="sb-row"><span class="sb-label">Vendedor</span><span class="sb-val">${vend||'—'}</span></div>
+  `;
+
+  // DRE condicional
+  const limVal = parseFloat(limite.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  document.getElementById('doc_dre').style.display = limVal > 45000 ? 'flex' : 'none';
+
+  // Mensagem WhatsApp
+  const dre = limVal > 45000 ? '\n\n⚠️ *DRE e Balancete dos últimos 2 anos* (obrigatório pois o limite solicitado é acima de R$ 45.000)' : '';
+  const msg = `Olá! 👋
+
+Aqui é *${vend||'a equipe do Grupo Muffato'}* da loja *${filial}*.
+
+Ficamos felizes em informar que *${razao}* foi pré-aprovada para análise de cadastro com prazo conosco! 🎉
+
+Para darmos continuidade ao processo, precisamos das seguintes informações e documentos:
+
+📄 *Ficha Cadastral* preenchida, assinada e carimbada pelo responsável legal da empresa (enviaremos o PDF em branco)
+
+👥 *Responsáveis pelas compras:*
+• Nome completo, cargo, telefone e e-mail de cada pessoa que realizará pedidos
+
+🤝 *Dados dos sócios:*
+• Nome completo e telefone (conforme Contrato Social)
+
+📑 *Contrato Social* – foto de todas as páginas + alterações (se houver)
+
+🪪 *Documento dos sócios* – CNH ou RG (frente e verso, dentro da validade)
+
+📊 *Declaração de Faturamento* assinada e carimbada pelo contador${dre}
+
+🏦 *3 referências comerciais:* nome da empresa, contato e telefone
+
+📌 Envie os documentos por WhatsApp neste mesmo número${emailVend ? ' ou pelo e-mail *' + emailVend + '*' : ' ou diretamente na loja'}.
+
+Qualquer dúvida, estou à disposição! 😊`;
+  document.getElementById('wa_msg').textContent = msg;
+}
+
+// ===== CONSTRUIR FASE 3 =====
+function buildPhase3() {
+  const filial = document.getElementById('f1_filial').value;
+  const limite = document.getElementById('f1_limite').value.trim();
+
+  // DRE condicional (só aparece se limite > R$45.000)
+  const limVal = parseFloat(limite.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  const dreRequired = limVal > 45000;
+  document.getElementById('chkDRE').style.display = dreRequired ? 'flex' : 'none';
+
+  // chk5 auto (filial da Fase 1)
+  setCheckItem('chk5', !!filial, filial ? `✅ ${filial}` : 'Selecione a filial na Fase 1');
+
+  updateChkProgress();
+}
+
+// ===== WHATSAPP =====
+function copiarMensagem() {
+  const txt = document.getElementById('wa_msg').textContent;
+  navigator.clipboard.writeText(txt).then(()=>showToast('✅ Mensagem copiada!','success')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ Mensagem copiada!','success');
+  });
+}
+function abrirWhatsApp() {
+  const txt = encodeURIComponent(document.getElementById('wa_msg').textContent);
+  window.open('https://wa.me/?text='+txt,'_blank');
+}
+
+// ===== IDADE DA EMPRESA =====
+function verificarIdadeEmpresa(){
+  const val = document.getElementById('f1_dataAbertura').value;
+  const alert = document.getElementById('alert_jovem');
+  if(!val){alert.style.display='none';return;}
+  const abertura = new Date(val);
+  const hoje = new Date();
+  const umAnoAtras = new Date(hoje.getFullYear()-1, hoje.getMonth(), hoje.getDate());
+  alert.style.display = abertura > umAnoAtras ? 'block' : 'none';
+}
+
+// ===== MÁSCARAS =====
+function maskCNPJ(v){v=v.replace(/\D/g,'').slice(0,14);return v.replace(/(\d{2})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1/$2').replace(/(\d{4})(\d)/,'$1-$2')}
+function maskCPF(v){v=v.replace(/\D/g,'').slice(0,11);return v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1-$2')}
+function maskCEP(v){v=v.replace(/\D/g,'').slice(0,8);return v.replace(/(\d{5})(\d)/,'$1-$2')}
+function maskPhone(v){v=v.replace(/\D/g,'').slice(0,11);if(v.length<=10)return v.replace(/(\d{2})(\d{4})(\d)/,'($1) $2-$3');return v.replace(/(\d{2})(\d{5})(\d)/,'($1) $2-$3')}
+function maskCurrency(v){
+  let n=v.replace(/\D/g,'').replace(/^0+/,'');
+  if(!n)return '';
+  n=n.padStart(3,'0');
+  const cents=n.slice(-2);
+  const intPart=n.slice(0,-2).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  return 'R$ '+(intPart||'0')+','+cents;
+}
+document.getElementById('f1_cnpj').addEventListener('input',function(){this.value=maskCNPJ(this.value)});
+document.getElementById('f1_limite').addEventListener('input',function(){this.value=maskCurrency(this.value)});
+const _cepEl=document.getElementById('cep');if(_cepEl)_cepEl.addEventListener('input',function(){this.value=maskCEP(this.value)});
+// Máscaras para todos os fluxos
+document.addEventListener('input',function(e){
+  const id=e.target.id;
+  if(id==='fa_cnpj'||id==='fr_cnpj'||id==='fv_cnpj') e.target.value=maskCNPJ(e.target.value);
+  if(id==='fa_limiteAtual'||id==='fa_limiteNovo'||id==='fr_limite') e.target.value=maskCurrency(e.target.value);
+  if(id==='fv_cpf')                                    e.target.value=maskCPF(e.target.value);
+  if(id==='fv_cep')                                    e.target.value=maskCEP(e.target.value);
+  if(id==='fv_celPF'||id==='fv_celPJ')                e.target.value=maskPhone(e.target.value);
+});
+
+// Clone das filiais para os selects de aumento e reativação (feito quando o fluxo é selecionado)
+// O clone acontece dentro de selectFlow() para garantir que f1_filial já está populado
+
+document.addEventListener('input',function(e){
+  if(e.target.classList.contains('cpf-mask'))e.target.value=maskCPF(e.target.value);
+  if(e.target.classList.contains('tel-mask'))e.target.value=maskPhone(e.target.value);
+});
+
+// ===== CHECKLIST =====
+function setCheckItem(id,ok,statusMsg){
+  const item=document.getElementById(id);
+  if(!item)return;
+  const suffix=id.replace(/^chk/,'');
+  const cb=document.getElementById('cbk'+suffix);
+  const st=document.getElementById('st'+suffix);
+  item.classList.toggle('checked',ok);
+  if(cb)cb.checked=ok;
+  if(st)st.textContent=statusMsg;
+}
+
+function toggleCheck(el){
+  const id=el.id;
+  const input=el.querySelector('input[type=checkbox]');
+  // Se o clique veio do próprio checkbox, o browser já fez o toggle — só lemos o valor
+  // Se veio de outra área do div, fazemos o toggle manualmente
+  if(event.target !== input && input) input.checked = !input.checked;
+  const ok = input ? input.checked : false;
+  const msgs={
+    'chkC1':['Confirme ter coletado CNAE, Regime Tributário e Faturamento','✅ CNAE, Regime Tributário e Faturamento confirmados'],
+    'chkC2':['Confirme ter o endereço completo e telefone da empresa','✅ Endereço e telefone da empresa confirmados'],
+    'chkC3':['Confirme ter RG, Órgão Emissor e Data Nasc. de todos os sócios','✅ Dados pessoais completos dos sócios confirmados'],
+    'chkC4':['Confirme ter todos os dados pessoais do solicitante','✅ Dados completos do solicitante confirmados'],
+    'chkC5':['Confirme o dia de vencimento e o celular para TAC','✅ Vencimento e celular para TAC confirmados'],
+    'chkC6':['Confirme que o documento do solicitante está disponível para anexar','✅ Documento do solicitante (CNH/RG) disponível'],
+    'chk2': ['Confirme ter o Contrato Social em mãos','✅ Contrato Social disponível'],
+    'chk3': ['Confirme ter os documentos dos sócios (CNH/RG)','✅ Documentos dos sócios disponíveis'],
+    'chk4': ['Confirme ter a Declaração de Faturamento assinada','✅ Declaração de Faturamento disponível'],
+    'chkDRE':['Confirme ter DRE e Balancete dos últimos 2 anos','✅ DRE e Balancete disponíveis'],
+    'chk1': ['Confirme após receber a ficha assinada e carimbada','✅ Ficha Cadastral assinada e carimbada'],
+    'chk6': ['Confirme ter 3 referências comerciais com empresa, contato e telefone','✅ 3 referências comerciais confirmadas'],
+    'chk7': ['Confirme ter os dados dos responsáveis pelas compras','✅ Responsáveis pelas compras confirmados'],
+    'chk8': ['Confirme ter nome, CPF e telefone de todos os sócios','✅ Dados dos sócios completos'],
+  };
+  const m=msgs[id]||['Pendente','✅ Confirmado'];
+  setCheckItem(id,ok,ok?m[1]:m[0]);
+  updateChkProgress();
+}
+
+function updateChecklist(){
+  // chk5 – Filial (único item auto restante, vem da Fase 1)
+  const fil=document.getElementById('f1_filial')?.value||'';
+  setCheckItem('chk5',!!fil,fil?`✅ ${fil}`:'Selecione a filial na Fase 1');
+  updateChkProgress();
+}
+
+function updateChkProgress(){
+  const allItems=[...document.querySelectorAll('.check-item')].filter(el=>el.style.display!=='none');
+  const total=allItems.length;
+  const done=allItems.filter(el=>el.classList.contains('checked')).length;
+  const pct=total?Math.round((done/total)*100):0;
+  const complete=done===total&&total>0;
+
+  // Barra inline no card
+  const bar=document.getElementById('chkProgBar');
+  const pct_el=document.getElementById('chkProgPct');
+  if(bar){bar.style.width=pct+'%';bar.style.background=complete?'#43a047':'#c8102e';}
+  if(pct_el)pct_el.textContent=done+'/'+total;
+
+  // Barra fixa
+  const fixedBar=document.getElementById('chkFixedBar');
+  const fixedFill=document.getElementById('chkBarFill');
+  const fixedCount=document.getElementById('chkBarCount');
+  const fixedIcon=document.getElementById('chkBarIcon');
+  if(fixedFill)fixedFill.style.width=pct+'%';
+  if(fixedCount)fixedCount.textContent=done+'/'+total;
+  if(fixedIcon)fixedIcon.textContent=complete?'🎉':'📋';
+  if(fixedBar){
+    fixedBar.style.display=currentPhase===3?'flex':'none';
+    fixedBar.classList.toggle('bar-complete',complete);
+  }
+  // Alterna alert de aguarda / pronto na card de ação
+  const alertAg=document.getElementById('alertAguarda');
+  const alertOk=document.getElementById('alertPronto');
+  if(alertAg)alertAg.style.display=complete?'none':'flex';
+  if(alertOk)alertOk.style.display=complete?'flex':'none';
+}
+
+// ===== HELPERS =====
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+type;clearTimeout(window._tt);window._tt=setTimeout(()=>{t.className=''},5000)}
+</script>
+</body>
+</html>

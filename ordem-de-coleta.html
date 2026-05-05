@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Ordem de Coleta — Max Atacadista</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & TOKENS ── */
+*{box-sizing:border-box;margin:0;padding:0}
+.hidden{display:none!important}
+:root{
+  --bg:#080810;
+  --bg2:#0d0d1a;
+  --panel:#0f0f1e;
+  --surface:rgba(255,255,255,0.04);
+  --surface2:rgba(255,255,255,0.07);
+  --border:rgba(255,255,255,0.08);
+  --border2:rgba(255,255,255,0.14);
+  --red:#e31e24;
+  --red-dark:#c01a1f;
+  --red-soft:rgba(227,30,36,0.12);
+  --red-border:rgba(227,30,36,0.25);
+  --green:#22c55e;
+  --green-soft:rgba(34,197,94,0.12);
+  --amber:#f59e0b;
+  --amber-soft:rgba(245,158,11,0.12);
+  --blue:#3b82f6;
+  --text:#f0f0f5;
+  --text2:rgba(240,240,245,0.55);
+  --text3:rgba(240,240,245,0.28);
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --radius:14px;
+  --radius-sm:8px;
+  --transition:all 0.2s ease;
+}
+
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* ── APP SHELL ── */
+.app{display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:420px;min-width:420px;
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  height:100vh;position:sticky;top:0;
+  overflow:hidden;
+}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 0 120px}
+.sidebar-scroll::-webkit-scrollbar{width:4px}
+.sidebar-scroll::-webkit-scrollbar-track{background:transparent}
+.sidebar-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* ── TOPBAR ── */
+.topbar{
+  padding:20px 24px 16px;
+  border-bottom:1px solid var(--border);
+  background:var(--panel);
+  position:sticky;top:0;z-index:10;
+  backdrop-filter:blur(12px);
+}
+.topbar-back{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;color:var(--text2);text-decoration:none;
+  margin-bottom:12px;transition:color 0.2s;
+}
+.topbar-back:hover{color:var(--red)}
+.topbar-row{display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{
+  width:34px;height:34px;border-radius:9px;
+  background:var(--red);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:900;color:#fff;font-style:italic;
+  letter-spacing:-1px;flex-shrink:0;
+}
+.brand-info{}
+.brand-name{font-size:14px;font-weight:700;color:var(--text);letter-spacing:-0.2px}
+.brand-sub{font-size:10px;color:var(--text3);font-weight:500;letter-spacing:0.5px;margin-top:1px}
+.topbar-badge{
+  font-size:10px;font-weight:600;
+  padding:4px 10px;border-radius:20px;
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text2);letter-spacing:0.3px;
+}
+
+/* ── FORM SECTIONS ── */
+.form-body{padding:16px 24px}
+.sec{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  margin-bottom:12px;
+}
+.sec-header{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+  cursor:pointer;
+  transition:background 0.15s;
+}
+.sec-header:hover{background:var(--surface2)}
+.sec-icon{
+  width:28px;height:28px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;
+}
+.si-red{background:var(--red-soft);border:1px solid var(--red-border)}
+.si-blue{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2)}
+.si-green{background:var(--green-soft);border:1px solid rgba(34,197,94,0.2)}
+.si-amber{background:var(--amber-soft);border:1px solid rgba(245,158,11,0.2)}
+.si-purple{background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2)}
+.si-gray{background:var(--surface);border:1px solid var(--border)}
+.sec-title-text{font-size:12px;font-weight:600;color:var(--text);letter-spacing:0.1px;flex:1}
+.sec-chevron{font-size:10px;color:var(--text3);transition:transform 0.2s}
+.sec.collapsed .sec-chevron{transform:rotate(-90deg)}
+.sec-body{padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.sec.collapsed .sec-body{display:none}
+
+/* ── FIELDS ── */
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{
+  font-size:10px;font-weight:600;color:var(--text2);
+  letter-spacing:0.6px;text-transform:uppercase;
+  display:flex;align-items:center;gap:6px;
+}
+.fg input,.fg select,.fg textarea{
+  width:100%;
+  background:var(--bg);
+  border:1px solid var(--border2);
+  border-radius:var(--radius-sm);
+  padding:9px 12px;
+  color:var(--text);
+  font-size:13px;
+  font-family:var(--font);
+  transition:var(--transition);
+  appearance:none;
+  -webkit-appearance:none;
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus{
+  outline:none;
+  border-color:var(--red);
+  box-shadow:0 0 0 3px var(--red-soft);
+}
+.fg input::placeholder,.fg textarea::placeholder{color:var(--text3)}
+.fg select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.fg select option{background:#0c0c1c}
+.fg textarea{resize:vertical;min-height:52px;line-height:1.5}
+.fr{display:flex;gap:8px}.fr .fg{flex:1}
+
+/* ── BADGES ── */
+.field-badge{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;
+  margin-left:4px;
+}
+.badge-ai{background:var(--green-soft);color:var(--green);border:1px solid rgba(34,197,94,0.25)}
+.badge-manual{background:rgba(59,130,246,0.1);color:var(--blue);border:1px solid rgba(59,130,246,0.2)}
+
+/* ── STORE SEARCH ── */
+.store-wrap{position:relative}
+.store-drop{
+  display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;
+  background:#0e0e1e;border:1px solid var(--border2);
+  border-radius:var(--radius-sm);
+  max-height:220px;overflow-y:auto;z-index:200;
+  box-shadow:0 12px 40px rgba(0,0,0,0.5);
+}
+.store-drop.open{display:block}
+.store-opt{
+  padding:9px 12px;cursor:pointer;
+  font-size:12px;color:var(--text2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+  transition:background 0.15s;
+}
+.store-opt:last-child{border-bottom:none}
+.store-opt:hover,.store-opt.active{background:var(--surface2);color:var(--text)}
+.store-cod{
+  font-size:10px;font-weight:700;color:var(--red);
+  background:var(--red-soft);border:1px solid var(--red-border);
+  padding:1px 6px;border-radius:4px;flex-shrink:0;
+}
+.store-uf{
+  font-size:10px;color:var(--text3);
+  background:var(--surface);border:1px solid var(--border);
+  padding:1px 5px;border-radius:4px;margin-left:auto;flex-shrink:0;
+}
+
+/* ── UPLOAD ZONE ── */
+.uploads{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.upz{
+  border:1.5px dashed var(--border2);
+  border-radius:var(--radius-sm);
+  padding:14px 8px 10px;
+  text-align:center;cursor:pointer;
+  transition:var(--transition);
+  position:relative;overflow:hidden;
+  background:var(--bg);
+}
+.upz:hover{border-color:var(--red);background:var(--red-soft)}
+.upz.done{border-color:var(--green);background:var(--green-soft);border-style:solid}
+.upz.loading{border-color:var(--amber);background:var(--amber-soft);border-style:solid}
+.upz.error{border-color:var(--red);background:var(--red-soft);border-style:solid}
+.upz-icon{font-size:20px;margin-bottom:5px;display:block}
+.upz-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);line-height:1.3}
+.upz.done .upz-label{color:var(--green)}
+.upz.loading .upz-label{color:var(--amber)}
+.upz.error .upz-label{color:var(--red)}
+.upz input[type=file]{display:none!important}
+.upz-spin{display:none}
+.upz.loading .upz-spin{display:inline-block;animation:spin .8s linear infinite}
+.upz.loading .upz-icon-static{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.upz-btns{display:flex;gap:3px;margin-top:7px;width:100%}
+.upz-btn{
+  flex:1;padding:4px 2px;font-size:8px;font-weight:700;
+  border-radius:4px;cursor:pointer;
+  border:1px solid var(--border2);background:var(--surface);
+  color:var(--text3);text-transform:uppercase;letter-spacing:0.3px;
+  line-height:1.4;transition:var(--transition);font-family:var(--font);
+}
+.upz-btn:hover{border-color:var(--red);color:var(--red);background:var(--red-soft)}
+.upz-btn.cam{border-color:rgba(245,158,11,0.3);color:rgba(245,158,11,0.6)}
+.upz-btn.cam:hover{border-color:var(--amber);color:var(--amber);background:var(--amber-soft)}
+.upz.done .upz-btn{border-color:rgba(34,197,94,0.25);color:rgba(34,197,94,0.7)}
+.upz.done .upz-btn:hover{border-color:var(--green);color:var(--green)}
+.upz.loading .upz-btns{opacity:.4;pointer-events:none}
+
+/* ── MERCS ── */
+.merc-item{
+  background:var(--bg);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);padding:12px;position:relative;
+}
+.merc-num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:5px;
+  background:var(--red-soft);border:1px solid var(--red-border);
+  font-size:10px;font-weight:700;color:var(--red);
+  margin-bottom:8px;
+}
+.merc-rm{
+  position:absolute;top:10px;right:10px;
+  background:var(--surface);border:1px solid var(--border2);
+  color:var(--text3);width:22px;height:22px;border-radius:6px;
+  cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;
+  transition:var(--transition);
+}
+.merc-rm:hover{background:var(--red-soft);border-color:var(--red-border);color:var(--red)}
+.btn-add-merc{
+  width:100%;padding:9px;
+  background:transparent;
+  border:1.5px dashed var(--border2);
+  border-radius:var(--radius-sm);
+  color:var(--text3);cursor:pointer;
+  font-size:12px;font-family:var(--font);
+  transition:var(--transition);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.btn-add-merc:hover{border-color:var(--red);color:var(--red);background:var(--red-soft)}
+
+/* ── API BAR ── */
+.api-bar{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--radius-sm);overflow:hidden;
+}
+.api-bar summary{
+  font-size:11px;color:var(--text2);cursor:pointer;
+  font-weight:600;list-style:none;
+  padding:10px 14px;display:flex;align-items:center;gap:8px;
+}
+.api-bar summary::marker,.api-bar summary::-webkit-details-marker{display:none}
+.api-bar summary::after{content:"›";margin-left:auto;color:var(--text3);font-size:14px;transition:transform 0.2s}
+.api-bar[open] summary::after{transform:rotate(90deg)}
+.api-body{padding:10px 14px 14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
+.api-hint{font-size:10px;color:var(--text3);line-height:1.5}
+.api-sep{text-align:center;font-size:9px;color:var(--text3);letter-spacing:2px}
+.api-status{display:flex;align-items:center;gap:8px;font-size:11px}
+.api-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.api-dot.on{background:var(--green);box-shadow:0 0 6px rgba(34,197,94,0.5)}
+.api-dot.off{background:var(--red)}
+.btn-api-login{
+  padding:6px 12px;background:var(--red);border:none;
+  border-radius:6px;color:#fff;font-size:11px;font-weight:600;
+  cursor:pointer;font-family:var(--font);transition:var(--transition);
+}
+.btn-api-login:hover{background:var(--red-dark)}
+.btn-api-logout{
+  padding:6px 12px;background:transparent;
+  border:1px solid var(--border2);border-radius:6px;
+  color:var(--text2);font-size:11px;cursor:pointer;
+  font-family:var(--font);transition:var(--transition);
+}
+.btn-api-logout:hover{border-color:var(--red);color:var(--red)}
+
+/* ── SIDEBAR FOOTER / ACTION ── */
+.sidebar-footer{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:16px 24px 20px;
+  background:linear-gradient(to top,var(--panel) 70%,transparent);
+  display:flex;flex-direction:column;gap:8px;
+}
+.btn-gerar{
+  width:100%;padding:13px;
+  background:var(--red);
+  border:none;border-radius:var(--radius-sm);
+  color:#fff;font-size:14px;font-weight:700;
+  cursor:pointer;font-family:var(--font);
+  transition:var(--transition);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  letter-spacing:-0.2px;
+  box-shadow:0 4px 16px rgba(227,30,36,0.25);
+}
+.btn-gerar:hover{background:var(--red-dark);box-shadow:0 6px 24px rgba(227,30,36,0.35);transform:translateY(-1px)}
+.btn-gerar:active{transform:translateY(0)}
+.btn-clear{
+  width:100%;padding:10px;
+  background:transparent;border:1px solid var(--border2);
+  border-radius:var(--radius-sm);color:var(--text2);
+  font-size:12px;cursor:pointer;font-family:var(--font);
+  transition:var(--transition);
+}
+.btn-clear:hover{border-color:var(--border2);color:var(--text);background:var(--surface2)}
+
+/* ── EXTRACT MSG ── */
+.extract-msg{
+  font-size:11px;color:var(--text2);text-align:center;
+  min-height:16px;padding:0 4px;line-height:1.4;
+}
+
+/* ── PREVIEW PANEL ── */
+.preview{
+  flex:1;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+  align-items:center;
+  overflow-y:auto;
+  padding:40px 32px;
+}
+.preview-header{
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;max-width:800px;margin-bottom:20px;
+}
+.preview-label{
+  font-size:11px;color:var(--text3);
+  text-transform:uppercase;letter-spacing:2px;font-weight:600;
+}
+.preview-meta{
+  display:flex;align-items:center;gap:10px;
+}
+.preview-num{
+  font-size:11px;font-weight:700;
+  background:var(--surface);border:1px solid var(--border2);
+  padding:4px 10px;border-radius:6px;color:var(--text2);
+  font-variant-numeric:tabular-nums;letter-spacing:0.3px;
+}
+
+/* ── DOCUMENT A4 ── */
+.doc-shadow-wrap{
+  width:100%;max-width:800px;
+  box-shadow:0 8px 64px rgba(0,0,0,0.6),0 2px 8px rgba(0,0,0,0.4);
+  border-radius:4px;
+  border:1px solid rgba(255,255,255,0.06);
+}
+.doc{
+  width:100%;background:#fff;
+  padding:11mm 13mm;
+  font-family:Arial,Helvetica,sans-serif;font-size:9pt;
+  color:#1a1a1a;font-weight:400;
+}
+/* Document internals - same as original */
+.doc-hd{display:flex;justify-content:space-between;align-items:center;padding-bottom:7px;margin-bottom:8px;border-bottom:3px solid #e31e24}
+.logo-w{display:flex;align-items:center;gap:10px}
+.logo-img{height:34px;width:auto;display:block}
+.logo-t .t2{font-size:6pt;color:#555;text-transform:uppercase;letter-spacing:1.5px;font-weight:400}
+.logo-t .t3{font-size:6pt;color:#aaa;font-weight:400}
+.hd-r{text-align:right}
+.hd-r .dt{font-size:10pt;font-weight:900;text-transform:uppercase;color:#1a1a1a;line-height:1.2}
+.hd-r .dm{font-size:7pt;color:#777;margin-top:3px}
+.hd-r .dn{display:inline-block;background:#1a1a1a;color:#fff;font-size:6.5pt;padding:2px 7px;border-radius:3px;font-weight:700;margin-top:3px}
+.doc-nar{background:#f9f9f9;border-left:3px solid #e31e24;padding:7px 10px;margin-bottom:8px;font-size:8pt;line-height:1.5;border-radius:0 4px 4px 0;font-weight:400}
+.doc-nar b{color:#c01a1f;font-weight:700}
+.doc-g2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px}
+.doc-box{border:1px solid #e0e0e0;border-radius:4px;overflow:hidden}
+.doc-bh{background:#1a1a1a;color:#fff;font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:3px 7px}
+.doc-bb{padding:6px 7px}
+.doc-r{display:flex;gap:4px;margin-bottom:3px;align-items:flex-start}
+.doc-r:last-child{margin-bottom:0}
+.doc-l{font-size:6.5pt;font-weight:700;text-transform:uppercase;color:#aaa;min-width:50px;flex-shrink:0;padding-top:1px}
+.doc-v{font-size:8pt;font-weight:700;color:#1a1a1a;word-break:break-word}
+.doc-v.ph{color:#ccc;font-weight:400;font-style:italic}
+.doc-mercs{margin-bottom:8px}
+.doc-mh{background:#1a1a1a;color:#fff;font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:3px 7px;border-radius:4px 4px 0 0}
+.doc-mercs table{width:100%;border-collapse:collapse;font-size:8pt}
+.doc-mercs th{background:#f2f2f2;font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#666;padding:4px 7px;border:1px solid #ddd;text-align:left}
+.doc-mercs td{padding:4px 7px;border:1px solid #ddd;vertical-align:middle}
+.doc-mercs td.cn{width:20px;text-align:center;color:#aaa;font-size:7pt}
+.doc-mercs td.cq{width:72px;text-align:center;font-weight:700}
+.doc-mercs td.cf{width:80px;text-align:center;color:#666}
+.doc-mercs tr:nth-child(even) td{background:#fafafa}
+.doc-alert{background:#fff3f3;border:1.5px solid #e31e24;border-radius:4px;padding:6px 10px;font-size:7pt;font-weight:700;color:#b00;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px;line-height:1.5;text-align:center}
+.doc-obs{background:#fffbf0;border:1px solid #fdd835;border-radius:4px;padding:5px 9px;font-size:7.5pt;color:#5d4037;margin-bottom:8px;line-height:1.4;font-weight:400}
+.doc-obs b{color:#e65100;font-weight:700}
+.doc-sig-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:10px;padding-top:9px;border-top:1px solid #eee}
+.sig-assin{font-size:6pt;color:#1565c0;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-top:4px}
+.sig-box{text-align:center}
+.sig-line{border-top:1px solid #333;margin-bottom:4px;margin-top:90px}
+.sig-title{font-size:6.5pt;font-weight:700;text-transform:uppercase;color:#666;letter-spacing:.4px}
+.sig-name{font-size:8pt;color:#1a1a1a;font-weight:600;margin-top:2px}
+.sig-doc{font-size:7pt;color:#999}
+
+/* ── LOGIN MODAL ── */
+.login-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.8);
+  display:flex;align-items:center;justify-content:center;
+  z-index:9999;backdrop-filter:blur(8px);
+}
+.login-box{
+  background:var(--panel);
+  border:1px solid var(--border2);
+  border-radius:20px;padding:32px 28px;
+  width:320px;
+  box-shadow:0 24px 80px rgba(0,0,0,0.7);
+  position:relative;
+}
+.login-brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.login-brand-mark{width:36px;height:36px;border-radius:9px;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;font-style:italic;letter-spacing:-1px}
+.login-title{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-0.3px}
+.login-sub{font-size:12px;color:var(--text2)}
+.login-err{font-size:11px;color:var(--red);min-height:16px;text-align:center;margin-bottom:8px}
+.btn-do-login{
+  width:100%;padding:11px;background:var(--red);border:none;
+  border-radius:9px;color:#fff;font-weight:700;font-size:14px;
+  cursor:pointer;font-family:var(--font);transition:var(--transition);
+  box-shadow:0 4px 16px rgba(227,30,36,0.3);
+}
+.btn-do-login:hover{background:var(--red-dark)}
+.btn-do-login:disabled{background:var(--text3);cursor:not-allowed;box-shadow:none}
+.login-close{
+  position:absolute;top:14px;right:16px;
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text2);font-size:16px;cursor:pointer;
+  width:28px;height:28px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  transition:var(--transition);
+}
+.login-close:hover{border-color:var(--red);color:var(--red)}
+.pass-wrap{position:relative}
+.pass-wrap input{padding-right:38px!important}
+.pass-eye{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  background:transparent;border:none;color:var(--text3);
+  cursor:pointer;font-size:14px;padding:0;line-height:1;
+}
+.pass-eye:hover{color:var(--text2)}
+
+/* ── MOBILE ── */
+@media(max-width:768px){
+  .app{flex-direction:column}
+  .sidebar{width:100%;min-width:0;height:auto;position:relative;padding-bottom:72px}
+  .preview{display:none;padding:20px 12px}
+  .preview.mob-show{display:flex}
+  .sidebar.mob-hide{display:none}
+  .mob-nav{
+    display:flex;position:fixed;bottom:0;left:0;right:0;height:62px;
+    background:var(--panel);border-top:1px solid var(--border);z-index:200;
+  }
+  .mob-tab{
+    flex:1;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:3px;background:transparent;border:none;
+    color:var(--text3);cursor:pointer;font-size:9px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.5px;font-family:var(--font);
+    transition:color 0.15s;
+  }
+  .mob-tab .mt-icon{font-size:19px;line-height:1}
+  .mob-tab.active{color:var(--red)}
+  .doc-shadow-wrap{border-radius:0}
+}
+@media(min-width:769px){.mob-nav{display:none}}
+
+/* ── PRINT ── */
+@media print{
+  @page{size:A4 portrait;margin:0}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{background:#fff!important;margin:0;padding:0}
+  .sidebar,.preview-header,.mob-nav{display:none!important}
+  .app,.preview{display:block!important;padding:0!important;margin:0!important}
+  .doc-shadow-wrap{width:210mm!important;box-shadow:none!important;border:none!important;margin:0!important;border-radius:0!important}
+  .doc{width:210mm!important;padding:10mm 13mm!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar" id="sidebar">
+  <div class="topbar">
+    <a class="topbar-back" href="index.html">← Portal Televendas</a>
+    <div class="topbar-row">
+      <div class="brand">
+        <div class="brand-mark">M</div>
+        <div class="brand-info">
+          <div class="brand-name">Max Atacadista</div>
+          <div class="brand-sub">Ordem de Coleta · v1.1</div>
+        </div>
+      </div>
+      <div class="topbar-badge" id="connBadge">Sem conexão</div>
+    </div>
+  </div>
+
+  <div class="sidebar-scroll">
+    <div class="form-body">
+
+      <!-- UPLOAD -->
+      <div class="sec">
+        <div class="sec-header" onclick="toggleSec(this)">
+          <div class="sec-icon si-amber">📎</div>
+          <span class="sec-title-text">Anexar Documentos <span style="color:var(--text3);font-weight:400">(opcional)</span></span>
+          <span class="sec-chevron">›</span>
+        </div>
+        <div class="sec-body">
+          <div class="uploads">
+            <div class="upz" id="upNF" ondrop="drop(event,'nf')" ondragover="event.preventDefault()">
+              <span class="upz-icon upz-icon-static">🧾</span>
+              <span class="upz-icon upz-spin">⏳</span>
+              <div class="upz-label" id="upNF-label">NF-e<br>da Loja</div>
+              <div class="upz-btns">
+                <button class="upz-btn" type="button" onclick="document.getElementById('inpNF').click()">📁 Arq.</button>
+                <button class="upz-btn cam" type="button" onclick="document.getElementById('inpNFcam').click()">📷 Cam</button>
+              </div>
+              <input id="inpNF" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple onchange="handleFileMulti(event,'nf',false)">
+              <input id="inpNFcam" type="file" accept="image/*" capture="environment" multiple onchange="handleFileMulti(event,'nf',true)">
+            </div>
+            <div class="upz" id="upCNH" ondrop="drop(event,'cnh')" ondragover="event.preventDefault()">
+              <span class="upz-icon upz-icon-static">🪪</span>
+              <span class="upz-icon upz-spin">⏳</span>
+              <div class="upz-label">CNH<br>Motorista</div>
+              <div class="upz-btns">
+                <button class="upz-btn" type="button" onclick="document.getElementById('inpCNH').click()">📁 Arq.</button>
+                <button class="upz-btn cam" type="button" onclick="document.getElementById('inpCNHcam').click()">📷 Cam</button>
+              </div>
+              <input id="inpCNH" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" onchange="handleFile(event,'cnh')">
+              <input id="inpCNHcam" type="file" accept="image/*" capture="environment" onchange="handleFile(event,'cnh')">
+            </div>
+            <div class="upz" id="upCRLV" ondrop="drop(event,'crlv')" ondragover="event.preventDefault()">
+              <span class="upz-icon upz-icon-static">🚛</span>
+              <span class="upz-icon upz-spin">⏳</span>
+              <div class="upz-label" id="upCRLV-label">CRLV<br>Veículo</div>
+              <div class="upz-btns">
+                <button class="upz-btn" type="button" onclick="document.getElementById('inpCRLV').click()">📁 Arq.</button>
+                <button class="upz-btn cam" type="button" onclick="document.getElementById('inpCRLVcam').click()">📷 Cam</button>
+              </div>
+              <input id="inpCRLV" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple onchange="handleFileMulti(event,'crlv',false)">
+              <input id="inpCRLVcam" type="file" accept="image/*" capture="environment" multiple onchange="handleFileMulti(event,'crlv',false)">
+            </div>
+          </div>
+          <div class="extract-msg" id="extractMsg"></div>
+
+          <!-- API Config -->
+          <details class="api-bar" id="apiDetails">
+            <summary>🔑 Configuração de IA</summary>
+            <div class="api-body">
+              <div class="fg">
+                <label>URL do Backend</label>
+                <input type="text" id="backendUrl" placeholder="https://seu-app.railway.app" oninput="saveBackend()">
+              </div>
+              <div class="api-status">
+                <span class="api-dot" id="connDot"></span>
+                <span id="connLabel" style="color:var(--text2);flex:1;font-size:11px">Não conectado</span>
+                <button class="btn-api-login" id="btnLogin" onclick="showLogin()">Entrar</button>
+                <button class="btn-api-logout hidden" id="btnLogout" onclick="doLogout()">Sair</button>
+              </div>
+              <div class="api-sep">── OU ──</div>
+              <div class="fg">
+                <label>API Key direta</label>
+                <input type="password" id="apiKey" placeholder="sk-ant-..." oninput="saveKey()">
+              </div>
+              <div class="api-hint">Nuvem: configure o backend e faça login. Local: cole a chave diretamente (salva no navegador).</div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- EMPRESA -->
+      <div class="sec">
+        <div class="sec-header" onclick="toggleSec(this)">
+          <div class="sec-icon si-blue">🏢</div>
+          <span class="sec-title-text">Empresa Autorizante</span>
+          <span class="sec-chevron">›</span>
+        </div>
+        <div class="sec-body">
+          <div class="fg">
+            <label>Razão Social <span id="b_emp" class="field-badge" style="display:none"></span></label>
+            <input id="f_emp" type="text" placeholder="Nome da empresa" oninput="upd()">
+          </div>
+          <div class="fg">
+            <label>CNPJ / CPF <span id="b_cnpj" class="field-badge" style="display:none"></span></label>
+            <input id="f_cnpj" type="text" placeholder="00.000.000/0001-00" inputmode="numeric" oninput="fmtCnpjCpf(this);upd()">
+          </div>
+        </div>
+      </div>
+
+      <!-- LOJA -->
+      <div class="sec">
+        <div class="sec-header" onclick="toggleSec(this)">
+          <div class="sec-icon si-red">🏪</div>
+          <span class="sec-title-text">Loja Max Atacadista</span>
+          <span class="sec-chevron">›</span>
+        </div>
+        <div class="sec-body">
+          <div class="fg">
+            <label>Buscar loja <span id="b_loja" class="field-badge" style="display:none"></span></label>
+            <div class="store-wrap">
+              <input class="store-input" id="storeSearch" type="text" placeholder="Digite código ou nome..." autocomplete="off"
+                oninput="filterStores()" onfocus="openDrop()" onblur="setTimeout(closeDrop,200)">
+              <div class="store-drop" id="storeDrop"></div>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Nome / Nº da Loja</label>
+            <input id="f_loja_nm" type="text" placeholder="MAX ATACADISTA – Loja 0000" oninput="upd()">
+          </div>
+          <div class="fg">
+            <label>CNPJ da Loja</label>
+            <input id="f_loja_cnpj" type="text" placeholder="76.430.438/XXXX-XX" oninput="upd()">
+          </div>
+          <div class="fg">
+            <label>Endereço da Loja</label>
+            <input id="f_loja_end" type="text" placeholder="Rua, Nº, Bairro – UF, CEP" oninput="upd()">
+          </div>
+        </div>
+      </div>
+
+      <!-- MOTORISTA -->
+      <div class="sec">
+        <div class="sec-header" onclick="toggleSec(this)">
+          <div class="sec-icon si-green">👤</div>
+          <span class="sec-title-text">Motorista</span>
+          <span class="sec-chevron">›</span>
+        </div>
+        <div class="sec-body">
+          <div class="fg">
+            <label>Nome Completo <span id="b_mot" class="field-badge" style="display:none"></span></label>
+            <input id="f_mot" type="text" placeholder="Nome do motorista" oninput="upd()">
+          </div>
+          <div class="fr">
+            <div class="fg">
+              <label>RG <span id="b_rg" class="field-badge" style="display:none"></span></label>
+              <input id="f_rg" type="text" placeholder="00.000.000-0" inputmode="numeric" oninput="fmtRg(this);upd()">
+            </div>
+            <div class="fg">
+              <label>CPF <span id="b_cpf" class="field-badge" style="display:none"></span></label>
+              <input id="f_cpf" type="text" placeholder="000.000.000-00" inputmode="numeric" oninput="fmtCpf(this);upd()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VEÍCULO -->
+      <div class="sec">
+        <div class="sec-header" onclick="toggleSec(this)">
+          <div class="sec-icon si-purple">🚛</div>
+          <span class="sec-title-text">Veículo</span>
+          <span class="sec-chevron">›</span>
+        </div>
+        <div class="sec-body">
+          <div class="fr">
+            <div class="fg">
+              <label>Placa Principal <span id="b_pl1" class="field-badge" style="display:none"></span></label>
+              <input id="f_pl1" type="text" placeholder="ABC1D23" oninput="upd()" style="text-transform:uppercase">
+            </div>
+            <div class="fg">
+              <label>Placa Reboque</label>
+              <input id="f_pl2" type="text" placeholder="opcional" oninput="upd()" style="text-transform:uppercase">
+            </div>
+          </div>
+          <div class="fg">
+            <label>Tipo / Modelo <span id="b_vei" class="field-badge" style="display:none"></span></label>
+            <input id="f_vei" type="text" placeholder="Ex: VW/26.320 CRM 6X2" oninput="upd()">
+          </div>
+        </div>
+      </div>
+
+      <!-- MERCADORIAS -->
+      <div class="sec">
+        <div class="sec-header" onclick="toggleSec(this)">
+          <div class="sec-icon si-amber">📦</div>
+          <span class="sec-title-text">Mercadorias <span id="b_mercs" class="field-badge" style="display:none"></span></span>
+          <span class="sec-chevron">›</span>
+        </div>
+        <div class="sec-body">
+          <div id="mercs-list"></div>
+          <button class="btn-add-merc" onclick="addMerc()">
+            <span style="font-size:16px;font-weight:300">+</span> Adicionar produto
+          </button>
+        </div>
+      </div>
+
+      <!-- FINALIZAÇÃO -->
+      <div class="sec">
+        <div class="sec-header" onclick="toggleSec(this)">
+          <div class="sec-icon si-gray">📋</div>
+          <span class="sec-title-text">Finalização</span>
+          <span class="sec-chevron">›</span>
+        </div>
+        <div class="sec-body">
+          <div class="fg">
+            <label>Data</label>
+            <input id="f_data" type="date" oninput="upd()">
+          </div>
+          <div class="fg">
+            <label>Observações Adicionais</label>
+            <textarea id="f_obs" placeholder="Opcional" oninput="upd()"></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /form-body -->
+  </div><!-- /sidebar-scroll -->
+
+  <div class="sidebar-footer">
+    <button class="btn-gerar" id="btnGerar" onclick="gerarPDF()">
+      <span>📄</span> Gerar PDF
+    </button>
+    <button class="btn-clear" onclick="clearAll()">Limpar formulário</button>
+  </div>
+</aside>
+
+<!-- ══ PREVIEW ══ -->
+<main class="preview" id="ppPanel">
+  <div class="preview-header">
+    <div class="preview-label">Pré-visualização A4</div>
+    <div class="preview-meta">
+      <div class="preview-num" id="previewNum">—</div>
+    </div>
+  </div>
+
+  <div class="doc-shadow-wrap" id="docScaleWrap">
+    <div class="doc" id="doc">
+      <div class="doc-hd">
+        <div class="logo-w">
+          <svg class="logo-img" viewBox="0 0 148 56" xmlns="http://www.w3.org/2000/svg">
+            <text x="1" y="44" font-family="'Arial Black','Arial Bold',Arial,sans-serif" font-size="50" font-weight="900" font-style="italic" fill="#e31e24" textLength="145" lengthAdjust="spacingAndGlyphs">MAX</text>
+            <text x="2" y="55" font-family="Arial,sans-serif" font-size="10.5" font-weight="700" fill="#1a1a1a" textLength="143" lengthAdjust="spacingAndGlyphs" letter-spacing="1">ATACADISTA</text>
+          </svg>
+          <div class="logo-t">
+            <div class="t2">Irmãos Muffato S.A.</div>
+            <div class="t3">CNPJ: 76.430.438/0001-71 · Depto: Logística / Expedição</div>
+          </div>
+        </div>
+        <div class="hd-r">
+          <div class="dt">Autorização de Retirada<br>de Mercadoria</div>
+          <div class="dm">Data: <span id="d_data">___/___/______</span></div>
+          <div class="dn" id="d_num">Nº —</div>
+        </div>
+      </div>
+
+      <div class="doc-nar">
+        A empresa <b id="d_emp">[EMPRESA]</b>, inscrita sob o CNPJ/CPF <b id="d_cnpj">[CNPJ]</b>,
+        autoriza o(a) Sr.(a) <b id="d_mot_n">[MOTORISTA]</b>, portador(a) do CPF <b id="d_cpf_n">[CPF]</b>,
+        a retirar mercadoria(s) no depósito <b id="d_loja_n">[LOJA]</b> (CNPJ: <b id="d_loja_cnpj_nar">[CNPJ LOJA]</b>),
+        localizado em <span id="d_end_n">[ENDEREÇO]</span>, conforme descrito abaixo.
+      </div>
+
+      <div class="doc-g2">
+        <div class="doc-box">
+          <div class="doc-bh">Motorista Autorizado</div>
+          <div class="doc-bb">
+            <div class="doc-r"><span class="doc-l">Nome</span><span class="doc-v" id="d_mn">—</span></div>
+            <div class="doc-r"><span class="doc-l">RG</span><span class="doc-v" id="d_mr">—</span></div>
+            <div class="doc-r"><span class="doc-l">CPF</span><span class="doc-v" id="d_mc">—</span></div>
+          </div>
+        </div>
+        <div class="doc-box">
+          <div class="doc-bh">Dados do Veículo</div>
+          <div class="doc-bb">
+            <div class="doc-r"><span class="doc-l">Placa</span><span class="doc-v" id="d_p1">—</span></div>
+            <div class="doc-r" id="d_p2r" style="display:none"><span class="doc-l">Reboque</span><span class="doc-v" id="d_p2v">—</span></div>
+            <div class="doc-r"><span class="doc-l">Modelo</span><span class="doc-v" id="d_vm">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-mercs">
+        <div class="doc-mh">Mercadorias Autorizadas para Retirada</div>
+        <table><thead><tr>
+          <th style="width:22px;text-align:center">#</th>
+          <th>Descrição do Produto</th>
+          <th style="width:72px;text-align:center">Qtd / Pallets</th>
+          <th style="width:72px;text-align:center">Qtd / Volume</th>
+          <th style="width:72px;text-align:center">Nº NF</th>
+          <th style="width:68px;text-align:center">Data NF</th>
+        </tr></thead>
+        <tbody id="d_mercs"></tbody></table>
+      </div>
+
+      <div class="doc-alert">
+        ATENÇÃO: NÃO CARREGAR MERCADORIAS COM DIVERGÊNCIA EM RELAÇÃO À NOTA FISCAL. QUALQUER INCONFORMIDADE DEVE SER REPORTADA IMEDIATAMENTE AO RESPONSÁVEL PELA EXPEDIÇÃO ANTES DO CARREGAMENTO.
+      </div>
+
+      <div class="doc-obs">
+        <b>OBS:</b> Retirada de mercadoria é expressamente responsabilidade do cliente
+        (transporte, seguro de carga, embarque das mercadorias, conferência das mesmas).<span id="d_obs_x"></span>
+      </div>
+
+      <div class="doc-sig-row">
+        <div class="sig-box">
+          <div class="sig-line"></div>
+          <div class="sig-title">Empresa Faturada</div>
+          <div class="sig-name" id="d_sig_emp">—</div>
+          <div class="sig-doc" id="d_sig_cnpj">—</div>
+          <div class="sig-assin">* OBRIGATÓRIO ASSINATURA ELETRÔNICA DA EMPRESA OU DO SÓCIO ADMINISTRADOR</div>
+        </div>
+        <div class="sig-box">
+          <div class="sig-line"></div>
+          <div class="sig-title">Responsável pela Retirada</div>
+          <div class="sig-name" id="d_snm">—</div>
+          <div class="sig-doc" id="d_smot_cpf">—</div>
+          <div class="sig-doc" id="d_smot_rg">—</div>
+        </div>
+        <div class="sig-box">
+          <div class="sig-line"></div>
+          <div class="sig-title">Responsável pela Expedição</div>
+          <div class="sig-name">IRMÃOS MUFFATO S.A.</div>
+          <div class="sig-doc" id="d_sig_loja_cnpj">CNPJ: 76.430.438/0001-71</div>
+          <div class="sig-doc">Logística / Expedição / Prevenção Perdas</div>
+        </div>
+      </div>
+    </div><!-- /doc -->
+  </div><!-- /doc-shadow-wrap -->
+</main>
+
+</div><!-- /app -->
+
+<!-- ══ BOTTOM NAV (mobile) ══ -->
+<nav class="mob-nav" id="mobNav">
+  <button class="mob-tab active" id="mtForm" onclick="mobSwitch('form')">
+    <span class="mt-icon">📋</span>
+    <span>Formulário</span>
+  </button>
+  <button class="mob-tab" id="mtPrev" onclick="mobSwitch('prev')">
+    <span class="mt-icon">👁</span>
+    <span>Prévia</span>
+  </button>
+  <button class="mob-tab" id="mtPrint" onclick="gerarPDF()">
+    <span class="mt-icon">📄</span>
+    <span>Gerar PDF</span>
+  </button>
+</nav>
+
+<!-- ══ LOGIN MODAL ══ -->
+<div class="login-overlay hidden" id="loginOverlay">
+  <div class="login-box">
+    <button class="login-close" onclick="hideLogin()">✕</button>
+    <div class="login-brand">
+      <div class="login-brand-mark">M</div>
+      <div>
+        <div class="login-title">Max Atacadista</div>
+        <div class="login-sub">Acesso ao Sistema de IA</div>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:10px">
+      <label style="font-size:10px;font-weight:600;color:var(--text2);letter-spacing:.6px;text-transform:uppercase;display:block;margin-bottom:4px">Usuário</label>
+      <input id="loginUser" type="text" placeholder="usuario" autocomplete="username"
+        style="width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:var(--font)"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <label style="font-size:10px;font-weight:600;color:var(--text2);letter-spacing:.6px;text-transform:uppercase;display:block;margin-bottom:4px">Senha</label>
+      <div class="pass-wrap">
+        <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"
+          style="width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:var(--font)"
+          onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="pass-eye" type="button" onclick="togglePassVis()" id="passEyeBtn">👁</button>
+      </div>
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <button class="btn-do-login" id="btnDoLogin" onclick="doLogin()">Entrar</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════ LOJAS ═══════════ */
+const LOJAS = {
+  1025:{nm:"Max Debret",cnpj:"76.430.438/0025-49",uf:"PR",end:"Rua das Missões, 2550, Vila Portes",cep:"85.853-100",cidade:"Foz do Iguaçu"},
+  1037:{nm:"Max Tiradentes",cnpj:"76.430.438/0037-82",uf:"PR",end:"Avenida Tiradentes, 2200, Rodocentro",cep:"86.071-000",cidade:"Londrina"},
+  1050:{nm:"Max Eldorado Prudente",cnpj:"76.430.438/0050-50",uf:"SP",end:"Avenida Salin Farah Maluf, 170, Jardim Eldorado",cep:"19.026-140",cidade:"Presidente Prudente"},
+  1057:{nm:"Max Floresta",cnpj:"76.430.438/0057-26",uf:"PR",end:"Rua Altemar Dutra, 1327, Brasilia",cep:"85.815-460",cidade:"Cascavel"},
+  1060:{nm:"Max Apucarana",cnpj:"76.430.438/0060-21",uf:"PR",end:"Avenida Minas Gerais, S/N, Jardim Apucarana",cep:"85.804-000",cidade:"Cascavel"},
+  1065:{nm:"Max Colombo",cnpj:"76.430.438/0065-36",uf:"PR",end:"Av. Colombo Esq. Rua Bolivia, 2720, Vila Morangueira",cep:"87.045-000",cidade:"Maringá"},
+  1066:{nm:"Max São Cristóvão",cnpj:"76.430.438/0066-17",uf:"PR",end:"Avenida Brasil, 900, São Cristovão",cep:"85.816-290",cidade:"Cascavel"},
+  1067:{nm:"Max Paranaguá",cnpj:"76.430.438/0067-06",uf:"PR",end:"Avenida Coronel José Lobo, 939, Oceania",cep:"83.203-340",cidade:"Paranaguá"},
+  1070:{nm:"Max Linha Verde",cnpj:"76.430.438/0070-01",uf:"PR",end:"Rua Lothario Boutin, 554, Pinheirinho",cep:"81.110-522",cidade:"Curitiba"},
+  1073:{nm:"Max Potirendaba",cnpj:"76.430.438/0073-46",uf:"SP",end:"Avenida Potirendaba, 2937, Parque Quinta das Paineiras",cep:"15.080-480",cidade:"São José do Rio Preto"},
+  1075:{nm:"Max Bairro Alto",cnpj:"76.430.438/0075-08",uf:"PR",end:"Avenida Caviuna, 472, Bairro Alto",cep:"82.840-123",cidade:"Curitiba"},
+  1076:{nm:"Max Campo Comprido",cnpj:"76.430.438/0076-99",uf:"PR",end:"Av. Juscelino Kubitschek de Oliveira, 2651, Cidade Industrial",cep:"81.270-200",cidade:"Curitiba"},
+  1079:{nm:"Max São José",cnpj:"76.430.438/0079-31",uf:"PR",end:"Avenida Rua Barbosa, 6131, Jardim Aviação",cep:"83.065-260",cidade:"São José dos Pinhais"},
+  1084:{nm:"Max Zona Norte SJRP",cnpj:"76.430.438/0084-07",uf:"SP",end:"Av. Dr. Antonio Marques dos Santos, S/N, Jardim Seyon",cep:"15.050-500",cidade:"São José do Rio Preto"},
+  1085:{nm:"Max Arapongas",cnpj:"76.430.438/0085-80",uf:"PR",end:"Rua Tinguaçu, 763, Vila Industrial",cep:"86.706-176",cidade:"Arapongas"},
+  1086:{nm:"Max Foz BR 277",cnpj:"76.430.438/0086-60",uf:"PR",end:"Avenida Getulio Vargas, 672, Parque Presidente",cep:"85.863-350",cidade:"Foz do Iguaçu"},
+  1089:{nm:"Max Pinhais",cnpj:"76.430.438/0089-03",uf:"PR",end:"Rua Ayrton Senna da Silva, 2806, Centro",cep:"83.323-290",cidade:"Pinhais"},
+  1090:{nm:"Max FRG",cnpj:"76.430.438/0090-47",uf:"PR",end:"Av. Nossa Senhora Aparecida, 228, Santa Terezinha",cep:"83.829-018",cidade:"Fazenda Rio Grande"},
+  1091:{nm:"Max Araucária",cnpj:"76.430.438/0091-28",uf:"PR",end:"Rua Doutor Vital Brasil, 170, Estação",cep:"83.705-174",cidade:"Araucária"},
+  1092:{nm:"Max Chapada Ponta Grossa",cnpj:"76.430.438/0092-09",uf:"PR",end:"Avenida Souza Naves, 2420, Chapada",cep:"84.062-000",cidade:"Ponta Grossa"},
+  1093:{nm:"Max Rolandia",cnpj:"76.430.438/0093-90",uf:"PR",end:"Av. Presidente Getulio Vargas, 3634, Jardim Caviuna",cep:"86.605-306",cidade:"Rolândia"},
+  1094:{nm:"Max Tito Muffato",cnpj:"76.430.438/0094-70",uf:"PR",end:"Avenida Tito Muffato, 91, Santo Onofre",cep:"85.806-728",cidade:"Cascavel"},
+  1097:{nm:"Max Catanduva",cnpj:"76.430.438/0097-13",uf:"SP",end:"Avenida São Domingos, 1491, Vila Guzzo",cep:"15.803-010",cidade:"Catanduva"},
+  1102:{nm:"Max Toledo",cnpj:"76.430.438/0102-15",uf:"PR",end:"Avenida Ministro Cirne Lima, 4022, Tocantins",cep:"85.904-460",cidade:"Toledo"},
+  1104:{nm:"Max Bela Vista",cnpj:"76.430.438/0104-87",uf:"PR",end:"Rua Bela Vista, 99, Vila Santa Terezinha",cep:"86.802-330",cidade:"Apucarana"},
+  1105:{nm:"Max Guanabara",cnpj:"76.430.438/0105-68",uf:"SP",end:"Av. Presidente Juscelino Kubitschek, 7764, Jardim Guanabara",cep:"19.033-390",cidade:"Presidente Prudente"},
+  1106:{nm:"Max Ourinhos",cnpj:"76.430.438/0106-49",uf:"SP",end:"Rua Cardoso Ribeiro, 861, Vila Boa Esperança",cep:"19.912-120",cidade:"Ourinhos"},
+  1107:{nm:"Max Fernandópolis",cnpj:"76.430.438/0107-20",uf:"SP",end:"Avenida Luiz Brambatti, 3938, Brasilandia",cep:"15.606-172",cidade:"Fernandópolis"},
+  1109:{nm:"Max Beltão",cnpj:"76.430.438/0109-91",uf:"PR",end:"Rua Guapore, 301, Presidente Kennedy",cep:"85.605-315",cidade:"Francisco Beltrão"},
+  1110:{nm:"Max Cambé",cnpj:"76.430.438/0110-25",uf:"PR",end:"Av. Gabriel Freceiro de Miranda, 1516, Jardim Santo Amaro",cep:"86.185-010",cidade:"Cambé"},
+  1111:{nm:"Max Colombo RMC",cnpj:"76.430.438/0111-06",uf:"PR",end:"Avenida São Gabriel, 647, Campo Pequeno",cep:"83.404-642",cidade:"Colombo"},
+  1112:{nm:"Max Medianeira",cnpj:"76.430.438/0112-97",uf:"PR",end:"Rua Minuano, 937, Jardim Belo Horizonte",cep:"85.884-000",cidade:"Medianeira"},
+  1113:{nm:"Max Campo Largo",cnpj:"76.430.438/0113-78",uf:"PR",end:"Av. Padre Natal Pigato, 362, Vila Bancaria",cep:"83.601-630",cidade:"Campo Largo"},
+  1114:{nm:"Max Cianorte",cnpj:"76.430.438/0114-59",uf:"PR",end:"Avenida Leopoldina, 1005, Novo Centro",cep:"87.200-190",cidade:"Cianorte"},
+  1116:{nm:"Max Jardim Carvalho",cnpj:"76.430.438/0116-10",uf:"PR",end:"Avenida Monteiro Lobato, 2493, Jardim Carvalho",cep:"84.015-480",cidade:"Ponta Grossa"},
+  1118:{nm:"Max Sorocaba Ipanema",cnpj:"76.430.438/0118-82",uf:"SP",end:"Av. Ipanema, S/N, Vila Nova Sorocaba",cep:"18.070-671",cidade:"Sorocaba"},
+  1120:{nm:"Max Marechal",cnpj:"76.430.438/0120-05",uf:"PR",end:"Avenida Irio Jacob Welp, 2297, Jardim Lider",cep:"85.960-000",cidade:"Marechal Cândido Rondon"},
+  1122:{nm:"Max Hauer",cnpj:"76.430.438/0122-69",uf:"PR",end:"Av. Marechal Floriano Peixoto, 5350, Hauer",cep:"81.630-000",cidade:"Curitiba"},
+  1123:{nm:"Max Pioneiros",cnpj:"76.430.438/0123-40",uf:"PR",end:"Estrada dos Pioneiros, 2155, Jardim Morumbi",cep:"86.036-370",cidade:"Londrina"},
+  1126:{nm:"Max Taubaté",cnpj:"76.430.438/0126-92",uf:"SP",end:"Avenida dos Imigrantes, 111, Bairro Quiririm",cep:"12.043-490",cidade:"Taubaté"},
+  1127:{nm:"Max Sorocaba Norte",cnpj:"76.430.438/0127-73",uf:"SP",end:"Rua João Ribeiro de Barros, 1411, Vila Odim Antao",cep:"18.090-602",cidade:"Sorocaba"},
+  1128:{nm:"Max São José dos Campos",cnpj:"76.430.438/0128-54",uf:"SP",end:"Rua Patativa, 280, Vila Tatetuba",cep:"12.220-140",cidade:"São José dos Campos"},
+  1129:{nm:"Max Lapa",cnpj:"76.430.438/0129-35",uf:"SP",end:"Rua Cenno Sbrighi, 700, Bairro Água Branca",cep:"05.036-011",cidade:"São Paulo"},
+  1130:{nm:"Max Eldorado Rio Preto",cnpj:"76.430.438/0130-79",uf:"SP",end:"Av. Alberto Olivieri Esq. Av. S. Gonçalves de Souza, 2200, Bairro Eldorado",cep:"15044-216",cidade:"São José do Rio Preto"},
+  1131:{nm:"Max Santo André",cnpj:"76.430.438/0131-50",uf:"SP",end:"Avenida dos Estados, 7439, Santa Terezinha",cep:"09.290-520",cidade:"Santo André"},
+  1132:{nm:"Max Votorantin",cnpj:"76.430.438/0132-30",uf:"SP",end:"Rodovia Raposo Tavares, KM 104, Jardim Novo Mundo",cep:"18.052-250",cidade:"Votorantim"},
+  1133:{nm:"Max Guarulhos",cnpj:"76.430.438/0133-11",uf:"SP",end:"Rua Carlos Leal Evans, 252, Jardim Santa Francisca",cep:"07.024-020",cidade:"Guarulhos"},
+  1134:{nm:"Max Piracicaba",cnpj:"76.430.438/0134-00",uf:"SP",end:"Avenida Dois Córregos, 3005, Bairro dos Córregos",cep:"13.420-835",cidade:"Piracicaba"},
+  1135:{nm:"Max Cedral",cnpj:"76.430.438/0135-83",uf:"SP",end:"Avenida Joaquim Constantino, 7204, Parque Cedral",cep:"19.067-550",cidade:"Presidente Prudente"},
+  1136:{nm:"Max Interlagos",cnpj:"76.430.438/0136-64",uf:"SP",end:"Rua Domingas Galleteri Blotta, 507, Vila Campo Grande",cep:"04.456-110",cidade:"São Paulo"},
+  1137:{nm:"Max Butantã",cnpj:"76.430.438/0137-45",uf:"SP",end:"Rua Carlos Lisdegno Carlucci, 519, Jardim Peri Peri",cep:"05.536-900",cidade:"São Paulo"},
+  1138:{nm:"Max Marília",cnpj:"76.430.438/0138-26",uf:"SP",end:"Rua Kanetario Mitishita, 60, Parque das Industrias",cep:"17.519-730",cidade:"Marília"},
+  1139:{nm:"Max Mogi",cnpj:"76.430.438/0139-07",uf:"SP",end:"Rua Carlos Baratino, 494, Vila Mogilar",cep:"08.773-600",cidade:"Mogi das Cruzes"},
+  1140:{nm:"Max São Bernardo",cnpj:"76.430.438/0140-40",uf:"SP",end:"Rua Frei Damião, 355, Pauliceia",cep:"09.695-100",cidade:"São Bernardo do Campo"},
+  1141:{nm:"Max Campinas",cnpj:"76.430.438/0141-21",uf:"SP",end:"Av. Ricardo Bassoli Cezare, 1567, Jardim das Bandeiras",cep:"13.050-080",cidade:"Campinas"},
+  1142:{nm:"Max Assis",cnpj:"76.430.438/0142-02",uf:"SP",end:"Avenida Dom Antonio, 2515, Vila Tenis Clube",cep:"19.806-173",cidade:"Assis"},
+  1144:{nm:"Max JK Foz",cnpj:"76.430.438/0144-74",uf:"PR",end:"Avenida Juscelino Kubitschek, 2404, Monjolo",cep:"85.864-498",cidade:"Foz do Iguaçu"},
+  1145:{nm:"Max João Bettega",cnpj:"76.430.438/0145-55",uf:"PR",end:"Rua Senador Accioly Filho, 2005, Cidade Industrial",cep:"81.350-200",cidade:"Curitiba"},
+  1146:{nm:"Max Oficinas",cnpj:"76.430.438/0146-36",uf:"PR",end:"Avenida Visconde de Mauá, 2975, Oficinas",cep:"84.045-100",cidade:"Ponta Grossa"},
+  1148:{nm:"Max Jaçanã",cnpj:"76.430.438/0148-06",uf:"SP",end:"Rua Manuel Gaya, 390, Vila Nova Mazzei",cep:"02.313-000",cidade:"São Paulo"},
+  1149:{nm:"Max Morumbi",cnpj:"76.430.438/0149-89",uf:"SP",end:"Avenida Giovanni Gronchi, 5800, Vila Andrade",cep:"05.724-002",cidade:"São Paulo"},
+  1150:{nm:"Max Safira",cnpj:"76.430.438/0150-12",uf:"PR",end:"Avenida Safira, 1050, Porto Meira",cep:"85.854-000",cidade:"Foz do Iguaçu"},
+  1151:{nm:"Max Olímpia",cnpj:"76.430.438/0151-01",uf:"SP",end:"Avenida João Rimoli Neto, 1320, Jardim Leonor",cep:"15.400-000",cidade:"Olímpia"},
+  1152:{nm:"Max Castro",cnpj:"76.430.438/0152-84",uf:"PR",end:"Avenida Vicente Fiorillo, 100, Castroville",cep:"84.172-540",cidade:"Castro"},
+  1153:{nm:"Max Torres",cnpj:"76.430.438/0153-65",uf:"PR",end:"Avenida Comendador Franco, 6992, Uberaba",cep:"86.188-060",cidade:"Cambé"},
+  1154:{nm:"Max Votuporanga",cnpj:"76.430.438/0154-46",uf:"SP",end:"Avenida Nasser Marão, 2519, Parque Industrial I",cep:"15.503-005",cidade:"Votuporanga"},
+  1155:{nm:"Max Guaíra",cnpj:"76.430.438/0155-27",uf:"PR",end:"Rua Osvaldo Cruz, 1095, Parque do Lago",cep:"85.983-071",cidade:"Guaíra"},
+  1156:{nm:"Max Sarandi",cnpj:"76.430.438/0156-08",uf:"PR",end:"Rua José Munhoz, 287, Centro",cep:"87.111-610",cidade:"Sarandi"},
+  1157:{nm:"Max Umuarama",cnpj:"76.430.438/0157-99",uf:"PR",end:"Rua Jamil Helu, 4035, Colonia Nucleo Cruzeiro",cep:"87.507-015",cidade:"Umuarama"},
+  1158:{nm:"Max Marília Norte",cnpj:"76.430.438/0158-70",uf:"SP",end:"Rua 17, 611, Jardim Nazareth",cep:"17.512-751",cidade:"Marília"}
+};
+
+const CNPJ_TO_LOJA = {};
+Object.entries(LOJAS).forEach(([cod,l])=>{ CNPJ_TO_LOJA[l.cnpj.replace(/\D/g,'')]=parseInt(cod); });
+
+/* STATE */
+let mercs=[], mid=0, apiKey='';
+const DEFAULT_BACKEND='https://ordem-coleta-backend-production.up.railway.app';
+let backendUrl=DEFAULT_BACKEND, sessionToken='';
+
+/* INIT */
+(function init(){
+  try{
+    const sk=localStorage.getItem('oc_apikey');
+    if(sk){apiKey=sk;document.getElementById('apiKey').value=sk;}
+    document.getElementById('backendUrl').value=DEFAULT_BACKEND;
+    const st=localStorage.getItem('oc_token');
+    if(st)sessionToken=st;
+  }catch(e){}
+  updateConnStatus();
+  document.getElementById('f_data').value=new Date().toISOString().split('T')[0];
+  const num=genNum();
+  document.getElementById('d_num').textContent='Nº '+num;
+  document.getElementById('previewNum').textContent=num;
+  addMerc();
+  buildStoreDrop('');
+  upd();
+})();
+
+function genNum(){
+  const d=new Date();
+  return'OC-'+String(d.getFullYear()).slice(2)+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());
+}
+function pad(n){return String(n).padStart(2,'0')}
+
+/* SECTION TOGGLE */
+function toggleSec(header){
+  const sec=header.closest('.sec');
+  sec.classList.toggle('collapsed');
+}
+
+/* PDF TOAST */
+function _showPdfToast(msg,prog){
+  let t=document.getElementById('pdfToast');
+  if(!t){
+    t=document.createElement('div');t.id='pdfToast';
+    Object.assign(t.style,{
+      position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)',
+      background:'rgba(15,15,30,.95)',color:'#fff',borderRadius:'12px',
+      padding:'14px 22px',fontSize:'13px',fontFamily:'Inter,sans-serif',
+      zIndex:'99999',display:'flex',alignItems:'center',gap:'10px',
+      boxShadow:'0 4px 32px rgba(0,0,0,.7)',backdropFilter:'blur(12px)',
+      border:'1px solid rgba(255,255,255,.1)',minWidth:'220px',transition:'opacity .3s'
+    });
+    const bar=document.createElement('div');bar.id='pdfBar';
+    Object.assign(bar.style,{
+      position:'absolute',bottom:'0',left:'0',height:'3px',
+      background:'linear-gradient(90deg,#e31e24,#ff6b6b)',
+      borderRadius:'0 0 12px 12px',width:'0%',transition:'width .4s ease'
+    });
+    t.appendChild(bar);
+    document.body.appendChild(t);
+  }
+  t.style.opacity='1';t.style.display='flex';
+  const bar=document.getElementById('pdfBar');
+  let span=t.querySelector('.pt-msg');
+  if(!span){span=document.createElement('span');span.className='pt-msg';t.appendChild(span);}
+  span.textContent=msg;
+  if(bar&&prog!=null)bar.style.width=prog+'%';
+}
+function _hidePdfToast(){
+  const t=document.getElementById('pdfToast');
+  if(!t)return;
+  t.style.opacity='0';
+  setTimeout(()=>{t.style.display='none';},400);
+}
+function _loadScript(src){
+  return new Promise((res,rej)=>{
+    if(document.querySelector(`script[src="${src}"]`)){res();return;}
+    const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function gerarPDF(){
+  const loja=(document.getElementById('storeSearch')?.value||'').trim();
+  const emp=(document.getElementById('f_emp')?.value||'').trim();
+  const partes=['Max Atacadista'];
+  if(loja)partes.push(loja.replace(/–/g,'-').replace(/[\/\\:*?"<>|]/g,''));
+  if(emp)partes.push(emp.replace(/[\/\\:*?"<>|]/g,''));
+  const nomeArq=partes.join(' - ')+'.pdf';
+  const btnG=document.getElementById('btnGerar');
+  if(btnG)btnG.disabled=true;
+  try{
+    _showPdfToast('⏳ Preparando…',10);
+    await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+    _showPdfToast('⏳ Carregando…',30);
+    await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    _showPdfToast('🖼 Renderizando…',50);
+    const docEl=document.getElementById('doc');
+    const wrap=document.getElementById('docScaleWrap');
+    const canvas=await html2canvas(docEl,{scale:2.5,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false});
+    _showPdfToast('📄 Gerando PDF…',80);
+    const{jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+    const pW=pdf.internal.pageSize.getWidth();
+    const pH=pdf.internal.pageSize.getHeight();
+    const imgH=pW/(canvas.width/canvas.height);
+    if(imgH<=pH){
+      pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',0,0,pW,imgH);
+    }else{
+      const sliceH=Math.floor(canvas.height*(pH/imgH));
+      let page=0,remaining=canvas.height;
+      while(remaining>0){
+        const srcY=page*sliceH,thisH=Math.min(sliceH,remaining);
+        const slice=document.createElement('canvas');
+        slice.width=canvas.width;slice.height=thisH;
+        slice.getContext('2d').drawImage(canvas,0,srcY,canvas.width,thisH,0,0,canvas.width,thisH);
+        if(page>0)pdf.addPage();
+        pdf.addImage(slice.toDataURL('image/jpeg',0.92),'JPEG',0,0,pW,(thisH/canvas.height)*imgH);
+        remaining-=thisH;page++;
+      }
+    }
+    _showPdfToast('✅ PDF pronto!',100);
+    const isMobile=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    if(isMobile&&navigator.canShare){
+      const blob=pdf.output('blob');
+      const file=new File([blob],nomeArq,{type:'application/pdf'});
+      if(navigator.canShare({files:[file]})){_hidePdfToast();await navigator.share({title:'Ordem de Coleta',files:[file]});return;}
+    }
+    try{
+      if(window.showSaveFilePicker){
+        const blob=pdf.output('blob');
+        const handle=await window.showSaveFilePicker({suggestedName:nomeArq,startIn:'desktop',types:[{description:'PDF',accept:{'application/pdf':['.pdf']}}]});
+        const writable=await handle.createWritable();
+        await writable.write(blob);await writable.close();
+        _showPdfToast('✅ Salvo na Área de Trabalho!',100);
+      }else{pdf.save(nomeArq);}
+    }catch(saveErr){if(saveErr.name!=='AbortError')pdf.save(nomeArq);}
+    setTimeout(_hidePdfToast,1800);
+  }catch(err){
+    console.error(err);
+    _showPdfToast('❌ Erro ao gerar PDF.',0);
+    setTimeout(_hidePdfToast,3000);
+  }finally{if(btnG)btnG.disabled=false;}
+}
+
+function saveKey(){apiKey=document.getElementById('apiKey').value.trim();try{if(apiKey)localStorage.setItem('oc_apikey',apiKey);else localStorage.removeItem('oc_apikey');}catch(e){}}
+function saveBackend(){
+  backendUrl=document.getElementById('backendUrl').value.trim().replace(/\/$/,'');
+  sessionToken='';try{localStorage.removeItem('oc_token');}catch(e){}
+  updateConnStatus();
+}
+function updateConnStatus(){
+  const dot=document.getElementById('connDot');
+  const lbl=document.getElementById('connLabel');
+  const badge=document.getElementById('connBadge');
+  const btnL=document.getElementById('btnLogin');
+  const btnO=document.getElementById('btnLogout');
+  if(!dot)return;
+  if(backendUrl&&sessionToken){
+    dot.className='api-dot on';lbl.textContent='Conectado';lbl.style.color='var(--green)';
+    btnL.classList.add('hidden');btnO.classList.remove('hidden');
+    if(badge){badge.textContent='IA Ativa';badge.style.color='var(--green)';badge.style.borderColor='rgba(34,197,94,0.3)';badge.style.background='var(--green-soft)';}
+  }else if(backendUrl){
+    dot.className='api-dot off';lbl.textContent='Não autenticado';lbl.style.color='var(--red)';
+    btnL.classList.remove('hidden');btnO.classList.add('hidden');
+    if(badge){badge.textContent='Sem conexão';badge.style.color='';badge.style.borderColor='';badge.style.background='';}
+  }else{
+    dot.className='api-dot';lbl.textContent='Sem backend';lbl.style.color='var(--text2)';
+    btnL.classList.remove('hidden');btnO.classList.add('hidden');
+    if(badge){badge.textContent='Sem conexão';badge.style.color='';badge.style.borderColor='';badge.style.background='';}
+  }
+}
+function showLogin(){
+  document.getElementById('loginErr').textContent='';
+  document.getElementById('loginUser').value='';
+  const p=document.getElementById('loginPass');p.value='';p.type='password';
+  document.getElementById('passEyeBtn').textContent='👁';
+  document.getElementById('loginOverlay').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('loginUser').focus(),100);
+}
+function hideLogin(){document.getElementById('loginOverlay').classList.add('hidden');}
+function togglePassVis(){
+  const p=document.getElementById('loginPass');
+  const eye=document.getElementById('passEyeBtn');
+  if(p.type==='password'){p.type='text';eye.textContent='🙈';}
+  else{p.type='password';eye.textContent='👁';}
+}
+async function doLogin(){
+  const url=backendUrl||document.getElementById('backendUrl').value.trim().replace(/\/$/,'');
+  if(!url){document.getElementById('loginErr').textContent='Configure a URL do backend.';return;}
+  const user=document.getElementById('loginUser').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  if(!user||!pass){document.getElementById('loginErr').textContent='Preencha usuário e senha.';return;}
+  const btn=document.getElementById('btnDoLogin');
+  btn.disabled=true;btn.textContent='Entrando...';
+  document.getElementById('loginErr').textContent='';
+  try{
+    const r=await fetch(url+'/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:user,password:pass})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Erro ao fazer login');
+    sessionToken=d.token;backendUrl=url;
+    try{localStorage.setItem('oc_token',sessionToken);localStorage.setItem('oc_backend',backendUrl);}catch(e){}
+    hideLogin();updateConnStatus();
+  }catch(err){document.getElementById('loginErr').textContent=err.message;}
+  finally{btn.disabled=false;btn.textContent='Entrar';}
+}
+async function doLogout(){
+  if(backendUrl&&sessionToken){try{await fetch(backendUrl+'/logout',{method:'POST',headers:{authorization:'Bearer '+sessionToken}});}catch(e){}}
+  sessionToken='';try{localStorage.removeItem('oc_token');}catch(e){}
+  updateConnStatus();
+}
+
+/* FORMATTERS */
+function fmtCnpjCpf(el){
+  let d=el.value.replace(/\D/g,'').slice(0,14),f='';
+  if(d.length<=11){
+    if(d.length>9)f=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9);
+    else if(d.length>6)f=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6);
+    else if(d.length>3)f=d.slice(0,3)+'.'+d.slice(3);
+    else f=d;
+  }else{
+    if(d.length>12)f=d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'/'+d.slice(8,12)+'-'+d.slice(12);
+    else if(d.length>8)f=d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'/'+d.slice(8);
+    else if(d.length>5)f=d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5);
+    else if(d.length>2)f=d.slice(0,2)+'.'+d.slice(2);
+    else f=d;
+  }
+  el.value=f;
+}
+function fmtCpf(el){
+  let d=el.value.replace(/\D/g,'').slice(0,11),f='';
+  if(d.length>9)f=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9);
+  else if(d.length>6)f=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6);
+  else if(d.length>3)f=d.slice(0,3)+'.'+d.slice(3);
+  else f=d;
+  el.value=f;
+}
+function fmtRg(el){
+  let d=el.value.replace(/\D/g,'').slice(0,9),f='';
+  if(d.length>8)f=d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'-'+d.slice(8);
+  else if(d.length>5)f=d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5);
+  else if(d.length>2)f=d.slice(0,2)+'.'+d.slice(2);
+  else f=d;
+  el.value=f;
+}
+
+/* STORE DROPDOWN */
+function buildStoreDrop(q){
+  const drop=document.getElementById('storeDrop');
+  const list=Object.entries(LOJAS).sort((a,b)=>a[0]-b[0]);
+  const filtered=q?list.filter(([c,l])=>String(c).includes(q)||l.nm.toLowerCase().includes(q.toLowerCase())):list;
+  drop.innerHTML=filtered.slice(0,30).map(([c,l])=>
+    `<div class="store-opt" onmousedown="selectLoja(${c})">
+      <span class="store-cod">${c}</span>${l.nm}<span class="store-uf">${l.uf}</span>
+    </div>`
+  ).join('')+(filtered.length>30?`<div class="store-opt" style="color:var(--text3);cursor:default">+${filtered.length-30} mais…</div>`:'');
+}
+function filterStores(){buildStoreDrop(document.getElementById('storeSearch').value);openDrop();}
+function openDrop(){document.getElementById('storeDrop').classList.add('open');}
+function closeDrop(){document.getElementById('storeDrop').classList.remove('open');}
+function selectLoja(cod,source){
+  const l=LOJAS[cod];if(!l)return;
+  document.getElementById('storeSearch').value=`${cod} – ${l.nm}`;
+  document.getElementById('f_loja_nm').value=`MAX ATACADISTA – ${l.nm} (Loja ${cod})`;
+  document.getElementById('f_loja_cnpj').value=l.cnpj;
+  document.getElementById('f_loja_end').value=`${l.end} – ${l.cidade?l.cidade+', ':''}${l.uf}, CEP ${l.cep}`;
+  if(source==='ai')badge('b_loja','ai');else badge('b_loja','manual');
+  upd();
+}
+
+/* MERCADORIAS */
+function addMerc(desc,qtd,nf,data){
+  const id=++mid;
+  mercs.push({id,desc:desc||'',pallets:'',qtd:qtd||'',nf:nf||'',data:data||''});
+  renderMercs();
+}
+function removeMerc(id){mercs=mercs.filter(m=>m.id!==id);if(!mercs.length)addMerc();else renderMercs();}
+function setMerc(id,f,v){const m=mercs.find(m=>m.id===id);if(m){m[f]=v;upd();}}
+function renderMercs(){
+  const list=document.getElementById('mercs-list');
+  list.innerHTML='';
+  mercs.forEach((m,i)=>{
+    const d=document.createElement('div');
+    d.className='merc-item';
+    d.innerHTML=`<div class="merc-num">${i+1}</div>
+      <button class="merc-rm" onclick="removeMerc(${m.id})">✕</button>
+      <div class="fg" style="margin-bottom:8px">
+        <label>Produto</label>
+        <input type="text" placeholder="Ex: CERVEJA SKOL LATA 350ML" value="${esc(m.desc)}"
+          oninput="setMerc(${m.id},'desc',this.value.toUpperCase())" style="text-transform:uppercase">
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Qtd/Pallets</label>
+          <input type="text" placeholder="3 PALLETS" value="${esc(m.pallets)}"
+            oninput="setMerc(${m.id},'pallets',this.value.toUpperCase())"></div>
+        <div class="fg"><label>Qtd/Volume</label>
+          <input type="text" placeholder="720 UN" value="${esc(m.qtd)}"
+            oninput="setMerc(${m.id},'qtd',this.value.toUpperCase())"></div>
+        <div class="fg"><label>Nº NF</label>
+          <input type="text" placeholder="000000" value="${esc(m.nf)}"
+            oninput="setMerc(${m.id},'nf',this.value)"></div>
+        <div class="fg"><label>Data NF</label>
+          <input type="text" placeholder="DD/MM/AA" value="${esc(m.data)}"
+            oninput="setMerc(${m.id},'data',this.value)"></div>
+      </div>`;
+    list.appendChild(d);
+  });
+  upd();
+}
+function esc(s){return(s||'').replace(/"/g,'&quot;');}
+
+/* UPDATE DOC */
+function g(id){return(document.getElementById(id)?.value||'').trim();}
+function set(id,txt,ph){
+  const el=document.getElementById(id);if(!el)return;
+  el.textContent=txt||ph||'—';
+  txt?el.classList.remove('ph'):el.classList.add('ph');
+}
+function fmtDate(s){
+  if(!s)return'___/___/______';
+  const[y,m,d]=s.split('-');
+  const ms=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  return`${parseInt(d)} de ${ms[parseInt(m)-1]} de ${y}`;
+}
+function badge(id,type){
+  const el=document.getElementById(id);if(!el)return;
+  el.style.display='inline-flex';
+  el.className='field-badge '+(type==='ai'?'badge-ai':'badge-manual');
+  el.textContent=type==='ai'?'IA':'manual';
+}
+function upd(){
+  const emp=g('f_emp'),cnpj=g('f_cnpj');
+  const lnm=g('f_loja_nm'),lend=g('f_loja_end');
+  const mot=g('f_mot'),rg=g('f_rg'),cpf=g('f_cpf');
+  const pl1=g('f_pl1').toUpperCase(),pl2=g('f_pl2').toUpperCase(),vei=g('f_vei');
+  const data=g('f_data'),obs=g('f_obs');
+  set('d_emp',emp,'[EMPRESA]');set('d_cnpj',cnpj,'[CNPJ]');
+  set('d_mot_n',mot,'[MOTORISTA]');set('d_cpf_n',cpf,'[CPF]');
+  set('d_loja_n',lnm,'[LOJA]');set('d_end_n',lend,'[ENDEREÇO]');
+  set('d_mn',mot);set('d_mr',rg);set('d_mc',cpf);
+  set('d_p1',pl1);set('d_vm',vei);
+  const p2r=document.getElementById('d_p2r');
+  if(pl2){p2r.style.display='flex';set('d_p2v',pl2);}else p2r.style.display='none';
+  document.getElementById('d_data').textContent=fmtDate(data);
+  set('d_sig_emp',emp,'—');
+  set('d_sig_cnpj',cnpj?'CNPJ: '+cnpj:'—');
+  set('d_snm',mot,'—');
+  set('d_smot_cpf',cpf?'CPF: '+cpf:'—');
+  set('d_smot_rg',rg?'RG: '+rg:'—');
+  document.getElementById('d_obs_x').textContent=obs?' '+obs:'';
+  const lojaCnpj=g('f_loja_cnpj');
+  set('d_loja_cnpj_nar',lojaCnpj,'[CNPJ LOJA]');
+  const sigCnpjEl=document.getElementById('d_sig_loja_cnpj');
+  if(sigCnpjEl)sigCnpjEl.textContent=lojaCnpj?'CNPJ: '+lojaCnpj:'CNPJ: 76.430.438/0001-71';
+  const tbody=document.getElementById('d_mercs');
+  const valid=mercs.filter(m=>m.desc||m.qtd);
+  tbody.innerHTML=valid.length?valid.map((m,i)=>`<tr>
+    <td class="cn">${i+1}</td>
+    <td>${m.desc||'<span style="color:#ccc;font-style:italic">—</span>'}</td>
+    <td class="cq">${m.pallets||'—'}</td>
+    <td class="cq">${m.qtd||'—'}</td>
+    <td class="cf">${m.nf||'—'}</td>
+    <td class="cf">${m.data||'—'}</td>
+  </tr>`).join(''):`<tr><td class="cn">1</td><td><span style="color:#ccc;font-style:italic">—</span></td><td class="cq" style="color:#ccc">—</td><td class="cq" style="color:#ccc">—</td><td class="cf" style="color:#ccc">—</td><td class="cf" style="color:#ccc">—</td></tr>`;
+}
+
+/* MOBILE */
+function mobSwitch(tab){
+  const fp=document.getElementById('sidebar');
+  const pp=document.getElementById('ppPanel');
+  const form=document.getElementById('mtForm');
+  const prev=document.getElementById('mtPrev');
+  if(tab==='form'){
+    fp.classList.remove('mob-hide');pp.classList.remove('mob-show');
+    form.classList.add('active');prev.classList.remove('active');
+  }else if(tab==='prev'){
+    fp.classList.add('mob-hide');pp.classList.add('mob-show');
+    prev.classList.add('active');form.classList.remove('active');
+  }
+}
+
+/* FILE HANDLING */
+function drop(e,type){
+  e.preventDefault();
+  const files=[...e.dataTransfer.files];
+  if(type==='nf'||type==='crlv')files.forEach(f=>processFile(f,type));
+  else if(files[0])processFile(files[0],type);
+}
+function handleFile(e,type){const f=e.target.files[0];if(f)processFile(f,type,false);e.target.value='';}
+function handleFileMulti(e,type,fromCamera=false){
+  const files=[...e.target.files];
+  if(type==='nf')files.forEach(f=>processFile(f,'nf',fromCamera));
+  else if(files[0])processFile(files[0],type,false);
+  e.target.value='';
+}
+async function processFile(file,type,fromCamera=false){
+  const zoneId={nf:'upNF',cnh:'upCNH',crlv:'upCRLV'}[type];
+  setZone(zoneId,'loading','Lendo...');
+  setMsg('Processando '+file.name+'...');
+  try{
+    const b64=await toBase64(file);
+    const mime=file.type||'application/pdf';
+    if(!apiKey&&!sessionToken){
+      const text=await extractText(file);
+      if(type==='nf')parseNF_regex(text);
+      else if(type==='cnh')parseCNH_regex(text);
+      else parseCRLV_regex(text);
+      setZone(zoneId,'done','✓ Lido');
+      setMsg('⚠ Sem chave API: extração básica. Configure a chave para maior precisão.');
+    }else{
+      const callType=(type==='nf'&&fromCamera)?'nf_cam':type;
+      const result=await callClaude(b64,mime,callType);
+      if(type==='nf'&&fromCamera){
+        const conf=(result.confidence||'').toLowerCase();
+        if(conf==='low'){
+          setZone(zoneId,'error','✕ Foto recusada');
+          setMsg('⚠ Foto recusada'+(result.reason?': '+result.reason:'')+'. Use o arquivo PDF.');
+          return;
+        }
+      }
+      applyExtraction(result,type);
+      setZone(zoneId,'done','✓ Preenchido');
+      setMsg('✓ Campos preenchidos automaticamente por IA');
+    }
+  }catch(err){
+    setZone(zoneId,'error','Erro');
+    setMsg('Erro: '+err.message);
+    console.error(err);
+  }
+}
+function setZone(id,state,label){
+  const el=document.getElementById(id);if(!el)return;
+  el.className='upz'+(state?' '+state:'');
+  const lbl=document.getElementById(id+'-label');
+  if(lbl&&label)lbl.textContent=label;
+}
+function setMsg(msg){const el=document.getElementById('extractMsg');if(el)el.textContent=msg||'';}
+function toBase64(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);
+  });
+}
+async function extractText(file){
+  const url=URL.createObjectURL(file);
+  try{
+    if(!window.pdfjsLib){
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        s.onload=res;s.onerror=rej;document.head.appendChild(s);
+      });
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+    const pdfDoc=await window.pdfjsLib.getDocument(url).promise;
+    let text='';
+    for(let i=1;i<=Math.min(pdfDoc.numPages,5);i++){
+      const page=await pdfDoc.getPage(i);const tc=await page.getTextContent();
+      text+=tc.items.map(it=>it.str).join('\n')+'\n';
+    }
+    return text;
+  }finally{URL.revokeObjectURL(url);}
+}
+async function callClaude(b64,mime,type){
+  const PROMPTS={
+    nf:`Você é um extrator de NF-e (DANFE) brasileira. Extraia: empresa_* = EMITENTE, loja_* = DESTINATÁRIO. Retorne SOMENTE JSON válido:
+{"empresa_razao":"","empresa_cnpj":"","loja_cnpj":"","loja_nome":"","loja_end":"","loja_cidade":"","loja_uf":"","loja_cep":"","nf_numero":"","nf_data":"DD/MM/AAAA","produtos":[{"desc":"","qtd":""}]}`,
+    nf_cam:`Você é um extrator de NF-e fotografada. Avalie qualidade e extraia dados. Retorne SOMENTE JSON válido:
+{"confidence":"high|medium|low","reason":"","empresa_razao":"","empresa_cnpj":"","loja_cnpj":"","loja_nome":"","loja_end":"","loja_cidade":"","loja_uf":"","loja_cep":"","nf_numero":"","nf_data":"","produtos":[{"desc":"","qtd":""}]}`,
+    cnh:`Extraia dados de CNH brasileira. Retorne SOMENTE JSON: {"nome":"","cpf":"XXX.XXX.XXX-XX","rg":"","categoria":""}`,
+    crlv:`Extraia dados de CRLV brasileiro. Retorne SOMENTE JSON: {"placa":"","modelo":"","renavam":"","ano_fab":"","ano_mod":""}`
+  };
+  const prompt=PROMPTS[type]||PROMPTS.nf;
+  const srcType=mime==='application/pdf'?'document':'image';
+  const contentPart=srcType==='document'
+    ?{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}}
+    :{type:'image',source:{type:'base64',media_type:mime,data:b64}};
+  const payload={model:'claude-haiku-4-5-20251001',max_tokens:1024,messages:[{role:'user',content:[contentPart,{type:'text',text:prompt}]}]};
+  if(sessionToken&&backendUrl){
+    const r=await fetch(backendUrl+'/api/claude',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+sessionToken},body:JSON.stringify(payload)});
+    if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error||'Erro no backend ('+r.status+')');}
+    const d=await r.json();const txt=d.content?.[0]?.text||'{}';const jm=txt.match(/\{[\s\S]*\}/);
+    if(!jm)throw new Error('Resposta inválida');return JSON.parse(jm[0]);
+  }
+  if(!apiKey)throw new Error('Sem chave API configurada');
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'content-type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-beta':'pdfs-2024-09-25'},
+    body:JSON.stringify(payload)
+  });
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error((e.error?.message)||'Erro API ('+r.status+')');}
+  const d=await r.json();const txt=d.content?.[0]?.text||'{}';const jm=txt.match(/\{[\s\S]*\}/);
+  if(!jm)throw new Error('Resposta inválida');return JSON.parse(jm[0]);
+}
+function applyExtraction(data,type){
+  if(!data)return;
+  if(type==='nf'||type==='nf_cam'){
+    const cnpjEmpNum=(data.empresa_cnpj||'').replace(/\D/g,'');
+    const cnpjLojNum=(data.loja_cnpj||'').replace(/\D/g,'');
+    const codDeEmp=cnpjEmpNum?CNPJ_TO_LOJA[cnpjEmpNum]:null;
+    const codDeLoj=cnpjLojNum?CNPJ_TO_LOJA[cnpjLojNum]:null;
+    if(codDeLoj){
+      if(data.empresa_razao){const el=document.getElementById('f_emp');if(el){el.value=data.empresa_razao;badge('b_emp','ai');}}
+      if(data.empresa_cnpj){const el=document.getElementById('f_cnpj');if(el){el.value=data.empresa_cnpj;badge('b_cnpj','ai');}}
+      selectLoja(codDeLoj,'ai');
+    }else if(codDeEmp){
+      if(data.loja_nome){const el=document.getElementById('f_emp');if(el){el.value=data.loja_nome;badge('b_emp','ai');}}
+      if(data.loja_cnpj){const el=document.getElementById('f_cnpj');if(el){el.value=data.loja_cnpj;badge('b_cnpj','ai');}}
+      selectLoja(codDeEmp,'ai');
+    }else{
+      if(data.empresa_razao){const el=document.getElementById('f_emp');if(el){el.value=data.empresa_razao;badge('b_emp','ai');}}
+      if(data.empresa_cnpj){const el=document.getElementById('f_cnpj');if(el){el.value=data.empresa_cnpj;badge('b_cnpj','ai');}}
+      if(!document.getElementById('storeSearch').value.trim()){
+        if(data.loja_nome){const el=document.getElementById('f_loja_nm');if(el){el.value=data.loja_nome;badge('b_loja','ai');}}
+        if(data.loja_cnpj){const el=document.getElementById('f_loja_cnpj');if(el)el.value=data.loja_cnpj;}
+        if(data.loja_end){const el=document.getElementById('f_loja_end');if(el)el.value=[data.loja_end,data.loja_cidade,data.loja_uf,data.loja_cep?'CEP '+data.loja_cep:''].filter(Boolean).join(', ');}
+      }
+    }
+    if(data.produtos&&data.produtos.length){
+      if(!mercs.length||!mercs[0].desc){mercs=[];mid=0;}
+      data.produtos.forEach(p=>addMerc((p.desc||'').toUpperCase(),p.qtd||'',data.nf_numero||'',data.nf_data||''));
+      if(mercs.length)badge('b_mercs','ai');
+    }
+  }else if(type==='cnh'){
+    if(data.nome)setField('f_mot',data.nome,'ai');
+    if(data.cpf)setField('f_cpf',data.cpf,'ai');
+    if(data.rg)setField('f_rg',data.rg,'ai');
+  }else if(type==='crlv'){
+    if(data.placa){
+      const pl=data.placa.replace(/[^A-Z0-9]/gi,'').toUpperCase();
+      const p1=document.getElementById('f_pl1');
+      if(p1&&!p1.value)setField('f_pl1',pl,'ai');else setField('f_pl2',pl,'ai');
+    }
+    if(data.modelo)setField('f_vei',data.modelo,'ai');
+  }
+  upd();
+}
+function setField(id,val,source){
+  const el=document.getElementById(id);if(!el||!val)return;
+  el.value=val;
+  const bid='b_'+id.replace(/^f_/,'');
+  badge(bid,source||'ai');upd();
+}
+
+/* REGEX PARSERS */
+function parseNF_regex(text){
+  if(!text)return;
+  const cnpjAll=[...text.matchAll(/\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/g)].map(m=>m[0]);
+  let lojaCod=null,lojaCnpj='',empresaCnpj='';
+  for(const c of cnpjAll){
+    const num=c.replace(/\D/g,'');const cod=CNPJ_TO_LOJA[num];
+    if(cod&&!lojaCod){lojaCod=cod;lojaCnpj=c;}
+    else if(!empresaCnpj&&c!==lojaCnpj)empresaCnpj=c;
+  }
+  if(!lojaCnpj&&cnpjAll.length>1){lojaCnpj=cnpjAll[1];empresaCnpj=cnpjAll[0];}
+  else if(!empresaCnpj&&cnpjAll[0]&&cnpjAll[0]!==lojaCnpj)empresaCnpj=cnpjAll[0];
+  if(empresaCnpj){document.getElementById('f_cnpj').value=empresaCnpj;badge('b_cnpj','ai');}
+  if(lojaCod){selectLoja(lojaCod,'ai');}
+  const nfNumM=text.match(/(?:N[º°o]\s*\.?\s*|NÚMERO\s*[:\s])(\d{6,9})/i);
+  const dataM=text.match(/(\d{2}\/\d{2}\/\d{4})/);
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  const prodLines=[];let inProd=false;
+  for(const ln of lines){
+    if(/DESCRI[ÇC][AÃ]O\s*DO\s*PRODUTO/i.test(ln)){inProd=true;continue;}
+    if(inProd){
+      if(/^\d+\s/.test(ln)){const desc=ln.replace(/^\d+\s+/,'').split(/\s{2,}/)[0].trim();if(desc.length>3)prodLines.push(desc);if(prodLines.length>=8)break;}
+      else if(/TOTAL|VALOR\s+TOTAL/i.test(ln))break;
+    }
+  }
+  if(prodLines.length){
+    if(!mercs.length||!mercs[0].desc){mercs=[];mid=0;}
+    prodLines.forEach(d=>addMerc(d.toUpperCase(),'',(nfNumM&&nfNumM[1])||'',(dataM&&dataM[1])||''));
+    badge('b_mercs','ai');
+  }
+  upd();
+}
+function parseCNH_regex(text){
+  if(!text)return;
+  let nome='';
+  const nomePatterns=[
+    /(?:1\s*[-–]?\s*NOME\s*(?:E\s*SOBRENOME)?)[^\n]*\n([A-ZÀÁÂÃÉÊÍÓÔÕÚÜÇ ]{5,})/,
+    /\bNOME\b[:\s]*\n([A-ZÀÁÂÃÉÊÍÓÔÕÚÜÇ ]{5,})/,
+    /^([A-ZÀÁÂÃÉÊÍÓÔÕÚÜÇ]{2}[A-ZÀÁÂÃÉÊÍÓÔÕÚÜÇ ]{4,})\n[\s\S]{0,80}?\d{3}\.\d{3}\.\d{3}-\d{2}/m
+  ];
+  for(const p of nomePatterns){const m=text.match(p);if(m&&m[1]&&m[1].trim().split(/\s+/).length>=2){nome=m[1].trim();break;}}
+  const cpfM=text.match(/(\d{3}[\.\s]?\d{3}[\.\s]?\d{3}[\-\s]?\d{2})/);
+  let cpf='';
+  if(cpfM){const d=cpfM[1].replace(/\D/g,'');if(d.length===11)cpf=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9);}
+  let rg='';
+  const rgPatterns=[/(?:RG\s*[:\n]\s*)([0-9][0-9\.\-\/X]{4,14})/i,/\b(\d{6,10})\s+(?:SSP|PC|PM)/];
+  for(const p of rgPatterns){const m=text.match(p);if(m&&m[1]){rg=m[1].trim();break;}}
+  if(nome)setField('f_mot',nome,'ai');
+  if(cpf)setField('f_cpf',cpf,'ai');
+  if(rg)setField('f_rg',rg,'ai');
+  upd();
+}
+function parseCRLV_regex(text){
+  if(!text)return;
+  const placaM=text.match(/\b([A-Z]{3}[\s\-]?[0-9][A-Z0-9][0-9]{2})\b/i)||text.match(/\b([A-Z]{3}[\s\-]?[0-9]{4})\b/i);
+  const modeloM=text.match(/(?:MARCA[\/\s]+MODELO|MODELO)[:\s\n]+([^\n]{3,50})/i);
+  if(placaM){const pl=placaM[1].replace(/[\s\-]/g,'').toUpperCase();const p1=document.getElementById('f_pl1');if(p1&&!p1.value)setField('f_pl1',pl,'ai');else setField('f_pl2',pl,'ai');}
+  if(modeloM)setField('f_vei',modeloM[1].trim(),'ai');
+  upd();
+}
+
+/* CLEAR */
+function clearAll(){
+  ['f_emp','f_cnpj','f_loja_nm','f_loja_cnpj','f_loja_end','f_mot','f_rg','f_cpf','f_pl1','f_pl2','f_vei','f_data','f_obs']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('storeSearch').value='';
+  document.querySelectorAll('.field-badge').forEach(b=>{b.style.display='none';b.textContent='';});
+  mercs=[];mid=0;addMerc();
+  ['upNF','upCNH','upCRLV'].forEach(id=>setZone(id,'',''));
+  const nfLbl=document.getElementById('upNF-label');if(nfLbl)nfLbl.innerHTML='NF-e<br>da Loja';
+  const crlvLbl=document.getElementById('upCRLV-label');if(crlvLbl)crlvLbl.innerHTML='CRLV<br>Veículo';
+  setMsg('');upd();
+}
+</script>
+</body>
+</html>
