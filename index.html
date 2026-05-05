@@ -2,1480 +2,815 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Ordem de Coleta — Max Atacadista</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Max Atacadista — Portal Televendas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-.hidden{display:none!important}
-body{font-family:Arial,sans-serif;background:#0e0e1a;color:#ddd;font-size:13px}
-.app{display:flex;min-height:100vh}
+  :root, html[data-theme="dark"] {
+    --bg: #080810;
+    --bg2: #0d0d1a;
+    --nav-bg: rgba(8,8,16,0.7);
+    --surface: rgba(255,255,255,0.04);
+    --surface-hover: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.16);
+    --red: #e31e24;
+    --red-soft: rgba(227,30,36,0.15);
+    --red-glow: rgba(227,30,36,0.3);
+    --text: #f0f0f5;
+    --text-2: rgba(240,240,245,0.55);
+    --text-3: rgba(240,240,245,0.3);
+    --grid-line: rgba(255,255,255,0.025);
+    --bg-glow-1: rgba(227,30,36,0.08);
+    --bg-glow-2: rgba(60,60,140,0.06);
+    --font: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  html[data-theme="light"] {
+    --bg: #f7f7fa;
+    --bg2: #ffffff;
+    --nav-bg: rgba(255,255,255,0.85);
+    --surface: rgba(0,0,0,0.025);
+    --surface-hover: rgba(0,0,0,0.05);
+    --border: rgba(0,0,0,0.08);
+    --border-hover: rgba(0,0,0,0.16);
+    --red: #e31e24;
+    --red-soft: rgba(227,30,36,0.08);
+    --red-glow: rgba(227,30,36,0.2);
+    --text: #14141c;
+    --text-2: rgba(20,20,28,0.6);
+    --text-3: rgba(20,20,28,0.35);
+    --grid-line: rgba(0,0,0,0.04);
+    --bg-glow-1: rgba(227,30,36,0.06);
+    --bg-glow-2: rgba(60,60,140,0.04);
+  }
 
-/* ── FORM PANEL ── */
-.fp{width:410px;min-width:410px;background:#13131f;overflow-y:auto;height:100vh;position:sticky;top:0;display:flex;flex-direction:column}
-.fp-inner{padding:18px 16px;flex:1}
-.brand{font-size:14px;font-weight:900;color:#e31e24;text-transform:uppercase;letter-spacing:1px}
-.brand-sub{font-size:10px;color:#555;margin-bottom:16px}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* section */
-.sec{margin-bottom:16px}
-.sec-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#e31e24;margin-bottom:9px;padding-bottom:4px;border-bottom:1px solid #1e1e30}
+  html { scroll-behavior: smooth; }
 
-/* inputs */
-.fg{margin-bottom:8px}
-.fg label{display:block;font-size:10px;color:#888;margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
-.fg input,.fg select,.fg textarea{width:100%;background:#0c0c1c;border:1px solid #1e1e30;border-radius:5px;padding:7px 9px;color:#e0e0e0;font-size:12px;font-family:Arial,sans-serif;transition:border-color .2s}
-.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:#e31e24}
-.fg select option{background:#0c0c1c}
-.fg textarea{resize:vertical;min-height:48px}
-.fr{display:flex;gap:7px}.fr .fg{flex:1}
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
 
-/* store search */
-.store-wrap{position:relative}
-.store-input{width:100%!important}
-.store-drop{display:none;position:absolute;top:100%;left:0;right:0;background:#0c0c1c;border:1px solid #e31e24;border-top:none;border-radius:0 0 5px 5px;max-height:200px;overflow-y:auto;z-index:100}
-.store-drop.open{display:block}
-.store-opt{padding:7px 10px;cursor:pointer;font-size:11px;border-bottom:1px solid #1a1a2a;color:#ccc}
-.store-opt:hover,.store-opt.active{background:#1e1e30;color:#e31e24}
-.store-opt .cod{font-weight:700;color:#e31e24;margin-right:6px}
-.store-opt .uf-tag{font-size:9px;color:#777;margin-left:4px}
+  /* ── BACKGROUND ── */
+  .bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .bg-canvas::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 600px;
+    background: radial-gradient(ellipse at center, var(--bg-glow-1) 0%, transparent 70%);
+  }
+  .bg-canvas::after {
+    content: '';
+    position: absolute;
+    bottom: 10%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(ellipse at center, var(--bg-glow-2) 0%, transparent 70%);
+  }
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 100%);
+  }
 
-/* mercadorias */
-.merc-item{background:#0c0c1c;border:1px solid #1e1e30;border-radius:5px;padding:8px;margin-bottom:7px;position:relative}
-.merc-item .rm{position:absolute;top:7px;right:7px;background:#2a0d0d;border:none;color:#e31e24;width:17px;height:17px;border-radius:50%;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center}
-.btn-add{width:100%;padding:7px;background:transparent;border:1px dashed #1e1e30;border-radius:5px;color:#555;cursor:pointer;font-size:11px;transition:all .2s}
-.btn-add:hover{border-color:#e31e24;color:#e31e24}
+  /* ── NAVBAR ── */
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 0 40px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--nav-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+  .nav-logo-mark {
+    width: 32px;
+    height: 32px;
+    background: var(--red);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 900;
+    color: #fff;
+    font-style: italic;
+    letter-spacing: -1px;
+    flex-shrink: 0;
+  }
+  .nav-logo-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .nav-logo-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.3px;
+  }
+  .nav-logo-sub {
+    font-size: 10px;
+    color: var(--text-2);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .nav-right { display:flex; align-items:center; gap:14px; }
+  .nav-badge {
+    font-size: 11px;
+    color: var(--text-2);
+    font-weight: 500;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+  /* Theme toggle */
+  .theme-toggle {
+    display:inline-flex; align-items:center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+    position: relative;
+  }
+  .theme-toggle button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    width: 30px; height: 26px;
+    border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text-2);
+    font-size: 13px;
+    transition: color 0.2s;
+    font-family: inherit;
+  }
+  .theme-toggle button:hover { color: var(--text); }
+  .theme-toggle button.active {
+    background: var(--red);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(227,30,36,0.35);
+  }
+  .theme-toggle button svg { width: 14px; height: 14px; }
 
-/* upload zones */
-.uploads{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px}
-.upz{border:1.5px dashed #1e1e30;border-radius:7px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.upz:hover{border-color:#e31e24;background:#1a0a0a}
-.upz.done{border-color:#22c55e;background:#0a1a0a}
-.upz.loading{border-color:#f59e0b;background:#1a150a}
-.upz.error{border-color:#e31e24;background:#1a0a0a}
-.upz-icon{font-size:18px;margin-bottom:4px;display:block}
-.upz-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#777;line-height:1.3}
-.upz.done .upz-label{color:#22c55e}
-.upz.loading .upz-label{color:#f59e0b}
-.upz.error .upz-label{color:#e31e24}
-.upz input[type=file]{display:none!important}
-.upz-spin{display:none}
-.upz.loading .upz-spin{display:inline-block;animation:spin .8s linear infinite}
-.upz.loading .upz-icon-static{display:none}
-@keyframes spin{to{transform:rotate(360deg)}}
-.upz-btns{display:flex;gap:3px;margin-top:6px;width:100%}
-.upz-btn{flex:1;padding:4px 2px;font-size:8px;font-weight:700;border-radius:3px;cursor:pointer;border:1px solid #1e1e30;background:#0c0c1c;color:#666;text-transform:uppercase;letter-spacing:.3px;line-height:1.4;transition:all .15s}
-.upz-btn:hover{border-color:#e31e24;color:#e31e24;background:#1a0a0a}
-.upz-btn.cam{border-color:#f59e0b44;color:#f59e0b88}
-.upz-btn.cam:hover{border-color:#f59e0b;color:#f59e0b;background:#1a150a}
-.upz.done .upz-btn{border-color:#22c55e44;color:#22c55e88}
-.upz.done .upz-btn:hover{border-color:#22c55e;color:#22c55e}
-.upz.loading .upz-btns{opacity:.4;pointer-events:none}
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    z-index: 1;
+    padding: 160px 40px 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+    padding: 6px 16px;
+    background: var(--red-soft);
+    border: 1px solid rgba(227,30,36,0.2);
+    border-radius: 20px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--red);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+  .hero-title {
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+  .hero-title em {
+    font-style: normal;
+    background: linear-gradient(135deg, #e31e24, #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    font-size: 18px;
+    color: var(--text-2);
+    font-weight: 400;
+    max-width: 540px;
+    margin: 0 auto 48px;
+    line-height: 1.6;
+  }
+  .hero-stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 48px;
+    margin-top: 64px;
+    padding-top: 40px;
+    border-top: 1px solid var(--border);
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-3);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+  }
+  .stat-div {
+    width: 1px;
+    height: 40px;
+    background: var(--border);
+  }
 
-/* API key */
-.api-bar{background:#0c0c1c;border:1px solid #1e1e30;border-radius:6px;padding:10px;margin-bottom:14px}
-.api-bar summary{font-size:10px;color:#888;cursor:pointer;font-weight:700;text-transform:uppercase;letter-spacing:.5px;list-style:none}
-.api-bar summary::after{content:" ▾";color:#555}
-.api-bar .api-body{margin-top:8px}
-.api-bar .api-hint{font-size:9px;color:#555;margin-top:4px;line-height:1.4}
-.api-sep{text-align:center;font-size:9px;color:#333;margin:8px 0;letter-spacing:2px}
-.api-status{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:10px}
-.api-dot{width:7px;height:7px;border-radius:50%;background:#555;flex-shrink:0}
-.api-dot.on{background:#22c55e}
-.api-dot.off{background:#e31e24}
-.btn-login{flex:1;padding:5px 8px;background:#e31e24;border:none;border-radius:4px;color:#fff;font-size:10px;font-weight:700;cursor:pointer}
-.btn-logout{flex:1;padding:5px 8px;background:transparent;border:1px solid #333;border-radius:4px;color:#666;font-size:10px;cursor:pointer}
-.btn-login:hover{background:#c01a1f}
-.btn-logout:hover{border-color:#e31e24;color:#e31e24}
+  /* ── SECTION ── */
+  .section {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px 100px;
+  }
+  .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-3);
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.8px;
+    color: var(--text);
+    margin-bottom: 40px;
+  }
 
-/* Login modal */
-.login-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(3px)}
-.login-overlay.hidden{display:none}
-.login-box{background:#13131f;border:1px solid #1e1e30;border-radius:10px;padding:28px 24px;width:300px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
-.login-box h2{font-size:14px;font-weight:900;color:#e31e24;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
-.login-box p{font-size:10px;color:#555;margin-bottom:18px}
-.login-box .fg{margin-bottom:10px}
-.login-err{font-size:10px;color:#e31e24;min-height:14px;margin-bottom:8px;text-align:center}
-.btn-do-login{width:100%;padding:9px;background:#e31e24;border:none;border-radius:6px;color:#fff;font-weight:700;font-size:13px;cursor:pointer}
-.btn-do-login:hover{background:#c01a1f}
-.btn-do-login:disabled{background:#555;cursor:not-allowed}
-.login-close{position:absolute;top:12px;right:14px;background:transparent;border:none;color:#555;font-size:18px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:4px}
-.login-close:hover{color:#e31e24;background:#1e1e30}
-.login-box{position:relative}
-.pass-wrap{position:relative}
-.pass-wrap input{padding-right:36px!important}
-.pass-eye{position:absolute;right:9px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:#555;cursor:pointer;font-size:14px;padding:0;line-height:1}
-.pass-eye:hover{color:#e31e24}
+  /* ── APP GRID ── */
+  .app-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
 
-/* buttons */
-.btn-print{width:100%;padding:11px;background:#e31e24;border:none;border-radius:7px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:14px;letter-spacing:.4px;transition:background .2s}
-.btn-print:hover{background:#c01a1f}
-.btn-clear{width:100%;padding:9px;background:transparent;border:1px solid #1e1e30;border-radius:7px;color:#555;font-size:12px;cursor:pointer;margin-top:7px;transition:all .2s}
-.btn-clear:hover{border-color:#666;color:#bbb}
+  /* ── APP CARD ── */
+  .app-card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .app-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    background: var(--surface-hover);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .app-card:hover::before { opacity: 1; }
+  .app-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
+  }
+  .app-card.featured {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    gap: 48px;
+    padding: 40px 48px;
+    background: linear-gradient(135deg, rgba(227,30,36,0.08) 0%, rgba(255,107,107,0.04) 50%, rgba(8,8,16,0) 100%);
+    border-color: rgba(227,30,36,0.2);
+  }
+  .app-card.featured:hover {
+    border-color: rgba(227,30,36,0.4);
+    box-shadow: 0 20px 60px rgba(227,30,36,0.1), 0 0 0 1px rgba(227,30,36,0.1);
+  }
+  .app-card.soon {
+    opacity: 0.5;
+    cursor: default;
+    pointer-events: none;
+  }
+  .app-card.soon:hover { transform: none; }
 
-/* status badge */
-.field-badge{display:inline-block;font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:5px;vertical-align:middle}
-.badge-ai{background:#22c55e22;color:#22c55e;border:1px solid #22c55e44}
-.badge-manual{background:#3b82f622;color:#3b82f6;border:1px solid #3b82f644}
+  .card-icon-wrap {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .app-card.featured .card-icon-wrap {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    font-size: 36px;
+    margin-bottom: 0;
+  }
+  .icon-red { background: linear-gradient(135deg, #e31e24, #ff5f5f); }
+  .icon-blue { background: linear-gradient(135deg, #1e6fe3, #5fb5ff); }
+  .icon-green { background: linear-gradient(135deg, #1eb85a, #5fffab); }
+  .icon-amber { background: linear-gradient(135deg, #e3901e, #ffc95f); }
+  .icon-purple { background: linear-gradient(135deg, #7c1ee3, #c05fff); }
+  .icon-teal { background: linear-gradient(135deg, #1eb8b0, #5ffff8); }
 
-/* ── PREVIEW PANEL ── */
-.pp{flex:1;padding:32px;display:flex;flex-direction:column;align-items:center;overflow-y:auto;background:#0e0e1a}
-.preview-label{font-size:10px;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px}
+  .card-body { flex: 1; }
+  .card-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--red);
+    background: var(--red-soft);
+    border: 1px solid rgba(227,30,36,0.2);
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+  .card-tag.new { color: #22c55e; background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.2); }
+  .card-tag.soon-tag { color: var(--text-3); background: var(--surface); border-color: var(--border); }
+  .card-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.4px;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  .app-card.featured .card-name { font-size: 28px; letter-spacing: -0.8px; }
+  .card-desc {
+    font-size: 14px;
+    color: var(--text-2);
+    line-height: 1.6;
+    font-weight: 400;
+  }
+  .app-card.featured .card-desc { font-size: 16px; max-width: 500px; }
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .card-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-3);
+    font-weight: 500;
+  }
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px rgba(34,197,94,0.5);
+  }
+  .status-dot.off { background: var(--text-3); box-shadow: none; }
+  .card-arrow {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-2);
+    font-size: 14px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+  .app-card:hover .card-arrow {
+    background: var(--red);
+    border-color: var(--red);
+    color: #fff;
+    transform: translateX(2px);
+  }
+  .app-card.featured .card-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 24px;
+    padding: 12px 24px;
+    background: var(--red);
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    transition: all 0.2s ease;
+  }
+  .app-card.featured:hover .card-cta {
+    background: #c01a1f;
+    gap: 14px;
+  }
 
-/* ── DOCUMENT A4 ── */
-.doc{width:210mm;background:#fff;box-shadow:0 4px 40px rgba(0,0,0,.4);padding:11mm 13mm;font-family:Arial,sans-serif;font-size:9pt;color:#1a1a1a;font-weight:400}
-.doc-hd{display:flex;justify-content:space-between;align-items:center;padding-bottom:7px;margin-bottom:8px;border-bottom:3px solid #e31e24}
-.logo-w{display:flex;align-items:center;gap:10px}
-.logo-img{height:34px;width:auto;display:block}
-.logo-t .t2{font-size:6pt;color:#555;text-transform:uppercase;letter-spacing:1.5px;font-weight:400}
-.logo-t .t3{font-size:6pt;color:#aaa;font-weight:400}
-.hd-r{text-align:right}
-.hd-r .dt{font-size:10pt;font-weight:900;text-transform:uppercase;color:#1a1a1a;line-height:1.2}
-.hd-r .dm{font-size:7pt;color:#777;margin-top:3px}
-.hd-r .dn{display:inline-block;background:#1a1a1a;color:#fff;font-size:6.5pt;padding:2px 7px;border-radius:3px;font-weight:700;margin-top:3px}
+  /* ── FEATURES ROW ── */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 100px;
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .feature {
+    background: var(--bg2);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .feature-icon {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+  .feature-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .feature-text {
+    font-size: 14px;
+    color: var(--text-2);
+    line-height: 1.6;
+  }
 
-.doc-nar{background:#f9f9f9;border-left:3px solid #e31e24;padding:7px 10px;margin-bottom:8px;font-size:8pt;line-height:1.5;border-radius:0 4px 4px 0;font-weight:400}
-.doc-nar b{color:#c01a1f;font-weight:700}
+  /* ── FOOTER ── */
+  .footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .footer-left {
+    font-size: 13px;
+    color: var(--text-3);
+  }
+  .footer-left strong {
+    color: var(--text-2);
+    font-weight: 600;
+  }
+  .footer-right {
+    font-size: 12px;
+    color: var(--text-3);
+  }
 
-.doc-g2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px}
-.doc-box{border:1px solid #e0e0e0;border-radius:4px;overflow:hidden}
-.doc-bh{background:#1a1a1a;color:#fff;font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:3px 7px}
-.doc-bb{padding:6px 7px}
-.doc-r{display:flex;gap:4px;margin-bottom:3px;align-items:flex-start}
-.doc-r:last-child{margin-bottom:0}
-.doc-l{font-size:6.5pt;font-weight:700;text-transform:uppercase;color:#aaa;min-width:50px;flex-shrink:0;padding-top:1px}
-.doc-v{font-size:8pt;font-weight:700;color:#1a1a1a;word-break:break-word}
-.doc-v.ph{color:#ccc;font-weight:400;font-style:italic}
+  /* ── ANIMATIONS ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
 
-.doc-mercs{margin-bottom:8px}
-.doc-mh{background:#1a1a1a;color:#fff;font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:3px 7px;border-radius:4px 4px 0 0}
-.doc-mercs table{width:100%;border-collapse:collapse;font-size:8pt}
-.doc-mercs th{background:#f2f2f2;font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#666;padding:4px 7px;border:1px solid #ddd;text-align:left}
-.doc-mercs td{padding:4px 7px;border:1px solid #ddd;vertical-align:middle}
-.doc-mercs td.cn{width:20px;text-align:center;color:#aaa;font-size:7pt}
-.doc-mercs td.cq{width:72px;text-align:center;font-weight:700}
-.doc-mercs td.cf{width:80px;text-align:center;color:#666}
-.doc-mercs tr:nth-child(even) td{background:#fafafa}
-
-.doc-alert{background:#fff3f3;border:1.5px solid #e31e24;border-radius:4px;padding:6px 10px;font-size:7pt;font-weight:700;color:#b00;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px;line-height:1.5;text-align:center}
-.doc-obs{background:#fffbf0;border:1px solid #fdd835;border-radius:4px;padding:5px 9px;font-size:7.5pt;color:#5d4037;margin-bottom:8px;line-height:1.4;font-weight:400}
-.doc-obs b{color:#e65100;font-weight:700}
-
-.doc-sig-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:10px;padding-top:9px;border-top:1px solid #eee}
-.sig-assin{font-size:6pt;color:#1565c0;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-top:4px}
-.sig-box{text-align:center}
-.sig-line{border-top:1px solid #333;margin-bottom:4px;margin-top:90px}
-.sig-title{font-size:6.5pt;font-weight:700;text-transform:uppercase;color:#666;letter-spacing:.4px}
-.sig-name{font-size:8pt;color:#1a1a1a;font-weight:600;margin-top:2px}
-.sig-doc{font-size:7pt;color:#999}
-
-@media print{
-  @page{size:A4 portrait;margin:10mm 13mm}
-  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-  body{background:#fff!important;margin:0;padding:0}
-  .fp,.preview-label,.mob-nav,.mob-header{display:none!important}
-  .app{display:block!important}
-  .pp{display:block!important;padding:0!important}
-  .doc-scale-wrap{width:210mm!important;height:auto!important;overflow:visible!important}
-  .doc{box-shadow:none!important;width:210mm!important;transform:none!important;margin:0!important;padding:0!important}
-}
-
-/* ══ MOBILE UX ══════════════════════════════════════════════════════════ */
-@media(max-width:768px){
-  .app{flex-direction:column}
-  .fp{width:100%;min-width:0;height:auto;position:relative;padding-bottom:68px}
-  .pp{display:none;padding:12px 10px}
-  .pp.mob-show{display:flex}
-  .fp.mob-hide{display:none}
-  .fp-inner{padding:0}
-  .mob-header{display:flex;align-items:center;justify-content:space-between;background:#0d0d1e;padding:12px 16px;position:sticky;top:0;z-index:50;border-bottom:2px solid #e31e24}
-  .mob-header .brand{font-size:16px;margin:0}
-  .mob-header .brand-sub{display:none}
-  .mob-header-right{display:flex;align-items:center;gap:8px}
-  .mob-hdr-api{font-size:9px;color:#555;cursor:pointer;background:#13131f;border:1px solid #1e1e30;border-radius:4px;padding:4px 8px}
-  .fp-scroll{padding:14px 14px 0}
-  .sec{background:#13131f;border:1px solid #1e1e30;border-radius:10px;padding:14px;margin-bottom:10px}
-  .sec-title{font-size:10px;margin-bottom:12px}
-  .fg input,.fg select,.fg textarea{padding:11px 13px;font-size:15px;border-radius:7px}
-  .fg label{font-size:11px;margin-bottom:5px}
-  .fg{margin-bottom:10px}
-  .uploads{gap:8px}
-  .upz{padding:14px 6px 10px}
-  .upz-icon{font-size:22px;margin-bottom:6px}
-  .upz-label{font-size:9px}
-  .upz-btn{padding:6px 3px;font-size:9px}
-  .btn-print{padding:14px;font-size:15px;border-radius:10px;margin-top:10px}
-  .btn-clear{padding:12px;font-size:13px;border-radius:10px}
-  .api-bar{display:none}
-  .doc-scale-wrap{width:100%;overflow:hidden;border-radius:8px}
-  .preview-label{font-size:10px;margin-bottom:10px}
-  .mob-nav{display:flex;position:fixed;bottom:0;left:0;right:0;height:60px;background:#0d0d1e;border-top:1px solid #1e1e30;z-index:200}
-  .mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:transparent;border:none;color:#555;cursor:pointer;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:0;transition:color .15s}
-  .mob-tab .mt-icon{font-size:20px;line-height:1}
-  .mob-tab.active{color:#e31e24}
-  .mob-tab.active .mt-bar{width:28px;height:2px;background:#e31e24;border-radius:2px;margin-top:2px}
-  .mob-tab .mt-bar{width:28px;height:2px;background:transparent;border-radius:2px;margin-top:2px}
-}
-@media(min-width:769px){
-  .mob-nav{display:none}
-  .mob-header{display:none}
-}
+  /* ── MOBILE ── */
+  @media (max-width: 768px) {
+    .nav { padding: 0 20px; }
+    .nav-badge { display: none; }
+    .hero { padding: 120px 20px 60px; }
+    .hero-stats { gap: 24px; }
+    .stat-num { font-size: 24px; }
+    .section { padding: 0 20px 60px; }
+    .app-grid { grid-template-columns: 1fr; }
+    .app-card.featured { flex-direction: column; gap: 24px; padding: 28px 24px; }
+    .app-card.featured .card-name { font-size: 22px; }
+    .features { grid-template-columns: 1fr; margin-left: 20px; margin-right: 20px; }
+    .footer { flex-direction: column; gap: 8px; text-align: center; padding: 24px 20px; }
+  }
 </style>
 </head>
 <body>
-<div class="app">
 
-<!-- ══ FORM PANEL ══ -->
-<div class="fp">
-<!-- header mobile -->
-<div class="mob-header">
-  <div>
-    <div class="brand">MAX ATACADISTA</div>
-    <div style="font-size:9px;color:#555">Ordem de Coleta</div>
-  </div>
-  <div class="mob-header-right">
-    <button class="mob-hdr-api" onclick="document.querySelector('.api-bar').style.display='block';document.querySelector('.api-bar').scrollIntoView({behavior:'smooth'})">⚙ IA</button>
-    <div id="mobConnDot" style="width:8px;height:8px;border-radius:50%;background:#555"></div>
-  </div>
+<div class="bg-canvas">
+  <div class="bg-grid"></div>
 </div>
-<div class="fp-inner">
-  <div class="brand">MAX ATACADISTA</div>
-  <div class="brand-sub">Ordem de Coleta · Preenchimento Automático <span style="font-size:8px;color:#444;font-weight:700;letter-spacing:0">v1.1.0</span></div>
 
-  <!-- API / BACKEND -->
-  <details class="api-bar" id="apiDetails">
-    <summary>🔑 Configuração de IA (leitura de documentos)</summary>
-    <div class="api-body">
-      <!-- MODO NUVEM -->
-      <div class="fg" style="display:none">
-        <label>🌐 URL do Backend (modo nuvem)</label>
-        <input type="text" id="backendUrl" placeholder="https://seu-app.railway.app" oninput="saveBackend()">
-      </div>
-      <div class="api-status">
-        <span class="api-dot" id="connDot"></span>
-        <span id="connLabel" style="color:#555;flex:1">Não conectado</span>
-        <button class="btn-login" id="btnLogin" onclick="showLogin()">Entrar</button>
-        <button class="btn-logout hidden" id="btnLogout" onclick="doLogout()">Sair</button>
-      </div>
-      <div class="api-sep">── OU ──</div>
-      <!-- MODO LOCAL -->
-      <div class="fg">
-        <label>🔑 API Key direta (modo local)</label>
-        <input type="password" id="apiKey" placeholder="sk-ant-..." oninput="saveKey()">
-      </div>
-      <div class="api-hint">Nuvem: configure o backend e faça login. Local: cole a chave diretamente (fica salva neste navegador).</div>
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-logo" href="index.html">
+    <div class="nav-logo-mark">M</div>
+    <div class="nav-logo-text">
+      <div class="nav-logo-name">Max Atacadista</div>
+      <div class="nav-logo-sub">Portal Televendas</div>
     </div>
-  </details>
-
-  <!-- UPLOAD ZONES -->
-  <div class="sec">
-    <div class="sec-title">📎 Anexar Documentos (opcional)</div>
-    <div class="uploads">
-      <!-- NF (múltiplas) -->
-      <div class="upz" id="upNF" ondrop="drop(event,'nf')" ondragover="event.preventDefault()">
-        <span class="upz-icon upz-icon-static">🧾</span>
-        <span class="upz-icon upz-spin">⏳</span>
-        <div class="upz-label" id="upNF-label">NF-e<br>da Loja</div>
-        <div class="upz-btns">
-          <button class="upz-btn" type="button" onclick="document.getElementById('inpNF').click()">📁 Arquivo</button>
-          <button class="upz-btn cam" type="button" onclick="document.getElementById('inpNFcam').click()">📷 Câmera</button>
-        </div>
-        <input id="inpNF" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple onchange="handleFileMulti(event,'nf',false)">
-        <input id="inpNFcam" type="file" accept="image/*" capture="environment" multiple onchange="handleFileMulti(event,'nf',true)">
-      </div>
-      <!-- CNH -->
-      <div class="upz" id="upCNH" ondrop="drop(event,'cnh')" ondragover="event.preventDefault()">
-        <span class="upz-icon upz-icon-static">🪪</span>
-        <span class="upz-icon upz-spin">⏳</span>
-        <div class="upz-label">CNH<br>Motorista</div>
-        <div class="upz-btns">
-          <button class="upz-btn" type="button" onclick="document.getElementById('inpCNH').click()">📁 Arquivo</button>
-          <button class="upz-btn cam" type="button" onclick="document.getElementById('inpCNHcam').click()">📷 Câmera</button>
-        </div>
-        <input id="inpCNH" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" onchange="handleFile(event,'cnh')">
-        <input id="inpCNHcam" type="file" accept="image/*" capture="environment" onchange="handleFile(event,'cnh')">
-      </div>
-      <!-- CRLV -->
-      <div class="upz" id="upCRLV" ondrop="drop(event,'crlv')" ondragover="event.preventDefault()">
-        <span class="upz-icon upz-icon-static">🚛</span>
-        <span class="upz-icon upz-spin">⏳</span>
-        <div class="upz-label" id="upCRLV-label">CRLV<br>Veículo/Reboque</div>
-        <div class="upz-btns">
-          <button class="upz-btn" type="button" onclick="document.getElementById('inpCRLV').click()">📁 Arquivo</button>
-          <button class="upz-btn cam" type="button" onclick="document.getElementById('inpCRLVcam').click()">📷 Câmera</button>
-        </div>
-        <input id="inpCRLV" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple onchange="handleFileMulti(event,'crlv',false)">
-        <input id="inpCRLVcam" type="file" accept="image/*" capture="environment" multiple onchange="handleFileMulti(event,'crlv',false)">
-      </div>
-    </div>
-    <div id="extractMsg" style="font-size:10px;color:#555;text-align:center;min-height:16px"></div>
-  </div>
-
-  <!-- EMPRESA -->
-  <div class="sec">
-    <div class="sec-title">🏢 Empresa Autorizante</div>
-    <div class="fg"><label>Razão Social <span id="b_emp" class="field-badge" style="display:none"></span></label>
-      <input id="f_emp" type="text" placeholder="Nome da empresa" oninput="upd()"></div>
-    <div class="fg"><label>CNPJ / CPF <span id="b_cnpj" class="field-badge" style="display:none"></span></label>
-      <input id="f_cnpj" type="text" placeholder="00.000.000/0001-00" inputmode="numeric" oninput="fmtCnpjCpf(this);upd()"></div>
-  </div>
-
-  <!-- LOJA -->
-  <div class="sec">
-    <div class="sec-title">🏪 Loja Max Atacadista</div>
-    <div class="fg">
-      <label>Buscar loja <span id="b_loja" class="field-badge" style="display:none"></span></label>
-      <div class="store-wrap">
-        <input class="store-input" id="storeSearch" type="text" placeholder="Digite código ou nome..." autocomplete="off"
-          oninput="filterStores()" onfocus="openDrop()" onblur="setTimeout(closeDrop,200)">
-        <div class="store-drop" id="storeDrop"></div>
-      </div>
-    </div>
-    <div class="fg"><label>Nome / Nº da Loja</label>
-      <input id="f_loja_nm" type="text" placeholder="MAX ATACADISTA – Loja 0000" oninput="upd()"></div>
-    <div class="fg"><label>CNPJ da Loja</label>
-      <input id="f_loja_cnpj" type="text" placeholder="76.430.438/XXXX-XX" oninput="upd()"></div>
-    <div class="fg"><label>Endereço da Loja</label>
-      <input id="f_loja_end" type="text" placeholder="Rua, Nº, Bairro – UF, CEP" oninput="upd()"></div>
-  </div>
-
-  <!-- MOTORISTA -->
-  <div class="sec">
-    <div class="sec-title">👤 Motorista</div>
-    <div class="fg"><label>Nome Completo <span id="b_mot" class="field-badge" style="display:none"></span></label>
-      <input id="f_mot" type="text" placeholder="Nome do motorista" oninput="upd()"></div>
-    <div class="fr">
-      <div class="fg"><label>RG <span id="b_rg" class="field-badge" style="display:none"></span></label>
-        <input id="f_rg" type="text" placeholder="00.000.000-0" inputmode="numeric" oninput="fmtRg(this);upd()"></div>
-      <div class="fg"><label>CPF <span id="b_cpf" class="field-badge" style="display:none"></span></label>
-        <input id="f_cpf" type="text" placeholder="000.000.000-00" inputmode="numeric" oninput="fmtCpf(this);upd()"></div>
+  </a>
+  <div class="nav-right">
+    <div class="nav-badge">Irmãos Muffato S.A.</div>
+    <div class="theme-toggle" role="group" aria-label="Alternar tema">
+      <button id="themeLight" type="button" title="Tema claro" aria-label="Tema claro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
+      </button>
+      <button id="themeDark" type="button" title="Tema escuro" aria-label="Tema escuro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
     </div>
   </div>
-
-  <!-- VEÍCULO -->
-  <div class="sec">
-    <div class="sec-title">🚛 Veículo</div>
-    <div class="fr">
-      <div class="fg"><label>Placa Principal <span id="b_pl1" class="field-badge" style="display:none"></span></label>
-        <input id="f_pl1" type="text" placeholder="ABC1D23" oninput="upd()" style="text-transform:uppercase"></div>
-      <div class="fg"><label>Placa Reboque</label>
-        <input id="f_pl2" type="text" placeholder="opcional" oninput="upd()" style="text-transform:uppercase"></div>
-    </div>
-    <div class="fg"><label>Tipo / Modelo <span id="b_vei" class="field-badge" style="display:none"></span></label>
-      <input id="f_vei" type="text" placeholder="Ex: VW/26.320 CRM 6X2" oninput="upd()"></div>
-  </div>
-
-  <!-- MERCADORIAS -->
-  <div class="sec">
-    <div class="sec-title">📦 Mercadorias <span id="b_mercs" class="field-badge" style="display:none"></span></div>
-    <div id="mercs-list"></div>
-    <button class="btn-add" onclick="addMerc()">+ Adicionar produto</button>
-  </div>
-
-  <!-- FINALIZAÇÃO -->
-  <div class="sec">
-    <div class="sec-title">📋 Finalização</div>
-    <div class="fg"><label>Data</label>
-      <input id="f_data" type="date" oninput="upd()"></div>
-    <div class="fg"><label>Observações Adicionais</label>
-      <textarea id="f_obs" placeholder="Opcional" oninput="upd()"></textarea></div>
-  </div>
-
-  <button class="btn-print" id="btnGerar" onclick="gerarPDF()">📄 Gerar PDF</button>
-  <button class="btn-clear" onclick="clearAll()">✕ Limpar tudo</button>
-</div><!-- /fp-inner -->
-</div><!-- /fp -->
-
-<!-- ══ PREVIEW ══ -->
-<div class="pp" id="ppPanel">
-  <div class="preview-label">Pré-visualização — A4</div>
-  <div class="doc-scale-wrap" id="docScaleWrap">
-  <div class="doc" id="doc">
-    <div class="doc-hd">
-      <div class="logo-w">
-        <svg class="logo-img" viewBox="0 0 148 56" xmlns="http://www.w3.org/2000/svg">
-          <!-- M shape -->
-          <text x="1" y="44" font-family="'Arial Black','Arial Bold',Arial,sans-serif" font-size="50" font-weight="900" font-style="italic" fill="#e31e24" textLength="145" lengthAdjust="spacingAndGlyphs">MAX</text>
-          <!-- ATACADISTA -->
-          <text x="2" y="55" font-family="Arial,sans-serif" font-size="10.5" font-weight="700" fill="#1a1a1a" textLength="143" lengthAdjust="spacingAndGlyphs" letter-spacing="1">ATACADISTA</text>
-        </svg>
-        <div class="logo-t">
-          <div class="t2">Irmãos Muffato S.A.</div>
-          <div class="t3">CNPJ: 76.430.438/0001-71 · Depto: Logística / Expedição</div>
-        </div>
-      </div>
-      <div class="hd-r">
-        <div class="dt">Autorização de Retirada<br>de Mercadoria</div>
-        <div class="dm">Data: <span id="d_data">___/___/______</span></div>
-        <div class="dn" id="d_num">Nº —</div>
-      </div>
-    </div>
-
-    <div class="doc-nar">
-      A empresa <b id="d_emp">[EMPRESA]</b>, inscrita sob o CNPJ/CPF <b id="d_cnpj">[CNPJ]</b>,
-      autoriza o(a) Sr.(a) <b id="d_mot_n">[MOTORISTA]</b>, portador(a) do CPF <b id="d_cpf_n">[CPF]</b>,
-      a retirar mercadoria(s) no depósito <b id="d_loja_n">[LOJA]</b> (CNPJ: <b id="d_loja_cnpj_nar">[CNPJ LOJA]</b>),
-      localizado em <span id="d_end_n">[ENDEREÇO]</span>, conforme descrito abaixo.
-    </div>
-
-    <div class="doc-g2">
-      <div class="doc-box">
-        <div class="doc-bh">Motorista Autorizado</div>
-        <div class="doc-bb">
-          <div class="doc-r"><span class="doc-l">Nome</span><span class="doc-v" id="d_mn">—</span></div>
-          <div class="doc-r"><span class="doc-l">RG</span><span class="doc-v" id="d_mr">—</span></div>
-          <div class="doc-r"><span class="doc-l">CPF</span><span class="doc-v" id="d_mc">—</span></div>
-        </div>
-      </div>
-      <div class="doc-box">
-        <div class="doc-bh">Dados do Veículo</div>
-        <div class="doc-bb">
-          <div class="doc-r"><span class="doc-l">Placa</span><span class="doc-v" id="d_p1">—</span></div>
-          <div class="doc-r" id="d_p2r" style="display:none"><span class="doc-l">Reboque</span><span class="doc-v" id="d_p2v">—</span></div>
-          <div class="doc-r"><span class="doc-l">Modelo</span><span class="doc-v" id="d_vm">—</span></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="doc-mercs">
-      <div class="doc-mh">Mercadorias Autorizadas para Retirada</div>
-      <table><thead><tr>
-        <th style="width:22px;text-align:center">#</th>
-        <th>Descrição do Produto</th>
-        <th style="width:72px;text-align:center">Qtd / Pallets</th>
-        <th style="width:72px;text-align:center">Qtd / Volume</th>
-        <th style="width:72px;text-align:center">Nº NF</th>
-        <th style="width:68px;text-align:center">Data NF</th>
-      </tr></thead>
-      <tbody id="d_mercs"></tbody></table>
-    </div>
-
-    <div class="doc-alert">
-      ATENÇÃO: NÃO CARREGAR MERCADORIAS COM DIVERGÊNCIA EM RELAÇÃO À NOTA FISCAL. QUALQUER INCONFORMIDADE DEVE SER REPORTADA IMEDIATAMENTE AO RESPONSÁVEL PELA EXPEDIÇÃO ANTES DO CARREGAMENTO.
-    </div>
-
-    <div class="doc-obs">
-      <b>OBS:</b> Retirada de mercadoria é expressamente responsabilidade do cliente
-      (transporte, seguro de carga, embarque das mercadorias, conferência das mesmas).<span id="d_obs_x"></span>
-    </div>
-
-    <div class="doc-sig-row">
-      <!-- 1. Empresa Faturada -->
-      <div class="sig-box">
-        <div class="sig-line"></div>
-        <div class="sig-title">Empresa Faturada</div>
-        <div class="sig-name" id="d_sig_emp">—</div>
-        <div class="sig-doc" id="d_sig_cnpj">—</div>
-        <div class="sig-assin">* OBRIGATÓRIO ASSINATURA ELETRÔNICA DA EMPRESA OU DO SÓCIO ADMINISTRADOR</div>
-      </div>
-      <!-- 2. Responsável pela Retirada (motorista) -->
-      <div class="sig-box">
-        <div class="sig-line"></div>
-        <div class="sig-title">Responsável pela Retirada</div>
-        <div class="sig-name" id="d_snm">—</div>
-        <div class="sig-doc" id="d_smot_cpf">—</div>
-        <div class="sig-doc" id="d_smot_rg">—</div>
-      </div>
-      <!-- 3. Responsável pela Expedição -->
-      <div class="sig-box">
-        <div class="sig-line"></div>
-        <div class="sig-title">Responsável pela Expedição</div>
-        <div class="sig-name">IRMÃOS MUFFATO S.A.</div>
-        <div class="sig-doc" id="d_sig_loja_cnpj">CNPJ: 76.430.438/0001-71</div>
-        <div class="sig-doc">Logística / Expedição / Prevenção Perdas</div>
-      </div>
-    </div>
-  </div><!-- /doc -->
-  </div><!-- /doc-scale-wrap -->
-</div><!-- /pp -->
-</div><!-- /app -->
-
-<!-- ══ BOTTOM NAV (mobile) ══ -->
-<nav class="mob-nav" id="mobNav">
-  <button class="mob-tab active" id="mtForm" onclick="mobSwitch('form')">
-    <span class="mt-icon">📋</span>
-    <span>Formulário</span>
-    <span class="mt-bar"></span>
-  </button>
-  <button class="mob-tab" id="mtPrev" onclick="mobSwitch('prev')">
-    <span class="mt-icon">👁</span>
-    <span>Prévia</span>
-    <span class="mt-bar"></span>
-  </button>
-  <button class="mob-tab" id="mtPrint" onclick="gerarPDF()">
-    <span class="mt-icon">📄</span>
-    <span>Gerar PDF</span>
-    <span class="mt-bar"></span>
-  </button>
 </nav>
 
-<!-- ══ LOGIN MODAL ══ -->
-<div class="login-overlay hidden" id="loginOverlay">
-  <div class="login-box">
-    <button class="login-close" onclick="hideLogin()" title="Fechar">✕</button>
-    <h2>MAX Atacadista</h2>
-    <p>Ordem de Coleta · Acesso ao Sistema</p>
-    <div class="fg">
-      <label style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:3px">Usuário</label>
-      <input id="loginUser" type="text" placeholder="usuario" autocomplete="username"
-        style="width:100%;background:#0c0c1c;border:1px solid #1e1e30;border-radius:5px;padding:8px 10px;color:#e0e0e0;font-size:12px;font-family:Arial,sans-serif"
-        onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">Portal de Ferramentas</div>
+  <h1 class="hero-title">
+    Tudo que você precisa,<br>
+    <em>em um só lugar.</em>
+  </h1>
+  <p class="hero-sub">
+    Ferramentas desenvolvidas especialmente para a equipe de televendas do Max Atacadista. Rápido, simples e eficiente.
+  </p>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">60+</div>
+      <div class="stat-label">Lojas</div>
     </div>
-    <div class="fg">
-      <label style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:3px">Senha</label>
-      <div class="pass-wrap">
-        <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"
-          style="width:100%;background:#0c0c1c;border:1px solid #1e1e30;border-radius:5px;padding:8px 10px;color:#e0e0e0;font-size:12px;font-family:Arial,sans-serif"
-          onkeydown="if(event.key==='Enter')doLogin()">
-        <button class="pass-eye" type="button" onclick="togglePassVis()" title="Mostrar/ocultar senha" id="passEyeBtn">👁</button>
+    <div class="stat-div"></div>
+    <div class="stat">
+      <div class="stat-num">5</div>
+      <div class="stat-label">Apps Ativos</div>
+    </div>
+    <div class="stat-div"></div>
+    <div class="stat">
+      <div class="stat-num">IA</div>
+      <div class="stat-label">Integrada</div>
+    </div>
+    <div class="stat-div"></div>
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Web</div>
+    </div>
+  </div>
+</section>
+
+<!-- APPS -->
+<section class="section">
+  <div class="section-label reveal">Aplicativos</div>
+  <h2 class="section-title reveal reveal-delay-1">Ferramentas disponíveis</h2>
+
+  <div class="app-grid">
+
+    <!-- FEATURED: Ordem de Coleta -->
+    <a class="app-card featured reveal" href="ordem-de-coleta.html">
+      <div class="card-icon-wrap icon-red">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;color:#fff"><path d="M9 2h6a2 2 0 0 1 2 2v2h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2V4a2 2 0 0 1 2-2z"/><path d="M9 4h6v3H9z"/><path d="M8 12h8M8 16h5"/></svg>
+      </div>
+      <div class="card-body">
+        <div class="card-tag new">Disponível</div>
+        <div class="card-name">Ordem de Coleta</div>
+        <div class="card-desc">Gere autorizações de retirada de mercadoria com preenchimento automático via IA. Suporte a leitura de NF-e, CNH e CRLV. Exportação em PDF pronta para impressão.</div>
+        <div class="card-cta">
+          Acessar ferramenta
+          <span>→</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- Crediffato -->
+    <a class="app-card reveal" href="cadastro-com-prazo.html">
+      <div class="card-icon-wrap icon-blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;color:#fff"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+      </div>
+      <div class="card-tag new">Disponível</div>
+      <div class="card-name">CrediFFato</div>
+      <div class="card-desc">Cadastro de clientes PJ com prazo. Pré-análise de crédito, solicitação de documentos com mensagem WhatsApp automática e geração de pacote ZIP completo para o time de cadastro.</div>
+      <div class="card-footer">
+        <div class="card-status">
+          <div class="status-dot"></div>
+          Disponível
+        </div>
+        <div class="card-arrow">→</div>
+      </div>
+    </a>
+
+    <!-- Power BI -->
+    <a class="app-card reveal" href="https://app.powerbi.com/" target="_blank" rel="noopener">
+      <div class="card-icon-wrap icon-amber">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;color:#fff"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6" rx="0.5" fill="currentColor"/><rect x="12" y="8" width="3" height="10" rx="0.5" fill="currentColor"/><rect x="17" y="5" width="3" height="13" rx="0.5" fill="currentColor"/></svg>
+      </div>
+      <div class="card-tag new">Externo</div>
+      <div class="card-name">Power BI</div>
+      <div class="card-desc">Acesse seus dashboards de vendas, metas e desempenho em tempo real. Acompanhe rankings, indicadores e análises completas da sua operação.</div>
+      <div class="card-footer">
+        <div class="card-status">
+          <div class="status-dot"></div>
+          app.powerbi.com
+        </div>
+        <div class="card-arrow">↗</div>
+      </div>
+    </a>
+
+    <!-- QR Ofertas -->
+    <a class="app-card reveal" href="https://www.qrofertas.com/" target="_blank" rel="noopener">
+      <div class="card-icon-wrap icon-green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;color:#fff"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3zM14 18h2M18 14h3"/></svg>
+      </div>
+      <div class="card-tag new">Externo</div>
+      <div class="card-name">QR Ofertas</div>
+      <div class="card-desc">Crie lâminas de preços profissionais para apresentar aos clientes. Gere etiquetas, encartes e materiais promocionais de forma rápida e personalizada.</div>
+      <div class="card-footer">
+        <div class="card-status">
+          <div class="status-dot"></div>
+          qrofertas.com
+        </div>
+        <div class="card-arrow">↗</div>
+      </div>
+    </a>
+
+    <!-- Suporte -->
+    <a class="app-card reveal" href="https://suporte.muffato.com.br/" target="_blank" rel="noopener">
+      <div class="card-icon-wrap icon-purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;color:#fff"><path d="M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0z"/><path d="M12 7v5l3 2"/><path d="M16.5 7.5l1.5-1.5M7.5 7.5L6 6"/></svg>
+      </div>
+      <div class="card-tag new">Externo</div>
+      <div class="card-name">Suporte</div>
+      <div class="card-desc">Abra chamados de suporte técnico para a equipe de TI. Reporte problemas com sistemas, equipamentos ou solicite acessos e novas funcionalidades.</div>
+      <div class="card-footer">
+        <div class="card-status">
+          <div class="status-dot"></div>
+          suporte.muffato.com.br
+        </div>
+        <div class="card-arrow">↗</div>
+      </div>
+    </a>
+
+    <!-- Em breve - Assistente IA -->
+    <div class="app-card soon">
+      <div class="card-icon-wrap icon-teal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;color:#fff"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 2v5"/><circle cx="12" cy="3" r="1" fill="currentColor"/><circle cx="9" cy="13" r="1.2" fill="currentColor"/><circle cx="15" cy="13" r="1.2" fill="currentColor"/><path d="M9 17h6"/><path d="M2 12v3M22 12v3"/></svg>
+      </div>
+      <div class="card-tag soon-tag">Em breve</div>
+      <div class="card-name">Assistente IA</div>
+      <div class="card-desc">Inteligência artificial treinada para apoiar o atendimento ao cliente com respostas rápidas sobre produtos, prazos e políticas comerciais.</div>
+      <div class="card-footer">
+        <div class="card-status">
+          <div class="status-dot off"></div>
+          Em desenvolvimento
+        </div>
+        <div class="card-arrow">→</div>
       </div>
     </div>
-    <div class="login-err" id="loginErr"></div>
-    <button class="btn-do-login" id="btnDoLogin" onclick="doLogin()">Entrar</button>
+
+  </div>
+</section>
+
+<!-- FEATURES -->
+<div class="features reveal" style="padding: 0 40px; box-sizing: content-box; max-width: 1120px;">
+  <div class="feature">
+    <div class="feature-icon">⚡</div>
+    <div class="feature-title">Rápido e confiável</div>
+    <div class="feature-text">Ferramentas leves que funcionam em qualquer dispositivo, sem instalação.</div>
+  </div>
+  <div class="feature">
+    <div class="feature-icon">🤖</div>
+    <div class="feature-title">Inteligência Artificial</div>
+    <div class="feature-text">Preenchimento automático de formulários via leitura de documentos com IA.</div>
+  </div>
+  <div class="feature">
+    <div class="feature-icon">🔒</div>
+    <div class="feature-title">Seguro e privado</div>
+    <div class="feature-text">Acesso controlado por login. Seus dados protegidos e dentro da empresa.</div>
   </div>
 </div>
 
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-left">
+    <strong>Max Atacadista</strong> · Portal Televendas · Irmãos Muffato S.A.
+  </div>
+  <div class="footer-right">CNPJ: 76.430.438/0001-71</div>
+</footer>
+
 <script>
-/* ═══════════ DADOS DAS LOJAS ═══════════ */
-const LOJAS = {
-  1025:{nm:"Max Debret",cnpj:"76.430.438/0025-49",uf:"PR",end:"Rua das Missões, 2550, Vila Portes",cep:"85.853-100",cidade:"Foz do Iguaçu"},
-  1037:{nm:"Max Tiradentes",cnpj:"76.430.438/0037-82",uf:"PR",end:"Avenida Tiradentes, 2200, Rodocentro",cep:"86.071-000",cidade:"Londrina"},
-  1050:{nm:"Max Eldorado Prudente",cnpj:"76.430.438/0050-50",uf:"SP",end:"Avenida Salin Farah Maluf, 170, Jardim Eldorado",cep:"19.026-140",cidade:"Presidente Prudente"},
-  1057:{nm:"Max Floresta",cnpj:"76.430.438/0057-26",uf:"PR",end:"Rua Altemar Dutra, 1327, Brasilia",cep:"85.815-460",cidade:"Cascavel"},
-  1060:{nm:"Max Apucarana",cnpj:"76.430.438/0060-21",uf:"PR",end:"Avenida Minas Gerais, S/N, Jardim Apucarana",cep:"85.804-000",cidade:"Cascavel"},
-  1065:{nm:"Max Colombo",cnpj:"76.430.438/0065-36",uf:"PR",end:"Av. Colombo Esq. Rua Bolivia, 2720, Vila Morangueira",cep:"87.045-000",cidade:"Maringá"},
-  1066:{nm:"Max São Cristóvão",cnpj:"76.430.438/0066-17",uf:"PR",end:"Avenida Brasil, 900, São Cristovão",cep:"85.816-290",cidade:"Cascavel"},
-  1067:{nm:"Max Paranaguá",cnpj:"76.430.438/0067-06",uf:"PR",end:"Avenida Coronel José Lobo, 939, Oceania",cep:"83.203-340",cidade:"Paranaguá"},
-  1070:{nm:"Max Linha Verde",cnpj:"76.430.438/0070-01",uf:"PR",end:"Rua Lothario Boutin, 554, Pinheirinho",cep:"81.110-522",cidade:"Curitiba"},
-  1073:{nm:"Max Potirendaba",cnpj:"76.430.438/0073-46",uf:"SP",end:"Avenida Potirendaba, 2937, Parque Quinta das Paineiras",cep:"15.080-480",cidade:"São José do Rio Preto"},
-  1075:{nm:"Max Bairro Alto",cnpj:"76.430.438/0075-08",uf:"PR",end:"Avenida Caviuna, 472, Bairro Alto",cep:"82.840-123",cidade:"Curitiba"},
-  1076:{nm:"Max Campo Comprido",cnpj:"76.430.438/0076-99",uf:"PR",end:"Av. Juscelino Kubitschek de Oliveira, 2651, Cidade Industrial",cep:"81.270-200",cidade:"Curitiba"},
-  1079:{nm:"Max São José",cnpj:"76.430.438/0079-31",uf:"PR",end:"Avenida Rua Barbosa, 6131, Jardim Aviação",cep:"83.065-260",cidade:"São José dos Pinhais"},
-  1084:{nm:"Max Zona Norte SJRP",cnpj:"76.430.438/0084-07",uf:"SP",end:"Av. Dr. Antonio Marques dos Santos, S/N, Jardim Seyon",cep:"15.050-500",cidade:"São José do Rio Preto"},
-  1085:{nm:"Max Arapongas",cnpj:"76.430.438/0085-80",uf:"PR",end:"Rua Tinguaçu, 763, Vila Industrial",cep:"86.706-176",cidade:"Arapongas"},
-  1086:{nm:"Max Foz BR 277",cnpj:"76.430.438/0086-60",uf:"PR",end:"Avenida Getulio Vargas, 672, Parque Presidente",cep:"85.863-350",cidade:"Foz do Iguaçu"},
-  1089:{nm:"Max Pinhais",cnpj:"76.430.438/0089-03",uf:"PR",end:"Rua Ayrton Senna da Silva, 2806, Centro",cep:"83.323-290",cidade:"Pinhais"},
-  1090:{nm:"Max FRG",cnpj:"76.430.438/0090-47",uf:"PR",end:"Av. Nossa Senhora Aparecida, 228, Santa Terezinha",cep:"83.829-018",cidade:"Fazenda Rio Grande"},
-  1091:{nm:"Max Araucária",cnpj:"76.430.438/0091-28",uf:"PR",end:"Rua Doutor Vital Brasil, 170, Estação",cep:"83.705-174",cidade:"Araucária"},
-  1092:{nm:"Max Chapada Ponta Grossa",cnpj:"76.430.438/0092-09",uf:"PR",end:"Avenida Souza Naves, 2420, Chapada",cep:"84.062-000",cidade:"Ponta Grossa"},
-  1093:{nm:"Max Rolandia",cnpj:"76.430.438/0093-90",uf:"PR",end:"Av. Presidente Getulio Vargas, 3634, Jardim Caviuna",cep:"86.605-306",cidade:"Rolândia"},
-  1094:{nm:"Max Tito Muffato",cnpj:"76.430.438/0094-70",uf:"PR",end:"Avenida Tito Muffato, 91, Santo Onofre",cep:"85.806-728",cidade:"Cascavel"},
-  1097:{nm:"Max Catanduva",cnpj:"76.430.438/0097-13",uf:"SP",end:"Avenida São Domingos, 1491, Vila Guzzo",cep:"15.803-010",cidade:"Catanduva"},
-  1102:{nm:"Max Toledo",cnpj:"76.430.438/0102-15",uf:"PR",end:"Avenida Ministro Cirne Lima, 4022, Tocantins",cep:"85.904-460",cidade:"Toledo"},
-  1104:{nm:"Max Bela Vista",cnpj:"76.430.438/0104-87",uf:"PR",end:"Rua Bela Vista, 99, Vila Santa Terezinha",cep:"86.802-330",cidade:"Apucarana"},
-  1105:{nm:"Max Guanabara",cnpj:"76.430.438/0105-68",uf:"SP",end:"Av. Presidente Juscelino Kubitschek, 7764, Jardim Guanabara",cep:"19.033-390",cidade:"Presidente Prudente"},
-  1106:{nm:"Max Ourinhos",cnpj:"76.430.438/0106-49",uf:"SP",end:"Rua Cardoso Ribeiro, 861, Vila Boa Esperança",cep:"19.912-120",cidade:"Ourinhos"},
-  1107:{nm:"Max Fernandópolis",cnpj:"76.430.438/0107-20",uf:"SP",end:"Avenida Luiz Brambatti, 3938, Brasilandia",cep:"15.606-172",cidade:"Fernandópolis"},
-  1109:{nm:"Max Beltão",cnpj:"76.430.438/0109-91",uf:"PR",end:"Rua Guapore, 301, Presidente Kennedy",cep:"85.605-315",cidade:"Francisco Beltrão"},
-  1110:{nm:"Max Cambé",cnpj:"76.430.438/0110-25",uf:"PR",end:"Av. Gabriel Freceiro de Miranda, 1516, Jardim Santo Amaro",cep:"86.185-010",cidade:"Cambé"},
-  1111:{nm:"Max Colombo RMC",cnpj:"76.430.438/0111-06",uf:"PR",end:"Avenida São Gabriel, 647, Campo Pequeno",cep:"83.404-642",cidade:"Colombo"},
-  1112:{nm:"Max Medianeira",cnpj:"76.430.438/0112-97",uf:"PR",end:"Rua Minuano, 937, Jardim Belo Horizonte",cep:"85.884-000",cidade:"Medianeira"},
-  1113:{nm:"Max Campo Largo",cnpj:"76.430.438/0113-78",uf:"PR",end:"Av. Padre Natal Pigato, 362, Vila Bancaria",cep:"83.601-630",cidade:"Campo Largo"},
-  1114:{nm:"Max Cianorte",cnpj:"76.430.438/0114-59",uf:"PR",end:"Avenida Leopoldina, 1005, Novo Centro",cep:"87.200-190",cidade:"Cianorte"},
-  1116:{nm:"Max Jardim Carvalho",cnpj:"76.430.438/0116-10",uf:"PR",end:"Avenida Monteiro Lobato, 2493, Jardim Carvalho",cep:"84.015-480",cidade:"Ponta Grossa"},
-  1118:{nm:"Max Sorocaba Ipanema",cnpj:"76.430.438/0118-82",uf:"SP",end:"Av. Ipanema, S/N, Vila Nova Sorocaba",cep:"18.070-671",cidade:"Sorocaba"},
-  1120:{nm:"Max Marechal",cnpj:"76.430.438/0120-05",uf:"PR",end:"Avenida Irio Jacob Welp, 2297, Jardim Lider",cep:"85.960-000",cidade:"Marechal Cândido Rondon"},
-  1122:{nm:"Max Hauer",cnpj:"76.430.438/0122-69",uf:"PR",end:"Av. Marechal Floriano Peixoto, 5350, Hauer",cep:"81.630-000",cidade:"Curitiba"},
-  1123:{nm:"Max Pioneiros",cnpj:"76.430.438/0123-40",uf:"PR",end:"Estrada dos Pioneiros, 2155, Jardim Morumbi",cep:"86.036-370",cidade:"Londrina"},
-  1126:{nm:"Max Taubaté",cnpj:"76.430.438/0126-92",uf:"SP",end:"Avenida dos Imigrantes, 111, Bairro Quiririm",cep:"12.043-490",cidade:"Taubaté"},
-  1127:{nm:"Max Sorocaba Norte",cnpj:"76.430.438/0127-73",uf:"SP",end:"Rua João Ribeiro de Barros, 1411, Vila Odim Antao",cep:"18.090-602",cidade:"Sorocaba"},
-  1128:{nm:"Max São José dos Campos",cnpj:"76.430.438/0128-54",uf:"SP",end:"Rua Patativa, 280, Vila Tatetuba",cep:"12.220-140",cidade:"São José dos Campos"},
-  1129:{nm:"Max Lapa",cnpj:"76.430.438/0129-35",uf:"SP",end:"Rua Cenno Sbrighi, 700, Bairro Água Branca",cep:"05.036-011",cidade:"São Paulo"},
-  1130:{nm:"Max Eldorado Rio Preto",cnpj:"76.430.438/0130-79",uf:"SP",end:"Av. Alberto Olivieri Esq. Av. S. Gonçalves de Souza, 2200, Bairro Eldorado",cep:"15044-216",cidade:"São José do Rio Preto"},
-  1131:{nm:"Max Santo André",cnpj:"76.430.438/0131-50",uf:"SP",end:"Avenida dos Estados, 7439, Santa Terezinha",cep:"09.290-520",cidade:"Santo André"},
-  1132:{nm:"Max Votorantin",cnpj:"76.430.438/0132-30",uf:"SP",end:"Rodovia Raposo Tavares, KM 104, Jardim Novo Mundo",cep:"18.052-250",cidade:"Votorantim"},
-  1133:{nm:"Max Guarulhos",cnpj:"76.430.438/0133-11",uf:"SP",end:"Rua Carlos Leal Evans, 252, Jardim Santa Francisca",cep:"07.024-020",cidade:"Guarulhos"},
-  1134:{nm:"Max Piracicaba",cnpj:"76.430.438/0134-00",uf:"SP",end:"Avenida Dois Córregos, 3005, Bairro dos Córregos",cep:"13.420-835",cidade:"Piracicaba"},
-  1135:{nm:"Max Cedral",cnpj:"76.430.438/0135-83",uf:"SP",end:"Avenida Joaquim Constantino, 7204, Parque Cedral",cep:"19.067-550",cidade:"Presidente Prudente"},
-  1136:{nm:"Max Interlagos",cnpj:"76.430.438/0136-64",uf:"SP",end:"Rua Domingas Galleteri Blotta, 507, Vila Campo Grande",cep:"04.456-110",cidade:"São Paulo"},
-  1137:{nm:"Max Butantã",cnpj:"76.430.438/0137-45",uf:"SP",end:"Rua Carlos Lisdegno Carlucci, 519, Jardim Peri Peri",cep:"05.536-900",cidade:"São Paulo"},
-  1138:{nm:"Max Marília",cnpj:"76.430.438/0138-26",uf:"SP",end:"Rua Kanetario Mitishita, 60, Parque das Industrias",cep:"17.519-730",cidade:"Marília"},
-  1139:{nm:"Max Mogi",cnpj:"76.430.438/0139-07",uf:"SP",end:"Rua Carlos Baratino, 494, Vila Mogilar",cep:"08.773-600",cidade:"Mogi das Cruzes"},
-  1140:{nm:"Max São Bernardo",cnpj:"76.430.438/0140-40",uf:"SP",end:"Rua Frei Damião, 355, Pauliceia",cep:"09.695-100",cidade:"São Bernardo do Campo"},
-  1141:{nm:"Max Campinas",cnpj:"76.430.438/0141-21",uf:"SP",end:"Av. Ricardo Bassoli Cezare, 1567, Jardim das Bandeiras",cep:"13.050-080",cidade:"Campinas"},
-  1142:{nm:"Max Assis",cnpj:"76.430.438/0142-02",uf:"SP",end:"Avenida Dom Antonio, 2515, Vila Tenis Clube",cep:"19.806-173",cidade:"Assis"},
-  1144:{nm:"Max JK Foz",cnpj:"76.430.438/0144-74",uf:"PR",end:"Avenida Juscelino Kubitschek, 2404, Monjolo",cep:"85.864-498",cidade:"Foz do Iguaçu"},
-  1145:{nm:"Max João Bettega",cnpj:"76.430.438/0145-55",uf:"PR",end:"Rua Senador Accioly Filho, 2005, Cidade Industrial",cep:"81.350-200",cidade:"Curitiba"},
-  1146:{nm:"Max Oficinas",cnpj:"76.430.438/0146-36",uf:"PR",end:"Avenida Visconde de Mauá, 2975, Oficinas",cep:"84.045-100",cidade:"Ponta Grossa"},
-  1148:{nm:"Max Jaçanã",cnpj:"76.430.438/0148-06",uf:"SP",end:"Rua Manuel Gaya, 390, Vila Nova Mazzei",cep:"02.313-000",cidade:"São Paulo"},
-  1149:{nm:"Max Morumbi",cnpj:"76.430.438/0149-89",uf:"SP",end:"Avenida Giovanni Gronchi, 5800, Vila Andrade",cep:"05.724-002",cidade:"São Paulo"},
-  1150:{nm:"Max Safira",cnpj:"76.430.438/0150-12",uf:"PR",end:"Avenida Safira, 1050, Porto Meira",cep:"85.854-000",cidade:"Foz do Iguaçu"},
-  1151:{nm:"Max Olímpia",cnpj:"76.430.438/0151-01",uf:"SP",end:"Avenida João Rimoli Neto, 1320, Jardim Leonor",cep:"15.400-000",cidade:"Olímpia"},
-  1152:{nm:"Max Castro",cnpj:"76.430.438/0152-84",uf:"PR",end:"Avenida Vicente Fiorillo, 100, Castroville",cep:"84.172-540",cidade:"Castro"},
-  1153:{nm:"Max Torres",cnpj:"76.430.438/0153-65",uf:"PR",end:"Avenida Comendador Franco, 6992, Uberaba",cep:"86.188-060",cidade:"Cambé"},
-  1154:{nm:"Max Votuporanga",cnpj:"76.430.438/0154-46",uf:"SP",end:"Avenida Nasser Marão, 2519, Parque Industrial I",cep:"15.503-005",cidade:"Votuporanga"},
-  1155:{nm:"Max Guaíra",cnpj:"76.430.438/0155-27",uf:"PR",end:"Rua Osvaldo Cruz, 1095, Parque do Lago",cep:"85.983-071",cidade:"Guaíra"},
-  1156:{nm:"Max Sarandi",cnpj:"76.430.438/0156-08",uf:"PR",end:"Rua José Munhoz, 287, Centro",cep:"87.111-610",cidade:"Sarandi"},
-  1157:{nm:"Max Umuarama",cnpj:"76.430.438/0157-99",uf:"PR",end:"Rua Jamil Helu, 4035, Colonia Nucleo Cruzeiro",cep:"87.507-015",cidade:"Umuarama"},
-  1158:{nm:"Max Marília Norte",cnpj:"76.430.438/0158-70",uf:"SP",end:"Rua 17, 611, Jardim Nazareth",cep:"17.512-751",cidade:"Marília"}
-};
+  // Theme toggle
+  (function(){
+    const root = document.documentElement;
+    const btnL = document.getElementById('themeLight');
+    const btnD = document.getElementById('themeDark');
+    function apply(theme){
+      root.setAttribute('data-theme', theme);
+      try { localStorage.setItem('mx-theme', theme); } catch(e){}
+      btnL.classList.toggle('active', theme==='light');
+      btnD.classList.toggle('active', theme==='dark');
+    }
+    let saved = 'dark';
+    try { saved = localStorage.getItem('mx-theme') || 'dark'; } catch(e){}
+    apply(saved);
+    btnL.addEventListener('click', ()=>apply('light'));
+    btnD.addEventListener('click', ()=>apply('dark'));
+  })();
 
-// CNPJ → código da loja (para lookup via NF)
-const CNPJ_TO_LOJA = {};
-Object.entries(LOJAS).forEach(([cod,l])=>{ CNPJ_TO_LOJA[l.cnpj.replace(/\D/g,'')]=parseInt(cod); });
-
-/* ═══════════ ESTADO ═══════════ */
-let mercs=[], mid=0, apiKey='';
-let nfsCarregadas=[];
-let crlvsCarregados=[]; // [{is_reboque:bool, data:{}}]
-const DEFAULT_BACKEND='https://ordem-coleta-backend-production.up.railway.app';
-let backendUrl=DEFAULT_BACKEND, sessionToken='';
-
-/* ═══════════ INIT ═══════════ */
-(function init(){
-  try{
-    const sk=localStorage.getItem('oc_apikey');
-    if(sk){apiKey=sk;document.getElementById('apiKey').value=sk;}
-    // URL do backend já embutida — campo oculto, apenas pré-preenche para referência
-    document.getElementById('backendUrl').value=DEFAULT_BACKEND;
-    const st=localStorage.getItem('oc_token');
-    if(st)sessionToken=st;
-  }catch(e){}
-  updateConnStatus();
-  document.getElementById('f_data').value = new Date().toISOString().split('T')[0];
-  document.getElementById('d_num').textContent = genNum();
-  addMerc();
-  buildStoreDrop('');
-  upd();
-})();
-
-function genNum(){
-  const d=new Date();
-  return 'OC-'+String(d.getFullYear()).slice(2)+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());
-}
-function pad(n){return String(n).padStart(2,'0')}
-
-/* ── PDF TOAST ── */
-function _showPdfToast(msg, prog){
-  let t=document.getElementById('pdfToast');
-  if(!t){
-    t=document.createElement('div');t.id='pdfToast';
-    Object.assign(t.style,{
-      position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)',
-      background:'rgba(10,10,20,.92)',color:'#fff',borderRadius:'12px',
-      padding:'14px 22px',fontSize:'13px',fontFamily:'Arial,sans-serif',
-      zIndex:'99999',display:'flex',alignItems:'center',gap:'10px',
-      boxShadow:'0 4px 24px rgba(0,0,0,.5)',backdropFilter:'blur(6px)',
-      border:'1px solid rgba(255,255,255,.08)',minWidth:'200px',transition:'opacity .3s'
+  // Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) e.target.classList.add('visible');
     });
-    const bar=document.createElement('div');bar.id='pdfBar';
-    Object.assign(bar.style,{
-      position:'absolute',bottom:'0',left:'0',height:'3px',
-      background:'linear-gradient(90deg,#e31e24,#ff6b6b)',
-      borderRadius:'0 0 12px 12px',width:'0%',transition:'width .4s ease'
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Trigger hero items immediately
+  setTimeout(() => {
+    document.querySelectorAll('.hero .reveal, .section .reveal').forEach(el => {
+      el.classList.add('visible');
     });
-    t.appendChild(bar);
-    document.body.appendChild(t);
-  }
-  t.style.opacity='1';t.style.display='flex';
-  const bar=document.getElementById('pdfBar');
-  let span=t.querySelector('.pt-msg');
-  if(!span){span=document.createElement('span');span.className='pt-msg';t.appendChild(span);}
-  span.textContent=msg;
-  if(bar && prog!=null) bar.style.width=prog+'%';
-}
-function _hidePdfToast(){
-  const t=document.getElementById('pdfToast');
-  if(!t) return;
-  t.style.opacity='0';
-  setTimeout(()=>{t.style.display='none';},400);
-}
-
-function _loadScript(src){
-  return new Promise((res,rej)=>{
-    if(document.querySelector(`script[src="${src}"]`)){res();return;}
-    const s=document.createElement('script');s.src=src;
-    s.onload=res; s.onerror=rej;
-    document.head.appendChild(s);
-  });
-}
-
-async function gerarPDF(){
-  const loja=(document.getElementById('storeSearch')?.value||'').trim();
-  const emp =(document.getElementById('f_emp')?.value||'').trim();
-  const partes=['Max Atacadista'];
-  if(loja) partes.push(loja.replace(/–/g,'-').replace(/[\/\\:*?"<>|]/g,''));
-  if(emp)  partes.push(emp.replace(/[\/\\:*?"<>|]/g,''));
-  const titulo=partes.join(' - ');
-  const nomeArq=titulo+'.pdf';
-
-  const btnG=document.getElementById('btnGerar');
-  const btnM=document.getElementById('mtPrint');
-  [btnG,btnM].forEach(b=>{if(b){b.disabled=true;}});
-
-  try{
-    _showPdfToast('⏳ Preparando PDF…', 10);
-    await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
-    _showPdfToast('⏳ Carregando bibliotecas…', 25);
-    await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-    _showPdfToast('🖼 Renderizando documento…', 45);
-
-    const docEl=document.getElementById('doc');
-    const prevTr=docEl.style.transform||'';
-    const prevTO=docEl.style.transformOrigin||'';
-    const wrap=document.getElementById('docScaleWrap');
-    const prevWH=wrap?wrap.style.height:'';
-    docEl.style.transform='none'; docEl.style.transformOrigin='top left';
-    if(wrap){wrap.style.height='auto';wrap.style.overflow='visible';}
-
-    const canvas=await html2canvas(docEl,{
-      scale:2.5,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false
-    });
-
-    docEl.style.transform=prevTr; docEl.style.transformOrigin=prevTO;
-    if(wrap){wrap.style.height=prevWH;wrap.style.overflow='hidden';}
-
-    _showPdfToast('📄 Gerando PDF…', 75);
-
-    const {jsPDF}=window.jspdf;
-    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
-    const pW=pdf.internal.pageSize.getWidth();
-    const pH=pdf.internal.pageSize.getHeight();
-    const imgDataH=pW/(canvas.width/canvas.height);
-
-    if(imgDataH<=pH){
-      pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',0,0,pW,imgDataH);
-    } else {
-      const sliceH=Math.floor(canvas.height*(pH/imgDataH));
-      let page=0, remaining=canvas.height;
-      while(remaining>0){
-        const srcY=page*sliceH, thisH=Math.min(sliceH,remaining);
-        const slice=document.createElement('canvas');
-        slice.width=canvas.width; slice.height=thisH;
-        slice.getContext('2d').drawImage(canvas,0,srcY,canvas.width,thisH,0,0,canvas.width,thisH);
-        const sliceDataH=(thisH/canvas.height)*imgDataH;
-        if(page>0) pdf.addPage();
-        pdf.addImage(slice.toDataURL('image/jpeg',0.92),'JPEG',0,0,pW,sliceDataH);
-        remaining-=thisH; page++;
-      }
-    }
-
-    _showPdfToast('✅ PDF pronto!', 100);
-
-    const isMobile=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-    if(isMobile && navigator.canShare){
-      const blob=pdf.output('blob');
-      const file=new File([blob],nomeArq,{type:'application/pdf'});
-      const shareData={title:titulo,files:[file]};
-      if(navigator.canShare(shareData)){
-        _hidePdfToast();
-        await navigator.share(shareData);
-        return;
-      }
-    }
-    // ── Salvar PDF ──────────────────────────────────────────────────────
-    try {
-      if (window.showSaveFilePicker) {
-        const blob = pdf.output('blob');
-        const handle = await window.showSaveFilePicker({
-          suggestedName: nomeArq,
-          startIn: 'desktop',
-          types: [{ description: 'Documento PDF', accept: { 'application/pdf': ['.pdf'] } }]
-        });
-        const writable = await handle.createWritable();
-        await writable.write(blob);
-        await writable.close();
-        _showPdfToast('✅ PDF salvo na Área de Trabalho!', 100);
-      } else {
-        pdf.save(nomeArq);   // fallback navegadores antigos / Firefox
-      }
-    } catch(saveErr) {
-      if (saveErr.name !== 'AbortError') { pdf.save(nomeArq); }
-    }
-    setTimeout(_hidePdfToast, 1800);
-
-  } catch(err){
-    console.error('Erro ao gerar PDF:',err);
-    _showPdfToast('❌ Erro ao gerar PDF. Tente novamente.', 0);
-    setTimeout(_hidePdfToast, 3000);
-  } finally {
-    [btnG,btnM].forEach(b=>{if(b){b.disabled=false;}});
-  }
-}
-function printDoc(){ gerarPDF(); }
-function saveKey(){
-  apiKey=document.getElementById('apiKey').value.trim();
-  try{if(apiKey)localStorage.setItem('oc_apikey',apiKey);else localStorage.removeItem('oc_apikey');}catch(e){}
-}
-function saveBackend(){
-  backendUrl=document.getElementById('backendUrl').value.trim().replace(/\/$/,'');
-  try{if(backendUrl)localStorage.setItem('oc_backend',backendUrl);else localStorage.removeItem('oc_backend');}catch(e){}
-  // ao trocar URL, invalida token anterior
-  sessionToken='';
-  try{localStorage.removeItem('oc_token');}catch(e){}
-  updateConnStatus();
-}
-function updateConnStatus(){
-  const dot=document.getElementById('connDot');
-  const lbl=document.getElementById('connLabel');
-  const btnL=document.getElementById('btnLogin');
-  const btnO=document.getElementById('btnLogout');
-  if(!dot)return;
-  if(backendUrl && sessionToken){
-    dot.className='api-dot on';
-    lbl.textContent='Conectado';lbl.style.color='#22c55e';
-    btnL.classList.add('hidden');btnO.classList.remove('hidden');
-  }else if(backendUrl){
-    dot.className='api-dot off';
-    lbl.textContent='Não autenticado';lbl.style.color='#e31e24';
-    btnL.classList.remove('hidden');btnO.classList.add('hidden');
-  }else{
-    dot.className='api-dot';
-    lbl.textContent='Sem backend configurado';lbl.style.color='#555';
-    btnL.classList.remove('hidden');btnO.classList.add('hidden');
-  }
-  syncMobDot&&syncMobDot();
-}
-function showLogin(){
-  document.getElementById('loginErr').textContent='';
-  document.getElementById('loginUser').value='';
-  const p=document.getElementById('loginPass');p.value='';p.type='password';
-  const eye=document.getElementById('passEyeBtn');if(eye)eye.textContent='👁';
-  document.getElementById('loginOverlay').classList.remove('hidden');
-  setTimeout(()=>document.getElementById('loginUser').focus(),100);
-}
-function hideLogin(){document.getElementById('loginOverlay').classList.add('hidden');}
-function togglePassVis(){
-  const p=document.getElementById('loginPass');
-  const eye=document.getElementById('passEyeBtn');
-  if(p.type==='password'){p.type='text';eye.textContent='🙈';}
-  else{p.type='password';eye.textContent='👁';}
-}
-// ── Formatação automática ──────────────────────────────────────────────────
-function fmtCnpjCpf(el){
-  const pos=el.selectionStart;
-  let d=el.value.replace(/\D/g,'').slice(0,14);
-  let f='';
-  if(d.length<=11){
-    if(d.length>9)f=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9);
-    else if(d.length>6)f=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6);
-    else if(d.length>3)f=d.slice(0,3)+'.'+d.slice(3);
-    else f=d;
-  }else{
-    if(d.length>12)f=d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'/'+d.slice(8,12)+'-'+d.slice(12);
-    else if(d.length>8)f=d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'/'+d.slice(8);
-    else if(d.length>5)f=d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5);
-    else if(d.length>2)f=d.slice(0,2)+'.'+d.slice(2);
-    else f=d;
-  }
-  el.value=f;
-}
-function fmtCpf(el){
-  let d=el.value.replace(/\D/g,'').slice(0,11);
-  let f='';
-  if(d.length>9)f=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9);
-  else if(d.length>6)f=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6);
-  else if(d.length>3)f=d.slice(0,3)+'.'+d.slice(3);
-  else f=d;
-  el.value=f;
-}
-function fmtRg(el){
-  let d=el.value.replace(/\D/g,'').slice(0,9);
-  let f='';
-  if(d.length>8)f=d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'-'+d.slice(8);
-  else if(d.length>5)f=d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5);
-  else if(d.length>2)f=d.slice(0,2)+'.'+d.slice(2);
-  else f=d;
-  el.value=f;
-}
-async function doLogin(){
-  const url=backendUrl||document.getElementById('backendUrl').value.trim().replace(/\/$/,'');
-  if(!url){document.getElementById('loginErr').textContent='Configure a URL do backend primeiro.';return;}
-  const user=document.getElementById('loginUser').value.trim();
-  const pass=document.getElementById('loginPass').value;
-  if(!user||!pass){document.getElementById('loginErr').textContent='Preencha usuário e senha.';return;}
-  const btn=document.getElementById('btnDoLogin');
-  btn.disabled=true;btn.textContent='Entrando...';
-  document.getElementById('loginErr').textContent='';
-  try{
-    const r=await fetch(url+'/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:user,password:pass})});
-    const d=await r.json();
-    if(!r.ok)throw new Error(d.error||'Erro ao fazer login');
-    sessionToken=d.token;
-    backendUrl=url;
-    try{localStorage.setItem('oc_token',sessionToken);localStorage.setItem('oc_backend',backendUrl);}catch(e){}
-    hideLogin();
-    updateConnStatus();
-  }catch(err){
-    document.getElementById('loginErr').textContent=err.message;
-  }finally{
-    btn.disabled=false;btn.textContent='Entrar';
-  }
-}
-async function doLogout(){
-  if(backendUrl&&sessionToken){
-    try{await fetch(backendUrl+'/logout',{method:'POST',headers:{authorization:'Bearer '+sessionToken}});}catch(e){}
-  }
-  sessionToken='';
-  try{localStorage.removeItem('oc_token');}catch(e){}
-  updateConnStatus();
-}
-
-/* ═══════════ STORE DROPDOWN ═══════════ */
-function buildStoreDrop(q){
-  const drop=document.getElementById('storeDrop');
-  const list=Object.entries(LOJAS).sort((a,b)=>a[0]-b[0]);
-  const filtered=q?list.filter(([c,l])=>String(c).includes(q)||l.nm.toLowerCase().includes(q.toLowerCase())):list;
-  drop.innerHTML=filtered.slice(0,30).map(([c,l])=>
-    `<div class="store-opt" onmousedown="selectLoja(${c})">
-      <span class="cod">${c}</span>${l.nm}<span class="uf-tag">${l.uf}</span>
-    </div>`
-  ).join('')+(filtered.length>30?`<div class="store-opt" style="color:#555;cursor:default">+${filtered.length-30} mais...</div>`:'');
-}
-function filterStores(){buildStoreDrop(document.getElementById('storeSearch').value);openDrop()}
-function openDrop(){document.getElementById('storeDrop').classList.add('open')}
-function closeDrop(){document.getElementById('storeDrop').classList.remove('open')}
-
-function selectLoja(cod, source){
-  const l=LOJAS[cod];
-  if(!l)return;
-  document.getElementById('storeSearch').value=`${cod} – ${l.nm}`;
-  document.getElementById('f_loja_nm').value=`MAX ATACADISTA – ${l.nm} (Loja ${cod})`;
-  document.getElementById('f_loja_cnpj').value=l.cnpj;
-  document.getElementById('f_loja_end').value=`${l.end} – ${l.cidade ? l.cidade + ', ' : ''}${l.uf}, CEP ${l.cep}`;
-  if(source==='ai') badge('b_loja','ai'); else badge('b_loja','manual');
-  upd();
-}
-
-/* ═══════════ MERCADORIAS ═══════════ */
-function addMerc(desc,qtd,nf,data){
-  const id=++mid;
-  mercs.push({id,desc:desc||'',pallets:'',qtd:qtd||'',nf:nf||'',data:data||''});
-  renderMercs();
-}
-function removeMerc(id){mercs=mercs.filter(m=>m.id!==id);if(!mercs.length)addMerc();else renderMercs()}
-function setMerc(id,f,v){const m=mercs.find(m=>m.id===id);if(m){m[f]=v;upd()}}
-function renderMercs(){
-  const list=document.getElementById('mercs-list');
-  list.innerHTML='';
-  mercs.forEach((m,i)=>{
-    const d=document.createElement('div');
-    d.className='merc-item';
-    d.innerHTML=`<button class="rm" onclick="removeMerc(${m.id})">✕</button>
-      <div class="fg" style="margin-bottom:6px"><label>Produto ${i+1}</label>
-        <input type="text" placeholder="Ex: CERVEJA SKOL LATA 350ML" value="${esc(m.desc)}"
-          oninput="setMerc(${m.id},'desc',this.value.toUpperCase())" style="text-transform:uppercase"></div>
-      <div class="fr">
-        <div class="fg"><label>Qtd / Pallets</label>
-          <input type="text" placeholder="Ex: 3 PALLETS" value="${esc(m.pallets)}"
-            oninput="setMerc(${m.id},'pallets',this.value.toUpperCase())"></div>
-        <div class="fg"><label>Qtd / Volume</label>
-          <input type="text" placeholder="Ex: 720 UN" value="${esc(m.qtd)}"
-            oninput="setMerc(${m.id},'qtd',this.value.toUpperCase())"></div>
-        <div class="fg"><label>Nº NF</label>
-          <input type="text" placeholder="000000000" value="${esc(m.nf)}"
-            oninput="setMerc(${m.id},'nf',this.value)"></div>
-        <div class="fg"><label>Data NF</label>
-          <input type="text" placeholder="DD/MM/AAAA" value="${esc(m.data)}"
-            oninput="setMerc(${m.id},'data',this.value)"></div>
-      </div>`;
-    list.appendChild(d);
-  });
-  upd();
-}
-function esc(s){return (s||'').replace(/"/g,'&quot;')}
-
-/* ═══════════ UPDATE DOC ═══════════ */
-function g(id){return (document.getElementById(id)?.value||'').trim()}
-function set(id,txt,ph){
-  const el=document.getElementById(id);if(!el)return;
-  el.textContent=txt||ph||'—';
-  txt?el.classList.remove('ph'):el.classList.add('ph');
-}
-function fmtDate(s){
-  if(!s)return'___/___/______';
-  const[y,m,d]=s.split('-');
-  const ms=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-  return`${parseInt(d)} de ${ms[parseInt(m)-1]} de ${y}`;
-}
-function badge(id,type){
-  const el=document.getElementById(id);if(!el)return;
-  el.style.display='inline-block';
-  el.className='field-badge '+(type==='ai'?'badge-ai':'badge-manual');
-  el.textContent=type==='ai'?'IA':'manual';
-}
-
-function upd(){
-  const emp=g('f_emp'),cnpj=g('f_cnpj');
-  const lnm=g('f_loja_nm'),lend=g('f_loja_end');
-  const mot=g('f_mot'),rg=g('f_rg'),cpf=g('f_cpf');
-  const pl1=g('f_pl1').toUpperCase(),pl2=g('f_pl2').toUpperCase(),vei=g('f_vei');
-  const data=g('f_data'),obs=g('f_obs');
-  set('d_emp',emp,'[EMPRESA]');set('d_cnpj',cnpj,'[CNPJ]');
-  set('d_mot_n',mot,'[MOTORISTA]');set('d_cpf_n',cpf,'[CPF]');
-  set('d_loja_n',lnm,'[LOJA]');set('d_end_n',lend,'[ENDEREÇO]');
-  set('d_mn',mot);set('d_mr',rg);set('d_mc',cpf);
-  set('d_p1',pl1);set('d_vm',vei);
-  const p2r=document.getElementById('d_p2r');
-  if(pl2){p2r.style.display='flex';set('d_p2v',pl2)}else p2r.style.display='none';
-  document.getElementById('d_data').textContent=fmtDate(data);
-  // Assinatura 1 — Empresa Faturada
-  set('d_sig_emp',emp,'—');
-  set('d_sig_cnpj',cnpj?'CNPJ: '+cnpj:'—');
-  // Assinatura 2 — Motorista
-  set('d_snm',mot,'—');
-  set('d_smot_cpf',cpf?'CPF: '+cpf:'—');
-  set('d_smot_rg',rg?'RG: '+rg:'—');
-  document.getElementById('d_obs_x').textContent=obs?' '+obs:'';
-  // CNPJ da loja na narrativa e assinatura
-  const lojaCnpj=g('f_loja_cnpj');
-  set('d_loja_cnpj_nar',lojaCnpj,'[CNPJ LOJA]');
-  const sigCnpjEl=document.getElementById('d_sig_loja_cnpj');
-  if(sigCnpjEl)sigCnpjEl.textContent=lojaCnpj?'CNPJ: '+lojaCnpj:'CNPJ: 76.430.438/0001-71';
-  const tbody=document.getElementById('d_mercs');
-  const valid=mercs.filter(m=>m.desc||m.qtd);
-  tbody.innerHTML=valid.length?valid.map((m,i)=>`<tr>
-    <td class="cn">${i+1}</td>
-    <td>${m.desc||'<span style="color:#ccc;font-style:italic">—</span>'}</td>
-    <td class="cq">${m.pallets||'—'}</td>
-    <td class="cq">${fmtQtd(m.qtd)||'—'}</td>
-    <td class="cf">${m.nf||'—'}</td>
-    <td class="cf">${m.data||'—'}</td>
-  </tr>`).join(''):`<tr><td class="cn">1</td><td><span style="color:#ccc;font-style:italic">—</span></td><td class="cq" style="color:#ccc">—</td><td class="cq" style="color:#ccc">—</td><td class="cf" style="color:#ccc">—</td><td class="cf" style="color:#ccc">—</td></tr>`;
-  scaleDoc();
-}
-
-/* ═══════════ AUTO-SCALE PRÉVIA MOBILE ══════════════════════════════════════ */
-function scaleDoc(){
-  if(window.innerWidth>768)return;
-  const wrap=document.getElementById('docScaleWrap');
-  const doc=document.getElementById('doc');
-  if(!wrap||!doc)return;
-  // Remove escala anterior para medir largura real
-  doc.style.transform='';
-  doc.style.transformOrigin='';
-  wrap.style.height='';
-  const wrapW=wrap.clientWidth-2;
-  const docW=doc.offsetWidth||794;
-  if(docW>wrapW){
-    const sc=wrapW/docW;
-    doc.style.transform=`scale(${sc})`;
-    doc.style.transformOrigin='top left';
-    wrap.style.height=Math.ceil(doc.offsetHeight*sc)+'px';
-    wrap.style.overflow='hidden';
-  }
-}
-window.addEventListener('resize',scaleDoc);
-
-/* ═══════════ FILE HANDLING ═══════════ */
-function drop(e,type){
-  e.preventDefault();
-  const files=[...e.dataTransfer.files];
-  if(type==='nf'||type==='crlv')files.forEach(f=>processFile(f,type));
-  else if(files[0])processFile(files[0],type);
-}
-function handleFile(e,type){const f=e.target.files[0];if(f)processFile(f,type,false);e.target.value='';}
-function handleFileMulti(e,type,fromCamera=false){
-  const files=[...e.target.files];
-  if(type==='nf')files.forEach(f=>processFile(f,'nf',fromCamera));
-  else if(files[0])processFile(files[0],type,false);
-  e.target.value='';
-}
-
-async function processFile(file,type,fromCamera=false){
-  const zoneId={nf:'upNF',cnh:'upCNH',crlv:'upCRLV'}[type];
-  setZone(zoneId,'loading','Lendo...');
-  setMsg('Processando '+file.name+'...');
-  try{
-    const b64=await toBase64(file);
-    const mime=file.type||'application/pdf';
-    if(!apiKey && !sessionToken){
-      // regex fallback
-      const text=await extractText(file);
-      if(type==='nf') parseNF_regex(text);
-      else if(type==='cnh') parseCNH_regex(text);
-      else parseCRLV_regex(text);
-      setZone(zoneId,'done','✓ Lido (regex)');
-      setMsg('⚠ Sem chave API: extração básica por texto. Configure a chave para maior precisão.');
-    } else {
-      const callType=(type==='nf'&&fromCamera)?'nf_cam':type;
-      const result=await callClaude(b64,mime,callType);
-      if(type==='nf'&&fromCamera){
-        const conf=(result.confidence||'').toLowerCase();
-        if(conf==='low'){
-          setZone(zoneId,'error','✕ Foto recusada');
-          const motivo=result.reason?': '+result.reason:'';
-          setMsg('⚠ Foto recusada'+motivo+'. Envie o arquivo PDF da nota ou preencha os campos manualmente.');
-          return;
-        }
-        if(conf==='medium'){
-          const aviso=result.reason?': '+result.reason:'';
-          setMsg('⚠ Qualidade parcial'+aviso+' — confira os campos antes de gerar a ordem.');
-          applyExtraction(result,type);
-          setZone(zoneId,'done','✓ Verificado');
-        }
-      } else {
-        applyExtraction(result,type);
-        setZone(zoneId,'done','✓ Preenchido');
-        setMsg('✓ Campos preenchidos automaticamente por IA');
-      }
-    }
-  }catch(err){
-    setZone(zoneId,'error','Erro');
-    setMsg('Erro: '+err.message+'. Preencha manualmente.');
-    console.error(err);
-  }
-}
-
-/* ═══════════ ZONE / MSG HELPERS ═══════════════════════════════════════════ */
-function setZone(id,state,label){
-  const el=document.getElementById(id);
-  if(!el)return;
-  el.className='upz'+(state?' '+state:'');
-  const lbl=document.getElementById(id+'-label');
-  if(lbl&&label)lbl.textContent=label;
-}
-function setMsg(msg){
-  const el=document.getElementById('extractMsg');
-  if(el)el.textContent=msg||'';
-}
-
-/* ═══════════ BASE64 ════════════════════════════════════════════════════════ */
-function toBase64(file){
-  return new Promise((res,rej)=>{
-    const r=new FileReader();
-    r.onload=e=>res(e.target.result.split(',')[1]);
-    r.onerror=rej;
-    r.readAsDataURL(file);
-  });
-}
-
-/* ═══════════ EXTRACT TEXT (PDF.js) ════════════════════════════════════════ */
-async function extractText(file){
-  const url=URL.createObjectURL(file);
-  try{
-    if(!window.pdfjsLib){
-      await new Promise((res,rej)=>{
-        const s=document.createElement('script');
-        s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-        s.onload=res; s.onerror=rej;
-        document.head.appendChild(s);
-      });
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc=
-        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
-    const pdfDoc=await window.pdfjsLib.getDocument(url).promise;
-    let text='';
-    for(let i=1;i<=Math.min(pdfDoc.numPages,5);i++){
-      const page=await pdfDoc.getPage(i);
-      const tc=await page.getTextContent();
-      text+=tc.items.map(it=>it.str).join('\n')+'\n';
-    }
-    return text;
-  }finally{URL.revokeObjectURL(url);}
-}
-
-/* ═══════════ CLAUDE API CALL ═══════════════════════════════════════════════ */
-async function callClaude(b64,mime,type){
-  const PROMPTS={
-    nf:`Você é um extrator de NF-e (Nota Fiscal Eletrônica) brasileira — formato DANFE.
-Extraia os dados EXATAMENTE conforme a estrutura da NF, sem inferências:
-- empresa_* = dados do EMITENTE (quem emitiu/vendeu, seção superior da NF)
-- loja_* = dados do DESTINATÁRIO (quem recebeu/comprou, seção inferior da NF)
-Retorne SOMENTE JSON válido (sem markdown, sem texto extra):
-{
-  "empresa_razao": "razão social do EMITENTE conforme consta na NF",
-  "empresa_cnpj": "CNPJ do EMITENTE formatado XX.XXX.XXX/XXXX-XX",
-  "loja_cnpj": "CNPJ do DESTINATÁRIO formatado XX.XXX.XXX/XXXX-XX",
-  "loja_nome": "razão social do DESTINATÁRIO conforme consta na NF",
-  "loja_end": "endereço do DESTINATÁRIO (logradouro, número, bairro)",
-  "loja_cidade": "cidade do DESTINATÁRIO",
-  "loja_uf": "UF do DESTINATÁRIO (2 letras)",
-  "loja_cep": "CEP do DESTINATÁRIO",
-  "nf_numero": "número da nota fiscal",
-  "nf_data": "data de emissão DD/MM/AAAA",
-  "produtos": [{"desc":"descrição completa","qtd":"quantidade com unidade"}]
-}`,
-    nf_cam:`Você é um extrator de NF-e fotografada. Avalie a qualidade da imagem e extraia os dados EXATAMENTE conforme a estrutura da NF:
-- empresa_* = EMITENTE (seção superior, quem vendeu/emitiu)
-- loja_* = DESTINATÁRIO (seção inferior, quem comprou/recebeu)
-Retorne SOMENTE JSON válido:
-{
-  "confidence": "high|medium|low",
-  "reason": "motivo se low ou medium",
-  "empresa_razao": "razão social do EMITENTE",
-  "empresa_cnpj": "CNPJ do EMITENTE XX.XXX.XXX/XXXX-XX",
-  "loja_cnpj": "CNPJ do DESTINATÁRIO XX.XXX.XXX/XXXX-XX",
-  "loja_nome": "razão social do DESTINATÁRIO",
-  "loja_end": "endereço do DESTINATÁRIO",
-  "loja_cidade": "cidade do DESTINATÁRIO",
-  "loja_uf": "UF do DESTINATÁRIO",
-  "loja_cep": "CEP do DESTINATÁRIO",
-  "nf_numero": "número da NF",
-  "nf_data": "DD/MM/AAAA",
-  "produtos": [{"desc":"...","qtd":"..."}]
-}`,
-    cnh:`Você é um extrator de CNH (Carteira Nacional de Habilitação) brasileira de qualquer estado.
-Extraia e retorne SOMENTE JSON válido:
-{
-  "nome": "nome completo do habilitado",
-  "cpf": "CPF formatado XXX.XXX.XXX-XX",
-  "rg": "número do RG (somente dígitos e traço verificador)",
-  "categoria": "categoria(s) de habilitação ex: AB"
-}`,
-    crlv:`Você é um extrator de CRLV (Certificado de Registro e Licenciamento de Veículo) brasileiro.
-Extraia e retorne SOMENTE JSON válido:
-{
-  "placa": "placa no padrão ABC1D23 ou ABC-1234",
-  "modelo": "marca/modelo completo",
-  "renavam": "número RENAVAM",
-  "ano_fab": "ano de fabricação",
-  "ano_mod": "ano do modelo"
-}`
-  };
-
-  const prompt=PROMPTS[type]||PROMPTS.nf;
-
-  // PDFs → source type "document", imagens → "image"
-  const srcType=mime==='application/pdf'?'document':'image';
-  const contentPart=srcType==='document'
-    ?{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}}
-    :{type:'image',source:{type:'base64',media_type:mime,data:b64}};
-
-  // Payload completo Anthropic
-  const payload={
-    model:'claude-haiku-4-5-20251001',
-    max_tokens:1024,
-    messages:[{role:'user',content:[contentPart,{type:'text',text:prompt}]}]
-  };
-
-  // ── Modo backend: proxy /api/claude ──────────────────────────────────────
-  if(sessionToken && backendUrl){
-    const r=await fetch(backendUrl+'/api/claude',{
-      method:'POST',
-      headers:{'content-type':'application/json','authorization':'Bearer '+sessionToken},
-      body:JSON.stringify(payload)
-    });
-    if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error||'Erro no backend ('+r.status+')');}
-    const d=await r.json();
-    const txt=d.content?.[0]?.text||'{}';
-    const jm=txt.match(/\{[\s\S]*\}/);
-    if(!jm)throw new Error('Resposta inválida do backend');
-    return JSON.parse(jm[0]);
-  }
-
-  // ── Modo direto (API key local) ───────────────────────────────────────────
-  if(!apiKey)throw new Error('Sem chave API configurada');
-
-  const r=await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{
-      'content-type':'application/json',
-      'x-api-key':apiKey,
-      'anthropic-version':'2023-06-01',
-      'anthropic-beta':'pdfs-2024-09-25'
-    },
-    body:JSON.stringify(payload)
-  });
-  if(!r.ok){
-    const e=await r.json().catch(()=>({}));
-    throw new Error((e.error?.message)||'Erro na API Anthropic ('+r.status+')');
-  }
-  const d=await r.json();
-  const txt=d.content?.[0]?.text||'{}';
-  const jm=txt.match(/\{[\s\S]*\}/);
-  if(!jm)throw new Error('Resposta inválida da API');
-  return JSON.parse(jm[0]);
-}
-
-/* ═══════════ FORMAT QTD ════════════════════════════════════════════════════ */
-function fmtQtd(v){return (v||'').toString().trim();}
-
-/* ═══════════ APPLY EXTRACTION ══════════════════════════════════════════════ */
-function applyExtraction(data,type){
-  if(!data)return;
-  if(type==='nf'||type==='nf_cam'){
-    /* Determina qual CNPJ pertence a uma loja Max Atacadista (CNPJ_TO_LOJA).
-       Quem casar = loja; quem não casar = empresa emitente/fornecedor.
-       Isso corrige o caso em que a IA inverte emitente e destinatário. */
-    const cnpjEmpNum=(data.empresa_cnpj||'').replace(/\D/g,'');
-    const cnpjLojNum=(data.loja_cnpj||'').replace(/\D/g,'');
-    const codDeEmp=cnpjEmpNum?CNPJ_TO_LOJA[cnpjEmpNum]:null;
-    const codDeLoj=cnpjLojNum?CNPJ_TO_LOJA[cnpjLojNum]:null;
-
-    if(codDeLoj){
-      /* loja_* é de fato uma loja Max — mapeamento correto da IA */
-      if(data.empresa_razao){const el=document.getElementById('f_emp');if(el){el.value=data.empresa_razao;badge('b_emp','ai');}}
-      if(data.empresa_cnpj){const el=document.getElementById('f_cnpj');if(el){el.value=data.empresa_cnpj;badge('b_cnpj','ai');}}
-      selectLoja(codDeLoj,'ai');
-    } else if(codDeEmp){
-      /* empresa_* é na verdade a loja Max (IA inverteu emitente/destinatário)
-         → usa loja_* como empresa (fornecedor/emitente) e empresa_* como loja */
-      if(data.loja_nome){const el=document.getElementById('f_emp');if(el){el.value=data.loja_nome;badge('b_emp','ai');}}
-      if(data.loja_cnpj){const el=document.getElementById('f_cnpj');if(el){el.value=data.loja_cnpj;badge('b_cnpj','ai');}}
-      selectLoja(codDeEmp,'ai');
-    } else {
-      /* Nenhum CNPJ é de loja conhecida — preenche como veio, sem sobrescrever seleção manual */
-      if(data.empresa_razao){const el=document.getElementById('f_emp');if(el){el.value=data.empresa_razao;badge('b_emp','ai');}}
-      if(data.empresa_cnpj){const el=document.getElementById('f_cnpj');if(el){el.value=data.empresa_cnpj;badge('b_cnpj','ai');}}
-      const alreadySelected=document.getElementById('storeSearch').value.trim();
-      if(!alreadySelected){
-        if(data.loja_nome){const el=document.getElementById('f_loja_nm');if(el){el.value=data.loja_nome;badge('b_loja','ai');}}
-        if(data.loja_cnpj){const el=document.getElementById('f_loja_cnpj');if(el)el.value=data.loja_cnpj;}
-        if(data.loja_end){
-          const parts=[data.loja_end];
-          if(data.loja_cidade)parts.push(data.loja_cidade);
-          if(data.loja_uf)parts.push(data.loja_uf);
-          if(data.loja_cep)parts.push('CEP '+data.loja_cep);
-          const el=document.getElementById('f_loja_end');
-          if(el)el.value=parts.join(', ');
-        }
-      }
-    }
-    if(data.produtos&&data.produtos.length){
-      if(!mercs.length||!mercs[0].desc){mercs=[];mid=0;}
-      data.produtos.forEach(p=>addMerc((p.desc||'').toUpperCase(),p.qtd||'',data.nf_numero||'',data.nf_data||''));
-      if(mercs.length)badge('b_mercs','ai');
-    }
-  } else if(type==='cnh'){
-    if(data.nome)setField('f_mot',data.nome,'ai');
-    if(data.cpf) setField('f_cpf',data.cpf,'ai');
-    if(data.rg)  setField('f_rg',data.rg,'ai');
-  } else if(type==='crlv'){
-    if(data.placa){
-      const pl=data.placa.replace(/[^A-Z0-9]/gi,'').toUpperCase();
-      const p1=document.getElementById('f_pl1');
-      if(p1&&!p1.value)setField('f_pl1',pl,'ai');
-      else setField('f_pl2',pl,'ai');
-    }
-    if(data.modelo)setField('f_vei',data.modelo,'ai');
-  }
-  upd();
-}
-
-/* ═══════════ SET FIELD ═════════════════════════════════════════════════════ */
-function setField(id,val,source){
-  const el=document.getElementById(id);
-  if(!el||val===undefined||val===null||val==='')return;
-  el.value=val;
-  const bid='b_'+id.replace(/^f_/,'');
-  badge(bid,source||'ai');
-  upd();
-}
-
-/* ═══════════ PARSE NF REGEX ════════════════════════════════════════════════ */
-function parseNF_regex(text){
-  if(!text)return;
-  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
-  const cnpjAll=[...text.matchAll(/\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/g)].map(m=>m[0]);
-
-  /* Varre todos os CNPJs e acha qual pertence a uma loja Max Atacadista */
-  let lojaCod=null, lojaCnpj='', empresaCnpj='';
-  for(const c of cnpjAll){
-    const num=c.replace(/\D/g,'');
-    const cod=CNPJ_TO_LOJA[num];
-    if(cod&&!lojaCod){lojaCod=cod;lojaCnpj=c;}
-    else if(!empresaCnpj&&c!==lojaCnpj){empresaCnpj=c;}
-  }
-  if(!lojaCnpj&&cnpjAll.length>1){lojaCnpj=cnpjAll[1];empresaCnpj=cnpjAll[0];}
-  else if(!empresaCnpj&&cnpjAll[0]&&cnpjAll[0]!==lojaCnpj){empresaCnpj=cnpjAll[0];}
-
-  /* Empresa emitente (fornecedor): CNPJ + extrai razão social próxima ao CNPJ */
-  if(empresaCnpj){
-    document.getElementById('f_cnpj').value=empresaCnpj;badge('b_cnpj','ai');
-    /* Busca o nome da empresa no texto: procura sufixos típicos de pessoa jurídica */
-    const empNmM=text.match(/([A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇa-záàâãéêíóôõúüç0-9\s&\.\/\-]{3,60}?(?:LTDA|S\.?A\.?|EIRELI|\bME\b|\bEPP\b|CIA|COMERCIAL|DISTRIBUIDORA|INDUSTRIA|MERCADO|SUPERMERCADO|ATACADO|ALIMENTOS)[A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇa-záàâãéêíóôõúüç\s\.\-]*)/g);
-    if(empNmM&&empNmM.length){
-      /* Remove rótulos de NF que possam ter sido capturados junto */
-      const LABELS=/NOME\s*[\/]?\s*RAZ[AÃ]O\s*SOCIAL|DENOMINAÇ[AÃ]O|EMITENTE|DESTINAT[AÁ]RIO|REMETENTE/gi;
-      const nomes=empNmM.map(n=>n.replace(LABELS,'').trim()).filter(n=>n.length>4);
-      /* Pega o nome que NÃO pertence a uma loja Max (o fornecedor externo) */
-      const nomeEmp=nomes.find(n=>{
-        const palavras=n.toUpperCase();
-        return !palavras.includes('MAX ATACADISTA')&&!palavras.includes('IRM')&&!palavras.includes('MUFFATO');
-      })||nomes[0];
-      if(nomeEmp){document.getElementById('f_emp').value=nomeEmp.trim();badge('b_emp','ai');}
-    }
-  }
-
-  /* Loja Max Atacadista */
-  if(lojaCod){
-    selectLoja(lojaCod,'ai');
-  } else if(lojaCnpj){
-    const alreadySelected=document.getElementById('storeSearch').value.trim();
-    if(!alreadySelected){
-      document.getElementById('f_loja_cnpj').value=lojaCnpj;
-      const cidadeM=text.match(/([A-ZÀ-Ú][a-zà-ú A-ZÀ-Ú]{3,})\s*\/\s*([A-Z]{2})\s*\n\s*(\d{5}-\d{3})/);
-      if(cidadeM){const el=document.getElementById('f_loja_end');if(el&&!el.value)el.value=`${cidadeM[1].trim()}, ${cidadeM[2]}, CEP ${cidadeM[3]}`;}
-    }
-  }
-  const nfNumM=text.match(/(?:N[º°o]\s*\.?\s*|NÚMERO\s*[:\s])(\d{6,9})/i);
-  const dataM=text.match(/(\d{2}\/\d{2}\/\d{4})/);
-  const prodLines=[];
-  let inProd=false;
-  for(const ln of lines){
-    if(/DESCRI[ÇC][AÃ]O\s*DO\s*PRODUTO|DADOS\s*DO\s*PRODUTO/i.test(ln)){inProd=true;continue;}
-    if(inProd){
-      if(/^\d+\s/.test(ln)){const desc=ln.replace(/^\d+\s+/,'').split(/\s{2,}/)[0].trim();if(desc.length>3)prodLines.push(desc);if(prodLines.length>=8)break;}
-      else if(/TOTAL|VALOR\s+TOTAL|FATURA/i.test(ln)){break;}
-    }
-  }
-  if(prodLines.length){
-    if(!mercs.length||!mercs[0].desc){mercs=[];mid=0;}
-    prodLines.forEach(d=>addMerc(d.toUpperCase(),'',(nfNumM&&nfNumM[1])||'',(dataM&&dataM[1])||''));
-    badge('b_mercs','ai');
-  }
-  upd();
-}
-
-/* ═══════════ PARSE CNH REGEX (multi-estado) ════════════════════════════════ */
-function parseCNH_regex(text){
-  if(!text)return;
-  let nome='';
-  const nomePatterns=[
-    /(?:2\s*e\s*1\s+NOME\s+E\s+SOBRENOME)[^\n]*\n([A-ZÀÁÂÃÉÊÍÓÔÕÚÜÇ ]{5,})/,
-    /(?:1\s*[-–]?\s*NOME\s*(?:E\s*SOBRENOME)?|NOME\s+COMPLETO)[^\n]*\n([A-ZÀÁÂÃÉÊÍÓÔÕÚÜÇ ]{5,})/,
-    /\bNOME\b[:\s]*\n([A-ZÀÁÂÃÉÊÍÓÔÕÚÜÇ ]{5,})/,
-    /^([A-ZÀÁÂÃÉÊÍÓÔÕÚÜÇ]{2}[A-ZÀÁÂÃÉÊÍÓÔÕÚÜÇ ]{4,})\n[\s\S]{0,80}?\d{3}\.\d{3}\.\d{3}-\d{2}/m
-  ];
-  for(const p of nomePatterns){const m=text.match(p);if(m&&m[1]&&m[1].trim().split(/\s+/).length>=2){nome=m[1].trim();break;}}
-  const cpfM=text.match(/(\d{3}[\.\s]?\d{3}[\.\s]?\d{3}[\-\s]?\d{2})/);
-  let cpf='';
-  if(cpfM){const d=cpfM[1].replace(/\D/g,'');if(d.length===11)cpf=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9);}
-  let rg='';
-  const rgPatterns=[
-    /(?:4[ab]?\s+DOC\.?\s*(?:IDENTIDADE|IDENT\.?)[^\n]*\n?|RG\s*[:\n]\s*)([0-9][0-9\.\-\/X]{4,14})/i,
-    /(?:REGISTRO\s*(?:GERAL|DE\s*IDENTIDADE))\s*[:\n]\s*([0-9][0-9\.\-\/X]{4,14})/i,
-    /\b(\d{6,10})\s+(?:SSP|PC|PM|IFP|DETRAN|IIRGD)\w{0,4}/,
-    /\bRG\b[^\n]*?(\d[\d\.\-]{5,12})/i
-  ];
-  for(const p of rgPatterns){const m=text.match(p);if(m&&m[1]){rg=m[1].trim();break;}}
-  if(nome)setField('f_mot',nome,'ai');
-  if(cpf) setField('f_cpf',cpf,'ai');
-  if(rg)  setField('f_rg',rg,'ai');
-  upd();
-}
-
-/* ═══════════ PARSE CRLV REGEX ══════════════════════════════════════════════ */
-function parseCRLV_regex(text){
-  if(!text)return;
-  const placaM=text.match(/\b([A-Z]{3}[\s\-]?[0-9][A-Z0-9][0-9]{2})\b/i)||text.match(/\b([A-Z]{3}[\s\-]?[0-9]{4})\b/i);
-  const modeloM=text.match(/(?:MARCA[\/\s]+MODELO|MODELO)[:\s\n]+([^\n]{3,50})/i);
-  if(placaM){const pl=placaM[1].replace(/[\s\-]/g,'').toUpperCase();const p1=document.getElementById('f_pl1');if(p1&&!p1.value)setField('f_pl1',pl,'ai');else setField('f_pl2',pl,'ai');}
-  if(modeloM)setField('f_vei',modeloM[1].trim(),'ai');
-  upd();
-}
-
-/* ═══════════ CLEAR ALL ═════════════════════════════════════════════════════ */
-function clearAll(){
-  ['f_emp','f_cnpj','f_loja_nm','f_loja_cnpj','f_loja_end','f_mot','f_rg','f_cpf','f_pl1','f_pl2','f_vei','f_data','f_obs']
-  .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('storeSearch').value='';
-  document.querySelectorAll('.field-badge').forEach(b=>{b.style.display='none';b.textContent='';});
-  mercs=[];mid=0;addMerc();
-  ['upNF','upCNH','upCRLV'].forEach(id=>setZone(id,'',''));
-  const nfLbl=document.getElementById('upNF-label');if(nfLbl)nfLbl.innerHTML='NF-e<br>da Loja';
-  const crlvLbl=document.getElementById('upCRLV-label');if(crlvLbl)crlvLbl.innerHTML='CRLV<br>Veículo/Reboque';
-  setMsg('');
-  upd();
-}
-
-/* ═══════════ MOBILE DOT SYNC ═══════════════════════════════════════════════ */
-function syncMobDot(){
-  const d=document.getElementById('mobConnDot');
-  const src=document.getElementById('connDot');
-  if(d&&src){const cls=src.className;d.style.background=cls.includes('on')?'#22c55e':cls.includes('off')?'#e31e24':'#555';}
-}
-
-/* ═══════════ MOBILE SWITCH ═════════════════════════════════════════════════ */
-function mobSwitch(tab){
-  const fp=document.query
+  }, 100);
+</script>
+</body>
+</html>
