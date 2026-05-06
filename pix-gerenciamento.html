@@ -7,9 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <style>
   :root, html[data-theme="dark"] {
     --bg: #080810;
@@ -296,20 +296,24 @@
   try {
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
+    console.log('✓ Firebase inicializado');
 
     db.ref('pix-envios').on('value', (snapshot) => {
+      console.log('📊 Listener ativado, dados recebidos:', snapshot.val());
       pixes = [];
       snapshot.forEach((child) => {
         pixes.push(child.val());
       });
+      console.log('✓ ' + pixes.length + ' PIX carregados');
       pixes.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
       renderAll();
     });
 
     firebaseConnected = true;
     updateFirebaseStatus(true);
+    console.log('✓ Conectado ao Firebase em tempo real');
   } catch(e) {
-    console.warn('Firebase não configurado:', e.message);
+    console.error('❌ Erro Firebase:', e.message);
     updateFirebaseStatus(false);
     initDemo();
   }
