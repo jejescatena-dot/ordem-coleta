@@ -8,444 +8,109 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <style>
   :root, html[data-theme="dark"] {
-    --bg: #080810;
-    --bg2: #0d0d1a;
-    --nav-bg: rgba(8,8,16,0.7);
-    --surface: rgba(255,255,255,0.04);
-    --surface-hover: rgba(255,255,255,0.07);
-    --border: rgba(255,255,255,0.08);
-    --border-hover: rgba(255,255,255,0.16);
-    --red: #e31e24;
-    --text: #f0f0f5;
-    --text-2: rgba(240,240,245,0.55);
-    --text-3: rgba(240,240,245,0.3);
-    --green: #22c55e;
-    --cyan: #0891b2;
-    --cyan-soft: rgba(8,145,178,0.12);
-    --grid-line: rgba(255,255,255,0.025);
-    --bg-glow-1: rgba(8,145,178,0.08);
-    --bg-glow-2: rgba(60,60,140,0.06);
+    --bg: #080810; --bg2: #0d0d1a; --nav-bg: rgba(8,8,16,0.7);
+    --surface: rgba(255,255,255,0.04); --surface-hover: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08); --border-hover: rgba(255,255,255,0.16);
+    --red: #e31e24; --text: #f0f0f5; --text-2: rgba(240,240,245,0.55); --text-3: rgba(240,240,245,0.3);
+    --green: #22c55e; --cyan: #0891b2; --cyan-soft: rgba(8,145,178,0.12);
+    --grid-line: rgba(255,255,255,0.025); --bg-glow-1: rgba(8,145,178,0.08); --bg-glow-2: rgba(60,60,140,0.06);
     --font: 'Inter', system-ui, -apple-system, sans-serif;
   }
   html[data-theme="light"] {
-    --bg: #f7f7fa;
-    --bg2: #ffffff;
-    --nav-bg: rgba(255,255,255,0.85);
-    --surface: rgba(0,0,0,0.025);
-    --surface-hover: rgba(0,0,0,0.05);
-    --border: rgba(0,0,0,0.08);
-    --border-hover: rgba(0,0,0,0.16);
-    --red: #e31e24;
-    --text: #14141c;
-    --text-2: rgba(20,20,28,0.6);
-    --text-3: rgba(20,20,28,0.35);
-    --green: #22c55e;
-    --cyan: #0891b2;
-    --cyan-soft: rgba(8,145,178,0.08);
-    --grid-line: rgba(0,0,0,0.04);
-    --bg-glow-1: rgba(8,145,178,0.06);
-    --bg-glow-2: rgba(60,60,140,0.04);
+    --bg: #f7f7fa; --bg2: #ffffff; --nav-bg: rgba(255,255,255,0.85);
+    --surface: rgba(0,0,0,0.025); --surface-hover: rgba(0,0,0,0.05);
+    --border: rgba(0,0,0,0.08); --border-hover: rgba(0,0,0,0.16);
+    --red: #e31e24; --text: #14141c; --text-2: rgba(20,20,28,0.6); --text-3: rgba(20,20,28,0.35);
+    --green: #22c55e; --cyan: #0891b2; --cyan-soft: rgba(8,145,178,0.08);
+    --grid-line: rgba(0,0,0,0.04); --bg-glow-1: rgba(8,145,178,0.06); --bg-glow-2: rgba(60,60,140,0.04);
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
-  body {
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-  }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+  .bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .bg-canvas::before { content: ''; position: absolute; top: -20%; left: 50%; transform: translateX(-50%); width: 900px; height: 600px; background: radial-gradient(ellipse at center, var(--bg-glow-1) 0%, transparent 70%); }
+  .bg-canvas::after { content: ''; position: absolute; bottom: 10%; right: -10%; width: 600px; height: 600px; background: radial-gradient(ellipse at center, var(--bg-glow-2) 0%, transparent 70%); }
+  .bg-grid { position: absolute; inset: 0; background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 100%); }
 
-  /* ── BACKGROUND ── */
-  .bg-canvas {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-  }
-  .bg-canvas::before {
-    content: '';
-    position: absolute;
-    top: -20%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 900px;
-    height: 600px;
-    background: radial-gradient(ellipse at center, var(--bg-glow-1) 0%, transparent 70%);
-  }
-  .bg-canvas::after {
-    content: '';
-    position: absolute;
-    bottom: 10%;
-    right: -10%;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(ellipse at center, var(--bg-glow-2) 0%, transparent 70%);
-  }
-  .bg-grid {
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(var(--grid-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-    background-size: 60px 60px;
-    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 100%);
-  }
-
-  /* ── NAVBAR ── */
-  .nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    padding: 0 40px;
-    height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--nav-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border);
-  }
-  .nav-logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-decoration: none;
-  }
-  .nav-logo-mark {
-    width: 32px;
-    height: 32px;
-    background: var(--cyan);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 900;
-    color: #fff;
-    font-style: italic;
-    letter-spacing: -1px;
-    flex-shrink: 0;
-  }
-  .nav-logo-text {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-  }
-  .nav-logo-name {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: 0.3px;
-  }
-  .nav-logo-sub {
-    font-size: 10px;
-    color: var(--text-2);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    font-weight: 500;
-  }
+  .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 40px; height: 64px; display: flex; align-items: center; justify-content: space-between; background: var(--nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-logo-mark { width: 32px; height: 32px; background: var(--cyan); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; color: #fff; font-style: italic; letter-spacing: -1px; flex-shrink: 0; }
+  .nav-logo-text { display: flex; flex-direction: column; gap: 1px; }
+  .nav-logo-name { font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: 0.3px; }
+  .nav-logo-sub { font-size: 10px; color: var(--text-2); letter-spacing: 1px; text-transform: uppercase; font-weight: 500; }
   .nav-right { display:flex; align-items:center; gap:14px; }
-  .nav-badge {
-    font-size: 11px;
-    color: var(--text-2);
-    font-weight: 500;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 4px 12px;
-    border-radius: 20px;
-    letter-spacing: 0.3px;
-  }
-  .theme-toggle {
-    display:inline-flex; align-items:center;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 3px;
-    gap: 2px;
-  }
-  .theme-toggle button {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    width: 30px; height: 26px;
-    border-radius: 999px;
-    display: inline-flex; align-items: center; justify-content: center;
-    color: var(--text-2);
-    font-size: 13px;
-    transition: color 0.2s;
-    font-family: inherit;
-  }
+  .nav-badge { font-size: 11px; color: var(--text-2); font-weight: 500; background: var(--surface); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.3px; }
+  .user-pill { display:flex; align-items:center; gap:8px; background: var(--surface); border: 1px solid var(--border); padding: 4px 12px 4px 4px; border-radius: 20px; font-size: 12px; }
+  .user-pill img { width: 24px; height: 24px; border-radius: 50%; }
+  .user-pill button { background: transparent; border: none; color: var(--text-2); cursor: pointer; font-size: 11px; padding: 2px 6px; font-family: inherit; }
+  .user-pill button:hover { color: var(--red); }
+  .theme-toggle { display:inline-flex; align-items:center; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 3px; gap: 2px; }
+  .theme-toggle button { background: transparent; border: none; cursor: pointer; width: 30px; height: 26px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-2); font-size: 13px; transition: color 0.2s; font-family: inherit; }
   .theme-toggle button:hover { color: var(--text); }
-  .theme-toggle button.active {
-    background: var(--cyan);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(8,145,178,0.35);
-  }
+  .theme-toggle button.active { background: var(--cyan); color: #fff; box-shadow: 0 2px 8px rgba(8,145,178,0.35); }
   .theme-toggle button svg { width: 14px; height: 14px; }
 
-  /* ── PAGE HEADER ── */
-  .page-header {
-    position: relative;
-    z-index: 1;
-    padding: 160px 40px 40px;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  .header-title {
-    font-size: clamp(28px, 5vw, 48px);
-    font-weight: 800;
-    letter-spacing: -1px;
-    color: var(--text);
-    margin-bottom: 12px;
-  }
-  .header-desc {
-    font-size: 15px;
-    color: var(--text-2);
-    margin-bottom: 40px;
-  }
-
-  /* ── CONTENT ── */
-  .content {
-    position: relative;
-    z-index: 1;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 40px 60px;
-  }
-
-  /* ── FORM ── */
-  .form-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 32px;
-    margin-bottom: 32px;
-  }
-  .form-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 24px;
-  }
-  .form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .form-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .form-input, .form-select {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-family: inherit;
-    font-size: 14px;
-    transition: all 0.2s ease;
-  }
-  .form-input:focus, .form-select:focus {
-    outline: none;
-    border-color: var(--cyan);
-    box-shadow: 0 0 0 3px rgba(8,145,178,0.1);
-  }
-  .form-input::placeholder {
-    color: var(--text-3);
-  }
-
-  /* ── FILE UPLOAD ── */
-  .file-upload {
-    border: 2px dashed var(--border);
-    border-radius: 10px;
-    padding: 24px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: var(--bg2);
-  }
-  .file-upload:hover {
-    border-color: var(--cyan);
-    background: var(--surface);
-  }
-  .file-upload.active {
-    border-color: var(--cyan);
-    background: var(--cyan-soft);
-  }
-  .file-icon {
-    font-size: 32px;
-    margin-bottom: 12px;
-  }
-  .file-text {
-    font-size: 14px;
-    color: var(--text);
-    font-weight: 500;
-    margin-bottom: 4px;
-  }
-  .file-hint {
-    font-size: 12px;
-    color: var(--text-3);
-  }
+  .page-header { position: relative; z-index: 1; padding: 160px 40px 40px; max-width: 1200px; margin: 0 auto; }
+  .header-title { font-size: clamp(28px, 5vw, 48px); font-weight: 800; letter-spacing: -1px; color: var(--text); margin-bottom: 12px; }
+  .header-desc { font-size: 15px; color: var(--text-2); margin-bottom: 40px; }
+  .content { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 40px 60px; }
+  .form-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 32px; }
+  .form-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 24px; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 13px; font-weight: 600; color: var(--text); }
+  .form-input, .form-select { background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 10px; font-family: inherit; font-size: 14px; transition: all 0.2s ease; }
+  .form-input:focus, .form-select:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(8,145,178,0.1); }
+  .form-input::placeholder { color: var(--text-3); }
+  .form-input:read-only, .form-input[readonly] { background: var(--bg); color: var(--text-2); cursor: not-allowed; }
+  .file-upload { border: 2px dashed var(--border); border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: var(--bg2); }
+  .file-upload:hover { border-color: var(--cyan); background: var(--surface); }
+  .file-upload.active { border-color: var(--cyan); background: var(--cyan-soft); }
+  .file-icon { font-size: 32px; margin-bottom: 12px; }
+  .file-text { font-size: 14px; color: var(--text); font-weight: 500; margin-bottom: 4px; }
+  .file-hint { font-size: 12px; color: var(--text-3); }
   #fileInput { display: none; }
-
-  /* ── FILE LIST ── */
-  .file-list {
-    margin-top: 16px;
-  }
-  .file-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--cyan-soft);
-    color: var(--cyan);
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    margin-right: 8px;
-    margin-bottom: 8px;
-  }
-  .file-chip button {
-    background: transparent;
-    border: none;
-    color: inherit;
-    cursor: pointer;
-    padding: 0;
-    font-size: 14px;
-  }
-
-  /* ── BUTTONS ── */
-  .btn {
-    background: var(--cyan);
-    color: #fff;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: inherit;
-  }
-  .btn:hover {
-    background: #0a7ba8;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(8,145,178,0.3);
-  }
-  .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
-  .btn-group {
-    display: flex;
-    gap: 12px;
-  }
-
-  /* ── ALERTS ── */
-  .alert {
-    padding: 16px;
-    border-radius: 10px;
-    margin-bottom: 24px;
-    font-size: 14px;
-  }
-  .alert.success {
-    background: rgba(34,197,94,0.12);
-    color: var(--green);
-    border: 1px solid rgba(34,197,94,0.2);
-  }
-  .alert.error {
-    background: rgba(227,30,36,0.12);
-    color: var(--red);
-    border: 1px solid rgba(227,30,36,0.2);
-  }
-  .alert.info {
-    background: var(--cyan-soft);
-    color: var(--cyan);
-    border: 1px solid rgba(8,145,178,0.2);
-  }
-
-  /* ── TABLE ── */
-  .table-container {
-    overflow-x: auto;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    margin-bottom: 24px;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-  thead {
-    background: var(--surface-hover);
-    border-bottom: 1px solid var(--border);
-  }
-  th {
-    padding: 16px;
-    text-align: left;
-    font-weight: 600;
-    color: var(--text);
-  }
-  td {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border);
-    color: var(--text-2);
-  }
-  tbody tr:hover {
-    background: var(--surface-hover);
-  }
-
-  /* ── BADGES ── */
-  .badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-  }
+  .file-list { margin-top: 16px; }
+  .file-chip { display: inline-flex; align-items: center; gap: 8px; background: var(--cyan-soft); color: var(--cyan); padding: 8px 12px; border-radius: 6px; font-size: 12px; margin-right: 8px; margin-bottom: 8px; }
+  .file-chip button { background: transparent; border: none; color: inherit; cursor: pointer; padding: 0; font-size: 14px; }
+  .btn { background: var(--cyan); color: #fff; border: none; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-family: inherit; }
+  .btn:hover { background: #0a7ba8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(8,145,178,0.3); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-group { display: flex; gap: 12px; }
+  .alert { padding: 16px; border-radius: 10px; margin-bottom: 24px; font-size: 14px; }
+  .alert.success { background: rgba(34,197,94,0.12); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+  .alert.error { background: rgba(227,30,36,0.12); color: var(--red); border: 1px solid rgba(227,30,36,0.2); }
+  .alert.info { background: var(--cyan-soft); color: var(--cyan); border: 1px solid rgba(8,145,178,0.2); }
+  .table-container { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 24px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead { background: var(--surface-hover); border-bottom: 1px solid var(--border); }
+  th { padding: 16px; text-align: left; font-weight: 600; color: var(--text); }
+  td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: var(--text-2); }
+  tbody tr:hover { background: var(--surface-hover); }
+  .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
   .badge.pending { background: rgba(245,158,11,0.12); color: #f59e0b; }
   .badge.analysis { background: var(--cyan-soft); color: var(--cyan); }
   .badge.conciled { background: rgba(34,197,94,0.12); color: var(--green); }
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--text-3); }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(8,145,178,0.3); border-top-color: var(--cyan); border-radius: 50%; animation: spin 0.6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ── EMPTY STATE ── */
-  .empty-state {
-    text-align: center;
-    padding: 48px 24px;
-    color: var(--text-3);
-  }
+  /* Login overlay */
+  .auth-overlay { position: fixed; inset: 0; z-index: 200; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 48px 40px; max-width: 440px; width: 100%; text-align: center; backdrop-filter: blur(20px); }
+  .auth-logo { width: 64px; height: 64px; background: var(--cyan); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 900; color: #fff; font-style: italic; margin-bottom: 24px; }
+  .auth-title { font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+  .auth-desc { font-size: 14px; color: var(--text-2); margin-bottom: 32px; line-height: 1.5; }
+  .google-btn { display: inline-flex; align-items: center; gap: 12px; background: #fff; color: #14141c; border: 1px solid var(--border); padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; width: 100%; justify-content: center; }
+  .google-btn:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-1px); }
+  .google-btn svg { width: 18px; height: 18px; }
+  .auth-footer { margin-top: 24px; font-size: 12px; color: var(--text-3); }
 
-  /* ── LOADING ── */
-  .spinner {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(8,145,178,0.3);
-    border-top-color: var(--cyan);
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-  }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* ── MOBILE ── */
   @media (max-width: 768px) {
     .nav { padding: 0 20px; }
     .page-header { padding: 120px 20px 30px; }
@@ -454,17 +119,53 @@
     .form-grid { grid-template-columns: 1fr; }
     table { font-size: 12px; }
     th, td { padding: 10px 12px; }
+    .auth-card { padding: 32px 24px; }
   }
 </style>
 </head>
 <body>
 
-<div class="bg-canvas">
-  <div class="bg-grid"></div>
+<div class="bg-canvas"><div class="bg-grid"></div></div>
+
+<!-- AUTH OVERLAY -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-logo">M</div>
+    <div class="auth-title">Portal de Vendedores</div>
+    <div class="auth-desc">Faça login com sua conta Google para registrar transferências PIX. Apenas vendedores autorizados podem enviar.</div>
+    <button class="google-btn" onclick="loginWithGoogle()">
+      <svg viewBox="0 0 24 24"><path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A10.99 10.99 0 0 0 12 23z"/><path fill="#fbbc04" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.99 10.99 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z"/><path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A10.99 10.99 0 0 0 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Entrar com Google
+    </button>
+    <div class="auth-footer">Suas informações são usadas apenas para identificá-lo no sistema.</div>
+  </div>
 </div>
 
-<!-- NAV -->
-<nav class="nav">
+<!-- PENDING APPROVAL OVERLAY -->
+<div class="auth-overlay" id="pendingOverlay" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-logo" style="background:#f59e0b;">⏳</div>
+    <div class="auth-title">Aguardando aprovação</div>
+    <div class="auth-desc">
+      Olá, <strong id="pendingName"></strong>!<br><br>
+      Seu cadastro foi enviado e está aguardando aprovação do financeiro.<br>
+      Você receberá acesso assim que for aprovado.
+    </div>
+    <button class="btn" onclick="logout()" style="background:var(--surface); color:var(--text); border:1px solid var(--border); width:100%;">Sair</button>
+  </div>
+</div>
+
+<!-- ACCESS DENIED OVERLAY -->
+<div class="auth-overlay" id="deniedOverlay" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-logo" style="background:var(--red);">✕</div>
+    <div class="auth-title">Acesso negado</div>
+    <div class="auth-desc" id="deniedDesc">Sua solicitação foi recusada ou seu acesso foi removido.</div>
+    <button class="btn" onclick="logout()" style="background:var(--surface); color:var(--text); border:1px solid var(--border); width:100%;">Sair</button>
+  </div>
+</div>
+
+<nav class="nav" id="appNav" style="display:none;">
   <a class="nav-logo" href="index.html">
     <div class="nav-logo-mark">M</div>
     <div class="nav-logo-text">
@@ -473,7 +174,11 @@
     </div>
   </a>
   <div class="nav-right">
-    <div class="nav-badge">Envio de PIX</div>
+    <div class="user-pill" id="userPill">
+      <img id="userAvatar" src="" alt="">
+      <span id="userName"></span>
+      <button onclick="logout()" title="Sair">Sair</button>
+    </div>
     <div class="theme-toggle" role="group" aria-label="Alternar tema">
       <button id="themeLight" type="button" title="Tema claro" aria-label="Tema claro">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
@@ -485,24 +190,21 @@
   </div>
 </nav>
 
-<!-- HEADER -->
-<section class="page-header">
+<section class="page-header" id="appHeader" style="display:none;">
   <h1 class="header-title">Envio de PIX</h1>
   <p class="header-desc">Registre suas transferências PIX e envie os comprovantes para análise do financeiro.</p>
 </section>
 
-<!-- CONTENT -->
-<section class="content">
+<section class="content" id="appContent" style="display:none;">
 
-  <!-- FORMULÁRIO DE ENVIO -->
   <div class="form-section">
     <div class="form-title">Registrar Transferência PIX</div>
     <div id="formAlert"></div>
 
     <div class="form-grid">
       <div class="form-group">
-        <label class="form-label">Seu Nome / Vendedor</label>
-        <input type="text" id="vendorName" class="form-input" placeholder="Seu nome completo">
+        <label class="form-label">Vendedor</label>
+        <input type="text" id="vendorName" class="form-input" readonly>
       </div>
       <div class="form-group">
         <label class="form-label">Loja</label>
@@ -517,7 +219,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">Valor (R$)</label>
-        <input type="text" id="pixAmount" class="form-input" placeholder="1.500,00" inputmode="decimal" onchange="verificarDiferenca()">
+        <input type="text" id="pixAmount" class="form-input" placeholder="1.500,00" inputmode="decimal">
       </div>
       <div class="form-group">
         <label class="form-label">Chave PIX Utilizada</label>
@@ -542,40 +244,22 @@
       </div>
     </div>
 
-    <!-- PEDIDOS PARA CONCILIAÇÃO -->
     <div style="margin-bottom:24px; padding:20px; background:var(--surface); border-radius:12px; border:1px solid var(--border);">
       <h3 style="margin-top:0; margin-bottom:16px; color:var(--text); font-weight:700; font-size:16px;">📋 Pedidos para Conciliação</h3>
-
-      <!-- PAINEL DE REGRAS -->
       <div style="margin-bottom:20px; padding:16px; background:var(--bg2); border-radius:10px; border-left:4px solid var(--cyan);">
         <div style="font-weight:700; color:var(--cyan); margin-bottom:12px; font-size:14px;">📌 REGRAS DE PAGAMENTO</div>
-
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; font-size:12px; line-height:1.6;">
           <div style="padding:12px; background:var(--surface); border-radius:8px; border-left:3px solid #f97316;">
             <div style="font-weight:600; color:#f97316; margin-bottom:6px;">🧾 CUPOM FISCAL</div>
-            <div style="color:var(--text-2);">
-              • Máx: R$ 9.999,99<br>
-              • Apenas 1 por PIX<br>
-              • Não misture com outros
-            </div>
+            <div style="color:var(--text-2);">• Máx: R$ 9.999,99<br>• Apenas 1 por PIX<br>• Não misture com outros</div>
           </div>
-
           <div style="padding:12px; background:var(--surface); border-radius:8px; border-left:3px solid var(--cyan);">
             <div style="font-weight:600; color:var(--cyan); margin-bottom:6px;">📄 NOTA DANFE</div>
-            <div style="color:var(--text-2);">
-              • Sem limite de valor<br>
-              • Múltiplos por PIX<br>
-              • Combine quantos quiser
-            </div>
+            <div style="color:var(--text-2);">• Sem limite de valor<br>• Múltiplos por PIX<br>• Combine quantos quiser</div>
           </div>
-
           <div style="padding:12px; background:var(--surface); border-radius:8px; border-left:3px solid var(--red);">
             <div style="font-weight:600; color:var(--red); margin-bottom:6px;">⚠️ PIX ACIMA 10K</div>
-            <div style="color:var(--text-2);">
-              • Apenas NOTA DANFE<br>
-              • Cupom: NÃO permitido<br>
-              • Use múltiplos DANFE
-            </div>
+            <div style="color:var(--text-2);">• Apenas NOTA DANFE<br>• Cupom: NÃO permitido<br>• Use múltiplos DANFE</div>
           </div>
         </div>
       </div>
@@ -593,16 +277,11 @@
             </tr>
           </thead>
           <tbody id="pedidosTable">
-            <tr style="opacity:0.5;">
-              <td colspan="6" style="padding:20px; text-align:center; color:var(--text-3);">Clique em "+" para adicionar pedidos</td>
-            </tr>
+            <tr style="opacity:0.5;"><td colspan="6" style="padding:20px; text-align:center; color:var(--text-3);">Clique em "+" para adicionar pedidos</td></tr>
           </tbody>
         </table>
       </div>
-
       <button class="btn" style="background:var(--cyan); color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:600; font-size:13px; margin-bottom:16px;" onclick="adicionarPedido()">+ Adicionar Pedido</button>
-
-      <!-- RESUMO DE TOTAIS -->
       <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:16px;">
         <div style="background:var(--bg2); padding:12px; border-radius:8px; border-left:4px solid var(--cyan);">
           <div style="font-size:11px; color:var(--text-3); margin-bottom:4px;">Total Pedidos</div>
@@ -617,8 +296,6 @@
           <div style="font-size:18px; font-weight:700; color:var(--green);" id="totalLiquido">R$ 0,00</div>
         </div>
       </div>
-
-      <!-- VERIFICAÇÃO DE DIFERENÇA -->
       <div id="alertaDiferenca" style="margin-top:16px; display:none; padding:12px; border-radius:8px; border-left:4px solid var(--red); background:rgba(227,30,36,0.1);">
         <div style="font-weight:600; color:var(--red); margin-bottom:4px;" id="alertaTitulo"></div>
         <div style="font-size:13px; color:var(--text);" id="alertaTexto"></div>
@@ -630,14 +307,13 @@
       <textarea id="pixNotes" class="form-input" placeholder="Anotações adicionais..." style="min-height:100px; resize:vertical;"></textarea>
     </div>
 
-    <!-- FILE UPLOAD -->
     <div class="form-group" style="margin-bottom:24px;">
       <label class="form-label">Comprovante do PIX</label>
       <div class="file-upload" id="fileUploadArea">
         <div class="file-icon">📁</div>
         <div class="file-text">Clique ou arraste o comprovante aqui</div>
-        <div class="file-hint">PNG, JPG, PDF até 5MB</div>
-        <input type="file" id="fileInput" accept="image/*,.pdf">
+        <div class="file-hint">PNG, JPG, WEBP ou PDF até 5MB</div>
+        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,application/pdf">
       </div>
       <div class="file-list" id="fileList"></div>
     </div>
@@ -648,24 +324,15 @@
     </div>
   </div>
 
-  <!-- HISTÓRICO DE ENVIOS -->
   <div>
     <h2 style="font-size:20px; margin-bottom:24px; color:var(--text); font-weight:700;">Meus Envios</h2>
     <div class="table-container">
       <table>
         <thead>
-          <tr>
-            <th>Data/Hora</th>
-            <th>Valor</th>
-            <th>Loja</th>
-            <th>Status</th>
-            <th>Data Envio</th>
-          </tr>
+          <tr><th>Data/Hora</th><th>Valor</th><th>Loja</th><th>Status</th><th>Data Envio</th></tr>
         </thead>
         <tbody id="historyTable">
-          <tr>
-            <td colspan="5" class="empty-state">Nenhum PIX enviado ainda</td>
-          </tr>
+          <tr><td colspan="5" class="empty-state">Carregando histórico...</td></tr>
         </tbody>
       </table>
     </div>
@@ -675,7 +342,6 @@
 
 <script>
   // ── FIREBASE CONFIG ──
-  // Credenciais do projeto Max Atacadista PIX
   const firebaseConfig = {
     apiKey: "AIzaSyCJ5Wbw9OvcFidj1vRC6nkOpVS-AVIlwMk",
     authDomain: "max-atacadista-pix.firebaseapp.com",
@@ -687,73 +353,181 @@
     measurementId: "G-K36P51TK4M"
   };
 
-  let firebaseReady = false;
-  let db = null;
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
   let storage = null;
+  try { storage = firebase.storage(); } catch(e) { console.warn('Storage indisponível:', e.message); }
 
-  try {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
-    storage = firebase.storage();
-    firebaseReady = true;
-  } catch(e) {
-    console.warn('Firebase não configurado. Usando localStorage como fallback:', e.message);
+  let currentUser = null;
+  let userRole = null; // 'admin' | 'vendor' | 'pending' | 'denied' | null
+  let historyRef = null;
+
+  // ── HELPERS ──
+  function escapeHTML(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function formatarReal(valor) {
+    const n = Number(valor);
+    if (isNaN(n)) return '0,00';
+    return n.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+  function parseReal(valor) {
+    if (valor === null || valor === undefined || valor === '') return 0;
+    const limpo = valor.toString().replace(/\./g, '').replace(',', '.');
+    const n = parseFloat(limpo);
+    return isNaN(n) ? 0 : n;
+  }
+  function statusLabel(status) {
+    const labels = { pending: 'Aguardando', analysis: 'Em Análise', conciled: 'Conciliado' };
+    return labels[status] || status;
+  }
+  function showAlert(elementId, message, type) {
+    const el = document.getElementById(elementId);
+    el.innerHTML = `<div class="alert ${escapeHTML(type)}">${escapeHTML(message)}</div>`;
+    if (type === 'success') setTimeout(() => { el.innerHTML = ''; }, 4000);
+  }
+
+  // ── AUTH FLOW ──
+  function loginWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    auth.signInWithPopup(provider).catch(err => {
+      console.error('Login error:', err);
+      alert('Erro ao fazer login: ' + err.message);
+    });
+  }
+
+  function logout() {
+    if (historyRef) { historyRef.off(); historyRef = null; }
+    auth.signOut();
+  }
+
+  function showOverlay(id) {
+    ['authOverlay','pendingOverlay','deniedOverlay'].forEach(o => {
+      document.getElementById(o).style.display = (o === id) ? 'flex' : 'none';
+    });
+    const showApp = !id;
+    document.getElementById('appNav').style.display = showApp ? 'flex' : 'none';
+    document.getElementById('appHeader').style.display = showApp ? 'block' : 'none';
+    document.getElementById('appContent').style.display = showApp ? 'block' : 'none';
+  }
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      currentUser = null;
+      userRole = null;
+      showOverlay('authOverlay');
+      return;
+    }
+    currentUser = user;
+    try {
+      // Checa se é admin
+      const adminSnap = await db.ref('admins/' + user.uid).once('value');
+      if (adminSnap.exists()) {
+        userRole = 'admin';
+        bootstrapApp();
+        return;
+      }
+      // Checa se é vendedor aprovado
+      const vendorSnap = await db.ref('vendedores/' + user.uid).once('value');
+      if (vendorSnap.exists()) {
+        userRole = 'vendor';
+        bootstrapApp();
+        return;
+      }
+      // Não é nenhum dos dois → criar/atualizar pendência
+      const pendingRef = db.ref('vendedoresPendentes/' + user.uid);
+      const pendingSnap = await pendingRef.once('value');
+      if (!pendingSnap.exists()) {
+        await pendingRef.set({
+          email: user.email,
+          name: user.displayName || user.email,
+          requestedAt: new Date().toISOString()
+        });
+      }
+      userRole = 'pending';
+      document.getElementById('pendingName').textContent = user.displayName || user.email;
+      showOverlay('pendingOverlay');
+    } catch(err) {
+      console.error('Erro ao verificar papel:', err);
+      userRole = 'denied';
+      document.getElementById('deniedDesc').textContent = 'Erro ao verificar suas permissões: ' + err.message;
+      showOverlay('deniedOverlay');
+    }
+  });
+
+  function bootstrapApp() {
+    showOverlay(null);
+    document.getElementById('userAvatar').src = currentUser.photoURL || '';
+    document.getElementById('userName').textContent = currentUser.displayName || currentUser.email;
+    document.getElementById('vendorName').value = currentUser.displayName || currentUser.email;
+    setDataHoraAtual();
+    loadHistory();
   }
 
   // ── THEME TOGGLE ──
   (function(){
     const root = document.documentElement;
-    const btnL = document.getElementById('themeLight');
-    const btnD = document.getElementById('themeDark');
-    function apply(theme){
-      root.setAttribute('data-theme', theme);
-      try { localStorage.setItem('mx-theme', theme); } catch(e){}
-      btnL.classList.toggle('active', theme==='light');
-      btnD.classList.toggle('active', theme==='dark');
+    function bind() {
+      const btnL = document.getElementById('themeLight');
+      const btnD = document.getElementById('themeDark');
+      if (!btnL || !btnD) return;
+      function apply(theme){
+        root.setAttribute('data-theme', theme);
+        try { localStorage.setItem('mx-theme', theme); } catch(e){}
+        btnL.classList.toggle('active', theme==='light');
+        btnD.classList.toggle('active', theme==='dark');
+      }
+      let saved = 'dark';
+      try {
+        const stored = localStorage.getItem('mx-theme');
+        if (stored) saved = stored;
+        else saved = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      } catch(e){}
+      apply(saved);
+      btnL.addEventListener('click', ()=>apply('light'));
+      btnD.addEventListener('click', ()=>apply('dark'));
     }
+    // O nav só aparece após login, então precisamos esperar
+    const observer = new MutationObserver(() => {
+      if (document.getElementById('themeLight') && document.getElementById('appNav').style.display !== 'none') {
+        bind();
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['style'] });
+    // Aplica tema imediatamente também
     let saved = 'dark';
     try {
       const stored = localStorage.getItem('mx-theme');
       if (stored) saved = stored;
       else saved = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
     } catch(e){}
-    apply(saved);
-    btnL.addEventListener('click', ()=>apply('light'));
-    btnD.addEventListener('click', ()=>apply('dark'));
+    root.setAttribute('data-theme', saved);
   })();
 
   // ── FILE UPLOAD ──
   let selectedFile = null;
+  const TIPOS_OK = ['image/png','image/jpeg','image/jpg','image/webp','application/pdf'];
 
-  document.getElementById('fileUploadArea').addEventListener('click', () => {
-    document.getElementById('fileInput').click();
-  });
-
-  document.getElementById('fileUploadArea').addEventListener('dragover', (e) => {
-    e.preventDefault();
-    document.getElementById('fileUploadArea').classList.add('active');
-  });
-
-  document.getElementById('fileUploadArea').addEventListener('dragleave', () => {
-    document.getElementById('fileUploadArea').classList.remove('active');
-  });
-
+  document.getElementById('fileUploadArea').addEventListener('click', () => document.getElementById('fileInput').click());
+  document.getElementById('fileUploadArea').addEventListener('dragover', (e) => { e.preventDefault(); document.getElementById('fileUploadArea').classList.add('active'); });
+  document.getElementById('fileUploadArea').addEventListener('dragleave', () => document.getElementById('fileUploadArea').classList.remove('active'));
   document.getElementById('fileUploadArea').addEventListener('drop', (e) => {
     e.preventDefault();
     document.getElementById('fileUploadArea').classList.remove('active');
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      handleFileSelect(files[0]);
-    }
+    if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]);
   });
-
   document.getElementById('fileInput').addEventListener('change', (e) => {
-    if (e.target.files.length > 0) {
-      handleFileSelect(e.target.files[0]);
-    }
+    if (e.target.files.length > 0) handleFileSelect(e.target.files[0]);
   });
 
   function handleFileSelect(file) {
+    if (!TIPOS_OK.includes(file.type)) {
+      showAlert('formAlert', '❌ Tipo de arquivo não permitido. Use PNG, JPG, WEBP ou PDF.', 'error');
+      return;
+    }
     if (file.size > 5 * 1024 * 1024) {
       showAlert('formAlert', '❌ Arquivo muito grande (máx. 5MB)', 'error');
       return;
@@ -761,38 +535,26 @@
     selectedFile = file;
     updateFileList();
   }
-
   function updateFileList() {
     const fileList = document.getElementById('fileList');
-    if (!selectedFile) {
-      fileList.innerHTML = '';
-      return;
-    }
-    fileList.innerHTML = `
-      <div class="file-chip">
-        📎 ${selectedFile.name}
-        <button onclick="removeFile()">✕</button>
-      </div>
-    `;
+    if (!selectedFile) { fileList.innerHTML = ''; return; }
+    fileList.innerHTML = `<div class="file-chip">📎 ${escapeHTML(selectedFile.name)}<button onclick="removeFile()">✕</button></div>`;
   }
-
   function removeFile() {
     selectedFile = null;
     document.getElementById('fileInput').value = '';
     updateFileList();
   }
 
-  // ── FORMATO REAL BRASILEIRO ──
-  function formatarReal(valor) {
-    return valor.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-  }
+  // ── MÁSCARA DE MOEDA ──
+  document.getElementById('pixAmount').addEventListener('input', function(e) {
+    let v = e.target.value.replace(/\D/g, '');
+    if (!v) { e.target.value = ''; return; }
+    e.target.value = (parseInt(v, 10) / 100).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  });
+  document.getElementById('pixAmount').addEventListener('change', verificarDiferenca);
 
-  function parseReal(valor) {
-    if (!valor) return 0;
-    return parseFloat(valor.toString().replace('.', '').replace(',', '.'));
-  }
-
-  // ── FORMATAR CPF E CNPJ ──
+  // ── CPF/CNPJ ──
   function formatarCPF(valor) {
     valor = valor.replace(/\D/g, '').substring(0, 11);
     if (valor.length <= 3) return valor;
@@ -800,7 +562,6 @@
     if (valor.length <= 9) return valor.slice(0, 3) + '.' + valor.slice(3, 6) + '.' + valor.slice(6);
     return valor.slice(0, 3) + '.' + valor.slice(3, 6) + '.' + valor.slice(6, 9) + '-' + valor.slice(9);
   }
-
   function formatarCNPJ(valor) {
     valor = valor.replace(/\D/g, '').substring(0, 14);
     if (valor.length <= 2) return valor;
@@ -809,37 +570,29 @@
     if (valor.length <= 12) return valor.slice(0, 2) + '.' + valor.slice(2, 5) + '.' + valor.slice(5, 8) + '/' + valor.slice(8);
     return valor.slice(0, 2) + '.' + valor.slice(2, 5) + '.' + valor.slice(5, 8) + '/' + valor.slice(8, 12) + '-' + valor.slice(12);
   }
-
   function alterarTipoDocumento() {
     const tipo = document.getElementById('documentType').value;
     const campo = document.getElementById('pixReceiver');
     campo.value = '';
     campo.maxLength = tipo === 'cpf' ? 14 : 18;
     campo.placeholder = tipo === 'cpf' ? '000.000.000-00' : '00.000.000/0000-00';
-    campo.oninput = function(e) {
-      e.target.value = tipo === 'cpf' ? formatarCPF(e.target.value) : formatarCNPJ(e.target.value);
-    };
   }
-
-  document.getElementById('pixReceiver').oninput = function(e) {
+  document.getElementById('pixReceiver').addEventListener('input', function(e) {
     const tipo = document.getElementById('documentType').value;
     e.target.value = tipo === 'cpf' ? formatarCPF(e.target.value) : formatarCNPJ(e.target.value);
-  };
+  });
 
-  // ── GERENCIAR PEDIDOS ──
+  // ── PEDIDOS ──
   let pedidosData = [];
-
   function adicionarPedido() {
-    const id = 'pedido_' + Date.now();
+    const id = 'pedido_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
     pedidosData.push({ id, numero: '', tipo: 'danfe', valorPix: 0, desconto: 0 });
     renderizarPedidos();
   }
-
   function removerPedido(id) {
     pedidosData = pedidosData.filter(p => p.id !== id);
     renderizarPedidos();
   }
-
   function renderizarPedidos() {
     const tbody = document.getElementById('pedidosTable');
     if (pedidosData.length === 0) {
@@ -847,114 +600,81 @@
       atualizarTotais();
       return;
     }
-
     tbody.innerHTML = pedidosData.map(p => {
       const total = parseReal(p.valorPix.toString()) - parseReal(p.desconto.toString());
       return `
-        <tr style="border-bottom:1px solid var(--border);">
-          <td style="padding:12px 8px;"><input type="text" value="${p.numero}" onchange="atualizarPedido('${p.id}', 'numero', this.value)" placeholder="PED-001" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px;"></td>
-          <td style="padding:12px 8px;"><select onchange="atualizarPedido('${p.id}', 'tipo', this.value)" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px;">
+        <tr data-pid="${escapeHTML(p.id)}" style="border-bottom:1px solid var(--border);">
+          <td style="padding:12px 8px;"><input type="text" value="${escapeHTML(p.numero)}" data-campo="numero" placeholder="PED-001" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px;"></td>
+          <td style="padding:12px 8px;"><select data-campo="tipo" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px;">
             <option value="danfe" ${p.tipo === 'danfe' ? 'selected' : ''}>📄 DANFE</option>
             <option value="cupom" ${p.tipo === 'cupom' ? 'selected' : ''}>🧾 CUPOM</option>
           </select></td>
-          <td style="padding:12px 8px; text-align:right;"><input type="text" value="${p.valorPix}" onchange="atualizarPedido('${p.id}', 'valorPix', this.value)" placeholder="0,00" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px; text-align:right;"></td>
-          <td style="padding:12px 8px; text-align:right;"><input type="text" value="${p.desconto}" onchange="atualizarPedido('${p.id}', 'desconto', this.value)" placeholder="0,00" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px; text-align:right;"></td>
-          <td style="padding:12px 8px; text-align:right; font-weight:600; color:var(--cyan);">R$ ${formatarReal(total)}</td>
-          <td style="padding:12px 8px; text-align:center;"><button onclick="removerPedido('${p.id}')" style="background:var(--red); color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:600;">Remover</button></td>
+          <td style="padding:12px 8px; text-align:right;"><input type="text" value="${escapeHTML(p.valorPix)}" data-campo="valorPix" placeholder="0,00" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px; text-align:right;"></td>
+          <td style="padding:12px 8px; text-align:right;"><input type="text" value="${escapeHTML(p.desconto)}" data-campo="desconto" placeholder="0,00" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px; text-align:right;"></td>
+          <td class="col-total" style="padding:12px 8px; text-align:right; font-weight:600; color:var(--cyan);">R$ ${formatarReal(total)}</td>
+          <td style="padding:12px 8px; text-align:center;"><button onclick="removerPedido('${escapeHTML(p.id)}')" style="background:var(--red); color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:600;">Remover</button></td>
         </tr>
       `;
     }).join('');
+    tbody.querySelectorAll('tr[data-pid]').forEach(tr => {
+      const pid = tr.getAttribute('data-pid');
+      tr.querySelectorAll('[data-campo]').forEach(el => {
+        el.addEventListener('change', () => atualizarPedidoCampo(pid, el.dataset.campo, el.value));
+      });
+    });
     atualizarTotais();
   }
-
-  function atualizarPedido(id, campo, valor) {
+  function atualizarPedidoCampo(id, campo, valor) {
     const pedido = pedidosData.find(p => p.id === id);
-    if (pedido) {
-      pedido[campo] = valor;
-      renderizarPedidos();
+    if (!pedido) return;
+    pedido[campo] = valor;
+    const row = document.querySelector(`tr[data-pid="${CSS.escape(id)}"]`);
+    if (row) {
+      const total = parseReal(pedido.valorPix.toString()) - parseReal(pedido.desconto.toString());
+      const totalCell = row.querySelector('.col-total');
+      if (totalCell) totalCell.textContent = 'R$ ' + formatarReal(total);
     }
+    atualizarTotais();
   }
-
   function atualizarTotais() {
-    let somaValores = 0;
-    let somaDescontos = 0;
-
+    let somaValores = 0, somaDescontos = 0;
     pedidosData.forEach(p => {
       somaValores += parseReal(p.valorPix.toString());
       somaDescontos += parseReal(p.desconto.toString());
     });
-
     const totalLiquido = somaValores - somaDescontos;
-
     document.getElementById('totalPedidos').textContent = 'R$ ' + formatarReal(somaValores);
     document.getElementById('totalDescontos').textContent = 'R$ ' + formatarReal(somaDescontos);
     document.getElementById('totalLiquido').textContent = 'R$ ' + formatarReal(totalLiquido);
-
     verificarDiferenca();
   }
-
   function validarRegrasDocumento() {
     const pixAmount = parseReal(document.getElementById('pixAmount').value.toString());
     let alertas = [];
-
-    // Contar cupons fiscais e validar limite
-    let totalCupom = 0;
-    let totalDanfe = 0;
-    let qtdCupom = 0;
-    let qtdDanfe = 0;
-
+    let totalCupom = 0, qtdCupom = 0, qtdDanfe = 0;
     pedidosData.forEach(p => {
       const valor = parseReal(p.valorPix.toString());
-      if (p.tipo === 'cupom') {
-        totalCupom += valor;
-        qtdCupom++;
-      } else {
-        totalDanfe += valor;
-        qtdDanfe++;
-      }
+      if (p.tipo === 'cupom') { totalCupom += valor; qtdCupom++; }
+      else { qtdDanfe++; }
     });
-
-    // Regra 0: CUPOM e DANFE não podem se misturar
-    if (qtdCupom > 0 && qtdDanfe > 0) {
-      alertas.push('⛔ DOCUMENTOS MISTURADOS - Não é permitido misturar CUPOM FISCAL com NOTA DANFE no mesmo PIX');
-    }
-
-    // Regra 1: CUPOM FISCAL máximo R$ 9.999,99
-    if (totalCupom > 9999.99) {
-      alertas.push('⚠️ CUPOM FISCAL ACIMA DO LIMITE - Cupom não pode ultrapassar R$ 9.999,99');
-    }
-
-    // Regra 2: Apenas 1 CUPOM FISCAL por PIX
-    if (qtdCupom > 1) {
-      alertas.push('⚠️ MÚLTIPLOS CUPONS - Apenas 1 CUPOM FISCAL por PIX');
-    }
-
-    // Regra 3: PIX acima de 10 mil não aceita CUPOM FISCAL
-    if (pixAmount > 10000 && qtdCupom > 0) {
-      alertas.push('⛔ PIX ACIMA DE R$ 10.000,00 - CUPOM FISCAL NÃO PERMITIDO - Use apenas NOTA DANFE');
-    }
-
+    if (qtdCupom > 0 && qtdDanfe > 0) alertas.push('⛔ DOCUMENTOS MISTURADOS - Não é permitido misturar CUPOM FISCAL com NOTA DANFE no mesmo PIX');
+    if (totalCupom > 9999.99) alertas.push('⚠️ CUPOM FISCAL ACIMA DO LIMITE - Cupom não pode ultrapassar R$ 9.999,99');
+    if (qtdCupom > 1) alertas.push('⚠️ MÚLTIPLOS CUPONS - Apenas 1 CUPOM FISCAL por PIX');
+    if (pixAmount > 10000 && qtdCupom > 0) alertas.push('⛔ PIX ACIMA DE R$ 10.000,00 - CUPOM FISCAL NÃO PERMITIDO - Use apenas NOTA DANFE');
     return alertas;
   }
-
   function verificarDiferenca() {
     const pixAmount = parseReal(document.getElementById('pixAmount').value.toString());
-    let somaValores = 0;
-    let somaDescontos = 0;
-
+    let somaValores = 0, somaDescontos = 0;
     pedidosData.forEach(p => {
       somaValores += parseReal(p.valorPix.toString());
       somaDescontos += parseReal(p.desconto.toString());
     });
-
     const totalLiquido = somaValores - somaDescontos;
     const diferenca = pixAmount - totalLiquido;
     const alerta = document.getElementById('alertaDiferenca');
-
-    // Validar regras de documento
     const alertasDocumento = validarRegrasDocumento();
-    const alertaHtml = alertasDocumento.join('<br>');
-
+    const alertaHtml = alertasDocumento.map(escapeHTML).join('<br>');
     if (pedidosData.length > 0 && totalLiquido > 0) {
       if (alertasDocumento.length > 0) {
         alerta.style.display = 'block';
@@ -983,30 +703,39 @@
 
   // ── SUBMIT ──
   async function submitPIX() {
-    const vendor = document.getElementById('vendorName').value;
+    if (!currentUser || (userRole !== 'vendor' && userRole !== 'admin')) {
+      showAlert('formAlert', '❌ Você precisa estar autenticado como vendedor.', 'error');
+      return;
+    }
     const store = document.getElementById('storeSelect').value;
-    const datetime = document.getElementById('pixDateTime').value;
+    const datetimeRaw = document.getElementById('pixDateTime').value;
     const amount = parseReal(document.getElementById('pixAmount').value);
     const key = document.getElementById('pixKey').value;
-    const clienteName = document.getElementById('clienteName').value;
+    const clienteName = document.getElementById('clienteName').value.trim();
     const documentType = document.getElementById('documentType').value;
-    const receiver = document.getElementById('pixReceiver').value;
-    const notes = document.getElementById('pixNotes').value;
+    const receiver = document.getElementById('pixReceiver').value.replace(/\D/g, '');
+    const notes = document.getElementById('pixNotes').value.trim();
 
-    if (!vendor || !store || !datetime || !amount || !key || !clienteName || !receiver) {
+    if (!store || !datetimeRaw || !amount || !key || !clienteName || !receiver) {
       showAlert('formAlert', '⚠️ Preencha todos os campos obrigatórios', 'error');
       return;
     }
-
     if (!selectedFile) {
       showAlert('formAlert', '⚠️ Anexe o comprovante do PIX', 'error');
       return;
     }
-
-    // Validar regras de documento
+    if (pedidosData.length === 0) {
+      showAlert('formAlert', '⚠️ Adicione pelo menos um pedido para conciliação', 'error');
+      return;
+    }
     const alertasDocumento = validarRegrasDocumento();
     if (alertasDocumento.length > 0) {
       showAlert('formAlert', '❌ Corrija os erros nos pedidos: ' + alertasDocumento.join(' | '), 'error');
+      return;
+    }
+    const totalLiquido = pedidosData.reduce((s,p) => s + parseReal(p.valorPix.toString()) - parseReal(p.desconto.toString()), 0);
+    if (Math.abs(amount - totalLiquido) > 0.01) {
+      showAlert('formAlert', `❌ Valor do PIX (R$ ${formatarReal(amount)}) não bate com soma dos pedidos (R$ ${formatarReal(totalLiquido)}). Corrija antes de enviar.`, 'error');
       return;
     }
 
@@ -1015,54 +744,50 @@
     btn.innerHTML = '<span class="spinner"></span> Enviando...';
 
     try {
-      const pixId = 'pix_' + Date.now();
+      const pedidosNormalizados = pedidosData.map(p => ({
+        id: p.id,
+        numero: String(p.numero || ''),
+        tipo: p.tipo,
+        valorPix: parseReal(p.valorPix.toString()),
+        desconto: parseReal(p.desconto.toString())
+      }));
+      const datetimeISO = new Date(datetimeRaw).toISOString();
+
+      const newRef = db.ref('pix-envios').push();
+      const pixId = newRef.key;
       let proofURL = '';
 
-      // Upload arquivo se Firebase está configurado
-      if (firebaseReady && storage && selectedFile) {
+      if (storage && selectedFile) {
         try {
-          const storageRef = firebase.storage().ref(`pix-comprovantes/${pixId}/${selectedFile.name}`);
+          const storageRef = storage.ref(`pix-comprovantes/${currentUser.uid}/${pixId}/${selectedFile.name}`);
           await storageRef.put(selectedFile);
           proofURL = await storageRef.getDownloadURL();
           console.log('✓ Comprovante enviado:', proofURL);
         } catch(uploadError) {
-          console.warn('⚠️ Erro ao enviar comprovante (continuando mesmo assim):', uploadError.message);
-          // Continua mesmo se upload falhar
+          console.warn('⚠️ Erro ao enviar comprovante:', uploadError.message);
+          showAlert('formAlert', '⚠️ Não foi possível enviar o comprovante para o Storage. Verifique se o Storage está ativado.', 'error');
+          btn.disabled = false;
+          btn.innerHTML = 'Enviar PIX para Análise';
+          return;
         }
       }
 
-      // Salvar dados
       const pixData = {
         id: pixId,
-        vendor,
-        store,
-        datetime,
-        amount,
-        key,
-        clienteName,
-        documentType,
-        receiver,
-        notes,
-        pedidos: pedidosData,
-        proofFile: selectedFile.name,
-        proofURL,
+        vendorUid: currentUser.uid,
+        vendorEmail: currentUser.email,
+        vendor: currentUser.displayName || currentUser.email,
+        store, datetime: datetimeISO, amount, key, clienteName,
+        documentType, receiver, notes,
+        pedidos: pedidosNormalizados,
+        proofFile: selectedFile.name, proofURL,
         status: 'pending',
         submittedAt: new Date().toISOString()
       };
-
-      if (firebaseReady && db) {
-        await db.ref(`pix-envios/${pixId}`).set(pixData);
-      } else {
-        // Fallback: localStorage
-        let envios = JSON.parse(localStorage.getItem('pix_envios') || '[]');
-        envios.push(pixData);
-        localStorage.setItem('pix_envios', JSON.stringify(envios));
-      }
+      await newRef.set(pixData);
 
       showAlert('formAlert', '✓ PIX enviado com sucesso para análise!', 'success');
-      clearForm();
-      loadHistory();
-
+      clearFormSemConfirmar();
     } catch(error) {
       console.error('Erro ao enviar:', error);
       showAlert('formAlert', '❌ Erro ao enviar PIX: ' + error.message, 'error');
@@ -1073,72 +798,47 @@
   }
 
   // ── HISTORY ──
-  async function loadHistory() {
-    const vendor = document.getElementById('vendorName').value;
+  function renderHistory(envios) {
     const tbody = document.getElementById('historyTable');
-
-    if (!vendor) {
-      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Digite seu nome para ver histórico</td></tr>';
+    if (!envios || envios.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Nenhum PIX enviado ainda</td></tr>';
       return;
     }
-
-    try {
+    tbody.innerHTML = envios.map(pix => `
+      <tr>
+        <td>${escapeHTML(new Date(pix.datetime).toLocaleString('pt-BR'))}</td>
+        <td>R$ ${formatarReal(pix.amount)}</td>
+        <td>${escapeHTML(pix.store)}</td>
+        <td><span class="badge ${escapeHTML(pix.status)}">${escapeHTML(statusLabel(pix.status))}</span></td>
+        <td>${escapeHTML(new Date(pix.submittedAt).toLocaleString('pt-BR'))}</td>
+      </tr>
+    `).join('');
+  }
+  function loadHistory() {
+    if (!currentUser) return;
+    if (historyRef) { historyRef.off(); historyRef = null; }
+    historyRef = db.ref('pix-envios').orderByChild('vendorUid').equalTo(currentUser.uid);
+    historyRef.on('value', (snapshot) => {
+      const data = snapshot.val();
       let envios = [];
-
-      if (firebaseReady && db) {
-        const snapshot = await db.ref('pix-envios').orderByChild('vendor').equalTo(vendor).once('value');
-        const data = snapshot.val();
-        if (data) {
-          envios = Object.values(data).sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-        }
-      } else {
-        // Fallback: localStorage
-        const stored = JSON.parse(localStorage.getItem('pix_envios') || '[]');
-        envios = stored.filter(p => p.vendor === vendor).sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-      }
-
-      if (envios.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Nenhum PIX enviado</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = envios.map(pix => `
-        <tr>
-          <td>${new Date(pix.datetime).toLocaleString('pt-BR')}</td>
-          <td>R$ ${formatarReal(pix.amount)}</td>
-          <td>${pix.store}</td>
-          <td><span class="badge ${pix.status}">${statusLabel(pix.status)}</span></td>
-          <td>${new Date(pix.submittedAt).toLocaleString('pt-BR')}</td>
-        </tr>
-      `).join('');
-
-    } catch(error) {
-      console.error('Erro ao carregar histórico:', error);
-    }
+      if (data) envios = Object.values(data).sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+      renderHistory(envios);
+    }, (error) => {
+      console.error('Erro histórico:', error);
+      document.getElementById('historyTable').innerHTML = '<tr><td colspan="5" class="empty-state">Erro ao carregar histórico</td></tr>';
+    });
   }
 
-  // ── UTILITIES ──
-  function statusLabel(status) {
-    const labels = { pending: 'Aguardando', analysis: 'Em Análise', conciled: 'Conciliado' };
-    return labels[status] || status;
-  }
-
-  function showAlert(elementId, message, type) {
-    const el = document.getElementById(elementId);
-    el.innerHTML = `<div class="alert ${type}">${message}</div>`;
-    if (type === 'success') {
-      setTimeout(() => { el.innerHTML = ''; }, 4000);
-    }
-  }
-
+  // ── CLEAR ──
   function clearForm() {
-    // Manter vendorName para continuar mostrando histórico
-    const vendorName = document.getElementById('vendorName').value;
-
+    if (pedidosData.length > 0 || selectedFile || document.getElementById('pixAmount').value || document.getElementById('clienteName').value) {
+      if (!confirm('Limpar todos os campos? Isso não pode ser desfeito.')) return;
+    }
+    clearFormSemConfirmar();
+  }
+  function clearFormSemConfirmar() {
     document.getElementById('storeSelect').value = '';
-    document.getElementById('pixDateTime').value = '';
     document.getElementById('pixAmount').value = '';
-    document.getElementById('pixKey').value = '76430438000171';
     document.getElementById('clienteName').value = '';
     document.getElementById('documentType').value = 'cnpj';
     document.getElementById('pixReceiver').value = '';
@@ -1149,19 +849,19 @@
     renderizarPedidos();
     removeFile();
     document.getElementById('formAlert').innerHTML = '';
-
-    // Restaurar vendorName
-    document.getElementById('vendorName').value = vendorName;
+    setDataHoraAtual();
   }
 
-  // ── LOAD HISTORY ON NAME CHANGE ──
-  document.getElementById('vendorName').addEventListener('change', loadHistory);
-  document.getElementById('vendorName').addEventListener('input', loadHistory);
+  function setDataHoraAtual() {
+    const pad = n => String(n).padStart(2,'0');
+    const d = new Date();
+    document.getElementById('pixDateTime').value =
+      `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
 
-  // Set current date/time
-  const now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  document.getElementById('pixDateTime').value = now.toISOString().slice(0, 16);
+  window.addEventListener('beforeunload', () => {
+    if (historyRef) historyRef.off();
+  });
 </script>
 </body>
 </html>

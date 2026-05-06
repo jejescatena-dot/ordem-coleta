@@ -9,7 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <style>
   :root, html[data-theme="dark"] {
     --bg: #080810;
@@ -171,7 +170,7 @@
   </a>
   <div class="nav-right">
     <div class="nav-badge">
-      <span class="status-badge" id="firebaseStatus"></span>
+      <span class="status-badge offline" id="firebaseStatus"></span>
       <span id="firebaseText">Conectando...</span>
     </div>
     <div class="theme-toggle" role="group" aria-label="Alternar tema">
@@ -292,29 +291,93 @@
   let db = null;
   let pixes = [];
   let firebaseConnected = false;
+  let pixListener = null;
 
+  // ── HELPERS ──
+  function escapeHTML(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+
+  function safeURL(u) {
+    if (!u) return '#';
+    try {
+      const url = new URL(u);
+      return ['http:','https:'].includes(url.protocol) ? u : '#';
+    } catch { return '#'; }
+  }
+
+  function formatarReal(valor) {
+    const n = Number(valor);
+    if (isNaN(n)) return '0,00';
+    return n.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+
+  function formatarDoc(receiver, type) {
+    if (!receiver) return '—';
+    const v = String(receiver).replace(/\D/g, '');
+    if (type === 'cpf' || v.length === 11) {
+      return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+    if (v.length === 14) {
+      return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    }
+    return v;
+  }
+
+  function statusLabel(status) {
+    const labels = { 'pending': 'Aguardando', 'analysis': 'Em Análise', 'conciled': 'Conciliado' };
+    return labels[status] || status;
+  }
+
+  // ── INICIALIZAÇÃO FIREBASE ──
   try {
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
     console.log('✓ Firebase inicializado');
 
-    db.ref('pix-envios').on('value', (snapshot) => {
-      console.log('📊 Listener ativado, dados recebidos:', snapshot.val());
-      pixes = [];
-      snapshot.forEach((child) => {
-        pixes.push(child.val());
-      });
-      console.log('✓ ' + pixes.length + ' PIX carregados');
-      pixes.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-      renderAll();
+    // Detecção real de conexão
+    db.ref('.info/connected').on('value', (s) => {
+      firebaseConnected = !!s.val();
+      updateFirebaseStatus(firebaseConnected);
+      if (firebaseConnected) console.log('✓ Conectado ao RTDB em tempo real');
+      else console.warn('⚠️ Desconectado do RTDB');
     });
 
-    firebaseConnected = true;
-    updateFirebaseStatus(true);
-    console.log('✓ Conectado ao Firebase em tempo real');
+    pixListener = db.ref('pix-envios');
+    pixListener.on('value', (snapshot) => {
+      pixes = [];
+      snapshot.forEach((child) => {
+        const v = child.val();
+        if (v && typeof v === 'object') pixes.push(v);
+      });
+      pixes.sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
+      console.log('✓ ' + pixes.length + ' PIX carregados');
+      renderAll();
+    }, (error) => {
+      console.error('❌ Erro ao ler RTDB:', error.message);
+      updateFirebaseStatus(false);
+      tryFallback();
+    });
+
   } catch(e) {
     console.error('❌ Erro Firebase:', e.message);
     updateFirebaseStatus(false);
+    tryFallback();
+  }
+
+  function tryFallback() {
+    // Tenta ler do localStorage da própria máquina (se houver)
+    try {
+      const stored = JSON.parse(localStorage.getItem('pix_envios') || '[]');
+      if (stored.length > 0) {
+        pixes = stored.sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
+        console.log('📦 Lendo de localStorage:', pixes.length, 'PIX');
+        renderAll();
+        return;
+      }
+    } catch(_) {}
     initDemo();
   }
 
@@ -330,6 +393,7 @@
     }
   }
 
+  // ── THEME TOGGLE ──
   (function(){
     const root = document.documentElement;
     const btnL = document.getElementById('themeLight');
@@ -351,14 +415,16 @@
     btnD.addEventListener('click', ()=>apply('dark'));
   })();
 
+  // ── DEMO (apenas se não tem Firebase nem localStorage) ──
   function initDemo() {
     pixes = [
-      { id: 'pix_demo_001', vendor: 'João Silva', store: 'Loja 001', datetime: '2026-05-05T10:30', amount: 1500, key: 'joao@example.com', receiver: '00.111.222/0001-11', status: 'pending', submittedAt: new Date().toISOString(), proofFile: 'comprovante_001.pdf' },
-      { id: 'pix_demo_002', vendor: 'Maria Santos', store: 'Loja 002', datetime: '2026-05-05T11:15', amount: 2800.50, key: '11999887766', receiver: '00.222.333/0002-22', status: 'pending', submittedAt: new Date().toISOString(), proofFile: 'comprovante_002.jpg' }
+      { id: 'pix_demo_001', vendor: 'João Silva', store: 'Loja 001', datetime: new Date().toISOString(), amount: 1500, key: 'joao@example.com', receiver: '00111222000111', documentType: 'cnpj', status: 'pending', submittedAt: new Date().toISOString(), proofFile: 'comprovante_001.pdf' },
+      { id: 'pix_demo_002', vendor: 'Maria Santos', store: 'Loja 002', datetime: new Date().toISOString(), amount: 2800.50, key: '11999887766', receiver: '00222333000222', documentType: 'cnpj', status: 'pending', submittedAt: new Date().toISOString(), proofFile: 'comprovante_002.jpg' }
     ];
     renderAll();
   }
 
+  // ── RENDERS ──
   function renderStats() {
     document.getElementById('statPending').textContent = pixes.filter(p => p.status === 'pending').length;
     document.getElementById('statAnalysis').textContent = pixes.filter(p => p.status === 'analysis').length;
@@ -376,12 +442,12 @@
 
     tbody.innerHTML = pendingPixes.map(p => `
       <tr>
-        <td><strong>${p.vendor}</strong></td>
-        <td>${new Date(p.datetime).toLocaleString('pt-BR')}</td>
-        <td><strong>R$ ${p.amount.toFixed(2)}</strong></td>
-        <td>${p.store}</td>
-        <td><span class="badge ${p.status}">${statusLabel(p.status)}</span></td>
-        <td>${new Date(p.submittedAt).toLocaleDateString('pt-BR')}</td>
+        <td><strong>${escapeHTML(p.vendor)}</strong></td>
+        <td>${escapeHTML(new Date(p.datetime).toLocaleString('pt-BR'))}</td>
+        <td><strong>R$ ${formatarReal(p.amount)}</strong></td>
+        <td>${escapeHTML(p.store)}</td>
+        <td><span class="badge ${escapeHTML(p.status)}">${escapeHTML(statusLabel(p.status))}</span></td>
+        <td>${escapeHTML(new Date(p.submittedAt).toLocaleDateString('pt-BR'))}</td>
       </tr>
     `).join('');
   }
@@ -396,20 +462,21 @@
 
     tbody.innerHTML = pixes.map(p => `
       <tr>
-        <td><strong>${p.vendor}</strong></td>
-        <td>${new Date(p.datetime).toLocaleString('pt-BR')}</td>
-        <td><strong>R$ ${p.amount.toFixed(2)}</strong></td>
-        <td>${p.key}</td>
-        <td>${p.proofURL ? `<a href="${p.proofURL}" target="_blank" style="color:var(--cyan); text-decoration:none;">📎 Ver</a>` : '—'}</td>
-        <td><span class="badge ${p.status}">${statusLabel(p.status)}</span></td>
+        <td><strong>${escapeHTML(p.vendor)}</strong></td>
+        <td>${escapeHTML(new Date(p.datetime).toLocaleString('pt-BR'))}</td>
+        <td><strong>R$ ${formatarReal(p.amount)}</strong></td>
+        <td>${escapeHTML(p.key)}</td>
+        <td>${p.proofURL ? `<a href="${escapeHTML(safeURL(p.proofURL))}" target="_blank" rel="noopener noreferrer" style="color:var(--cyan); text-decoration:none;">📎 Ver</a>` : '—'}</td>
+        <td><span class="badge ${escapeHTML(p.status)}">${escapeHTML(statusLabel(p.status))}</span></td>
         <td>${getActionButton(p)}</td>
       </tr>
     `).join('');
   }
 
   function getActionButton(p) {
-    if (p.status === 'pending') return `<button class="btn" onclick="updateStatus('${p.id}', 'analysis')">Analisar</button>`;
-    if (p.status === 'analysis') return `<button class="btn success" onclick="updateStatus('${p.id}', 'conciled')">Conciliar</button>`;
+    const safeId = escapeHTML(p.id);
+    if (p.status === 'pending') return `<button class="btn" onclick="updateStatus('${safeId}', 'analysis')">Analisar</button>`;
+    if (p.status === 'analysis') return `<button class="btn success" onclick="updateStatus('${safeId}', 'conciled')">Conciliar</button>`;
     return '<span style="color:var(--text-3);">—</span>';
   }
 
@@ -424,9 +491,9 @@
 
     tbody.innerHTML = conciled.map(p => `
       <tr>
-        <td><strong>${p.vendor}</strong></td>
-        <td>R$ ${p.amount.toFixed(2)}</td>
-        <td>${p.conciliatedAt ? new Date(p.conciliatedAt).toLocaleString('pt-BR') : '—'}</td>
+        <td><strong>${escapeHTML(p.vendor)}</strong></td>
+        <td>R$ ${formatarReal(p.amount)}</td>
+        <td>${p.conciliatedAt ? escapeHTML(new Date(p.conciliatedAt).toLocaleString('pt-BR')) : '—'}</td>
         <td><span class="badge conciled">✓ Conciliado</span></td>
       </tr>
     `).join('');
@@ -439,24 +506,27 @@
     renderConciliacao();
   }
 
+  // ── ATUALIZAÇÃO DE STATUS ──
   async function updateStatus(pixId, newStatus) {
-    if (firebaseConnected && db) {
-      try {
-        await db.ref(`pix-envios/${pixId}`).update({
-          status: newStatus,
-          conciliatedAt: new Date().toISOString()
-        });
-      } catch(error) {
-        alert('Erro: ' + error.message);
-      }
+    if (!firebaseConnected || !db) {
+      alert('Sem conexão com o Firebase. Não é possível atualizar status no momento.');
+      return;
+    }
+    const updates = { status: newStatus };
+    // conciliatedAt apenas quando realmente concilia
+    if (newStatus === 'analysis') updates.analyzedAt = new Date().toISOString();
+    if (newStatus === 'conciled') updates.conciliatedAt = new Date().toISOString();
+
+    try {
+      await db.ref(`pix-envios/${pixId}`).update(updates);
+      console.log(`✓ Status atualizado: ${pixId} → ${newStatus}`);
+    } catch(error) {
+      console.error('Erro ao atualizar:', error);
+      alert('Erro ao atualizar: ' + error.message);
     }
   }
 
-  function statusLabel(status) {
-    const labels = { 'pending': 'Aguardando', 'analysis': 'Em Análise', 'conciled': 'Conciliado' };
-    return labels[status] || status;
-  }
-
+  // ── TABS ──
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const tabName = this.dataset.tab;
@@ -465,6 +535,12 @@
       this.classList.add('active');
       document.getElementById('tab-' + tabName).style.display = 'block';
     });
+  });
+
+  // Cleanup ao sair
+  window.addEventListener('beforeunload', () => {
+    if (pixListener) pixListener.off();
+    if (db) db.ref('.info/connected').off();
   });
 
   renderAll();
