@@ -8,103 +8,53 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
   :root, html[data-theme="dark"] {
-    --bg: #080810;
-    --bg2: #0d0d1a;
-    --nav-bg: rgba(8,8,16,0.7);
-    --surface: rgba(255,255,255,0.04);
-    --surface-hover: rgba(255,255,255,0.07);
-    --border: rgba(255,255,255,0.08);
-    --border-hover: rgba(255,255,255,0.16);
-    --red: #e31e24;
-    --red-soft: rgba(227,30,36,0.15);
-    --text: #f0f0f5;
-    --text-2: rgba(240,240,245,0.55);
-    --text-3: rgba(240,240,245,0.3);
-    --green: #22c55e;
-    --green-soft: rgba(34,197,94,0.12);
-    --amber: #f59e0b;
-    --amber-soft: rgba(245,158,11,0.12);
-    --cyan: #0891b2;
-    --cyan-soft: rgba(8,145,178,0.12);
-    --grid-line: rgba(255,255,255,0.025);
-    --bg-glow-1: rgba(8,145,178,0.08);
-    --bg-glow-2: rgba(60,60,140,0.06);
+    --bg: #080810; --bg2: #0d0d1a; --nav-bg: rgba(8,8,16,0.7);
+    --surface: rgba(255,255,255,0.04); --surface-hover: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08); --border-hover: rgba(255,255,255,0.16);
+    --red: #e31e24; --red-soft: rgba(227,30,36,0.15);
+    --text: #f0f0f5; --text-2: rgba(240,240,245,0.55); --text-3: rgba(240,240,245,0.3);
+    --green: #22c55e; --green-soft: rgba(34,197,94,0.12);
+    --amber: #f59e0b; --amber-soft: rgba(245,158,11,0.12);
+    --cyan: #0891b2; --cyan-soft: rgba(8,145,178,0.12);
+    --grid-line: rgba(255,255,255,0.025); --bg-glow-1: rgba(8,145,178,0.08); --bg-glow-2: rgba(60,60,140,0.06);
     --font: 'Inter', system-ui, -apple-system, sans-serif;
   }
   html[data-theme="light"] {
-    --bg: #f7f7fa;
-    --bg2: #ffffff;
-    --nav-bg: rgba(255,255,255,0.85);
-    --surface: rgba(0,0,0,0.025);
-    --surface-hover: rgba(0,0,0,0.05);
-    --border: rgba(0,0,0,0.08);
-    --border-hover: rgba(0,0,0,0.16);
-    --red: #e31e24;
-    --text: #14141c;
-    --text-2: rgba(20,20,28,0.6);
-    --text-3: rgba(20,20,28,0.35);
-    --green: #22c55e;
-    --green-soft: rgba(34,197,94,0.08);
-    --amber: #f59e0b;
-    --amber-soft: rgba(245,158,11,0.08);
-    --cyan: #0891b2;
-    --cyan-soft: rgba(8,145,178,0.08);
-    --grid-line: rgba(0,0,0,0.04);
-    --bg-glow-1: rgba(8,145,178,0.06);
-    --bg-glow-2: rgba(60,60,140,0.04);
+    --bg: #f7f7fa; --bg2: #ffffff; --nav-bg: rgba(255,255,255,0.85);
+    --surface: rgba(0,0,0,0.025); --surface-hover: rgba(0,0,0,0.05);
+    --border: rgba(0,0,0,0.08); --border-hover: rgba(0,0,0,0.16);
+    --red: #e31e24; --text: #14141c; --text-2: rgba(20,20,28,0.6); --text-3: rgba(20,20,28,0.35);
+    --green: #22c55e; --green-soft: rgba(34,197,94,0.08);
+    --amber: #f59e0b; --amber-soft: rgba(245,158,11,0.08);
+    --cyan: #0891b2; --cyan-soft: rgba(8,145,178,0.08);
+    --grid-line: rgba(0,0,0,0.04); --bg-glow-1: rgba(8,145,178,0.06); --bg-glow-2: rgba(60,60,140,0.04);
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
-  body {
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-  }
-
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
   .bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-  .bg-canvas::before {
-    content: ''; position: absolute; top: -20%; left: 50%; transform: translateX(-50%);
-    width: 900px; height: 600px;
-    background: radial-gradient(ellipse at center, var(--bg-glow-1) 0%, transparent 70%);
-  }
-  .bg-canvas::after {
-    content: ''; position: absolute; bottom: 10%; right: -10%;
-    width: 600px; height: 600px;
-    background: radial-gradient(ellipse at center, var(--bg-glow-2) 0%, transparent 70%);
-  }
-  .bg-grid {
-    position: absolute; inset: 0;
-    background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-    background-size: 60px 60px;
-    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 100%);
-  }
+  .bg-canvas::before { content: ''; position: absolute; top: -20%; left: 50%; transform: translateX(-50%); width: 900px; height: 600px; background: radial-gradient(ellipse at center, var(--bg-glow-1) 0%, transparent 70%); }
+  .bg-canvas::after { content: ''; position: absolute; bottom: 10%; right: -10%; width: 600px; height: 600px; background: radial-gradient(ellipse at center, var(--bg-glow-2) 0%, transparent 70%); }
+  .bg-grid { position: absolute; inset: 0; background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 100%); }
 
-  .nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 40px; height: 64px;
-    display: flex; align-items: center; justify-content: space-between;
-    background: var(--nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border);
-  }
+  .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 40px; height: 64px; display: flex; align-items: center; justify-content: space-between; background: var(--nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
   .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-  .nav-logo-mark {
-    width: 32px; height: 32px; background: var(--cyan); border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 900; color: #fff; font-style: italic; letter-spacing: -1px;
-  }
+  .nav-logo-mark { width: 32px; height: 32px; background: var(--cyan); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; color: #fff; font-style: italic; letter-spacing: -1px; }
   .nav-logo-text { display: flex; flex-direction: column; gap: 1px; }
   .nav-logo-name { font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: 0.3px; }
   .nav-logo-sub { font-size: 10px; color: var(--text-2); letter-spacing: 1px; text-transform: uppercase; font-weight: 500; }
   .nav-right { display: flex; align-items: center; gap: 14px; }
-  .nav-badge { font-size: 11px; color: var(--text-2); font-weight: 500; background: var(--surface); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+  .user-pill { display:flex; align-items:center; gap:8px; background: var(--surface); border: 1px solid var(--border); padding: 4px 12px 4px 4px; border-radius: 20px; font-size: 12px; }
+  .user-pill img { width: 24px; height: 24px; border-radius: 50%; }
+  .user-pill button { background: transparent; border: none; color: var(--text-2); cursor: pointer; font-size: 11px; padding: 2px 6px; font-family: inherit; }
+  .user-pill button:hover { color: var(--red); }
   .status-badge { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px rgba(34,197,94,0.5); margin-right: 6px; }
   .status-badge.offline { background: var(--text-3); box-shadow: none; }
+  .nav-badge { font-size: 11px; color: var(--text-2); font-weight: 500; background: var(--surface); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
   .theme-toggle { display: inline-flex; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 3px; gap: 2px; }
   .theme-toggle button { background: transparent; border: none; cursor: pointer; width: 30px; height: 26px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-2); font-size: 13px; transition: color 0.2s; font-family: inherit; }
   .theme-toggle button:hover { color: var(--text); }
@@ -114,13 +64,13 @@
   .page-header { position: relative; z-index: 1; padding: 160px 40px 40px; max-width: 1200px; margin: 0 auto; }
   .header-title { font-size: clamp(28px, 5vw, 48px); font-weight: 800; letter-spacing: -1px; color: var(--text); margin-bottom: 12px; }
   .header-desc { font-size: 15px; color: var(--text-2); margin-bottom: 40px; }
-
   .content { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 40px 60px; }
 
   .tab-nav { display: flex; gap: 8px; margin-bottom: 32px; border-bottom: 1px solid var(--border); overflow-x: auto; padding-bottom: 16px; }
   .tab-btn { background: transparent; border: none; color: var(--text-2); padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.3s ease; white-space: nowrap; font-family: inherit; }
   .tab-btn:hover { color: var(--text); }
   .tab-btn.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+  .tab-btn .badge-count { background: var(--red); color: #fff; border-radius: 999px; font-size: 10px; padding: 1px 7px; margin-left: 6px; font-weight: 700; }
 
   .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
   .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
@@ -143,8 +93,25 @@
   .btn:hover { background: #0a7ba8; transform: translateY(-1px); }
   .btn.success { background: var(--green); }
   .btn.success:hover { background: #1ea34f; }
+  .btn.danger { background: var(--red); }
+  .btn.danger:hover { background: #b81920; }
 
   .empty-state { text-align: center; padding: 48px 24px; color: var(--text-3); }
+
+  /* Lightbox para comprovante */
+  .lightbox { position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; padding: 40px; cursor: pointer; }
+  .lightbox.show { display:flex; }
+  .lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+
+  /* Auth overlay */
+  .auth-overlay { position: fixed; inset: 0; z-index: 200; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 48px 40px; max-width: 440px; width: 100%; text-align: center; backdrop-filter: blur(20px); }
+  .auth-logo { width: 64px; height: 64px; background: var(--cyan); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 900; color: #fff; font-style: italic; margin-bottom: 24px; }
+  .auth-title { font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+  .auth-desc { font-size: 14px; color: var(--text-2); margin-bottom: 32px; line-height: 1.5; }
+  .google-btn { display: inline-flex; align-items: center; gap: 12px; background: #fff; color: #14141c; border: 1px solid var(--border); padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; width: 100%; justify-content: center; }
+  .google-btn:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-1px); }
+  .google-btn svg { width: 18px; height: 18px; }
 
   @media (max-width: 768px) {
     .nav { padding: 0 20px; }
@@ -153,6 +120,7 @@
     .stats-grid { grid-template-columns: 1fr; }
     table { font-size: 12px; }
     th, td { padding: 10px 12px; }
+    .auth-card { padding: 32px 24px; }
   }
 </style>
 </head>
@@ -160,19 +128,44 @@
 
 <div class="bg-canvas"><div class="bg-grid"></div></div>
 
-<nav class="nav">
+<!-- AUTH OVERLAY -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-logo">M</div>
+    <div class="auth-title">Painel Administrativo</div>
+    <div class="auth-desc">Acesso restrito ao financeiro do Grupo Muffato. Faça login com sua conta autorizada.</div>
+    <button class="google-btn" onclick="loginWithGoogle()">
+      <svg viewBox="0 0 24 24"><path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A10.99 10.99 0 0 0 12 23z"/><path fill="#fbbc04" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.99 10.99 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z"/><path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A10.99 10.99 0 0 0 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Entrar com Google
+    </button>
+  </div>
+</div>
+
+<!-- ACCESS DENIED OVERLAY -->
+<div class="auth-overlay" id="deniedOverlay" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-logo" style="background:var(--red);">✕</div>
+    <div class="auth-title">Acesso negado</div>
+    <div class="auth-desc">Esta área é restrita a administradores. Sua conta não tem permissão.</div>
+    <button class="btn" onclick="logout()" style="background:var(--surface); color:var(--text); border:1px solid var(--border); width:100%; padding:12px 24px; font-size:14px;">Sair</button>
+  </div>
+</div>
+
+<nav class="nav" id="appNav" style="display:none;">
   <a class="nav-logo" href="index.html">
     <div class="nav-logo-mark">M</div>
     <div class="nav-logo-text">
       <div class="nav-logo-name">Max Atacadista</div>
-      <div class="nav-logo-sub">Portal Televendas</div>
+      <div class="nav-logo-sub">Painel Administrativo</div>
     </div>
   </a>
   <div class="nav-right">
-    <div class="nav-badge">
-      <span class="status-badge offline" id="firebaseStatus"></span>
-      <span id="firebaseText">Conectando...</span>
+    <div class="user-pill">
+      <img id="userAvatar" src="" alt="">
+      <span id="userName"></span>
+      <button onclick="logout()" title="Sair">Sair</button>
     </div>
+    <div class="nav-badge"><span class="status-badge" id="firebaseStatus"></span><span id="firebaseText">Conectando...</span></div>
     <div class="theme-toggle" role="group" aria-label="Alternar tema">
       <button id="themeLight" type="button" title="Tema claro">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
@@ -184,12 +177,12 @@
   </div>
 </nav>
 
-<section class="page-header">
+<section class="page-header" id="appHeader" style="display:none;">
   <h1 class="header-title">Gerenciamento de PIX</h1>
-  <p class="header-desc">Receba e processe transferências PIX enviadas pelos vendedores. Analise, valide e concilie automaticamente.</p>
+  <p class="header-desc">Receba e processe transferências PIX enviadas pelos vendedores. Analise, valide e concilie.</p>
 </section>
 
-<section class="content">
+<section class="content" id="appContent" style="display:none;">
 
   <div class="stats-grid">
     <div class="stat-card">
@@ -204,12 +197,17 @@
       <div class="stat-label">Conciliados</div>
       <div class="stat-value" id="statConciled">0</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-label">Aprovações Pendentes</div>
+      <div class="stat-value" id="statApprovals" style="color:var(--amber);">0</div>
+    </div>
   </div>
 
   <div class="tab-nav">
     <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
     <button class="tab-btn" data-tab="fila">📋 Fila de PIX</button>
     <button class="tab-btn" data-tab="conciliacao">✓ Histórico</button>
+    <button class="tab-btn" data-tab="vendedores">👥 Vendedores <span class="badge-count" id="approvalsBadge" style="display:none;">0</span></button>
   </div>
 
   <div id="tab-dashboard" class="tab-content">
@@ -217,18 +215,9 @@
     <div class="table-container">
       <table>
         <thead>
-          <tr>
-            <th>Vendedor</th>
-            <th>Data/Hora PIX</th>
-            <th>Valor</th>
-            <th>Loja</th>
-            <th>Status</th>
-            <th>Envio</th>
-          </tr>
+          <tr><th>Vendedor</th><th>Data/Hora PIX</th><th>Valor</th><th>Loja</th><th>Status</th><th>Envio</th></tr>
         </thead>
-        <tbody id="dashboardTable">
-          <tr><td colspan="6" class="empty-state">Aguardando dados do Firebase...</td></tr>
-        </tbody>
+        <tbody id="dashboardTable"><tr><td colspan="6" class="empty-state">Aguardando dados...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -238,19 +227,9 @@
     <div class="table-container">
       <table>
         <thead>
-          <tr>
-            <th>Vendedor</th>
-            <th>Data PIX</th>
-            <th>Valor</th>
-            <th>Chave PIX</th>
-            <th>Comprovante</th>
-            <th>Status</th>
-            <th>Ação</th>
-          </tr>
+          <tr><th>Vendedor</th><th>Data PIX</th><th>Valor</th><th>Cliente</th><th>Comprovante</th><th>Status</th><th>Ação</th></tr>
         </thead>
-        <tbody id="filaTable">
-          <tr><td colspan="7" class="empty-state">Aguardando dados...</td></tr>
-        </tbody>
+        <tbody id="filaTable"><tr><td colspan="7" class="empty-state">Aguardando dados...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -260,21 +239,42 @@
     <div class="table-container">
       <table>
         <thead>
-          <tr>
-            <th>Vendedor</th>
-            <th>Valor</th>
-            <th>Data Conciliação</th>
-            <th>Status</th>
-          </tr>
+          <tr><th>Vendedor</th><th>Valor</th><th>Data Conciliação</th><th>Status</th></tr>
         </thead>
-        <tbody id="conciliacaoTable">
-          <tr><td colspan="4" class="empty-state">Nenhuma conciliação realizada</td></tr>
-        </tbody>
+        <tbody id="conciliacaoTable"><tr><td colspan="4" class="empty-state">Nenhuma conciliação realizada</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="tab-vendedores" class="tab-content" style="display:none;">
+    <h2 style="font-size:20px; margin-bottom:16px; color:var(--text); font-weight:700;">Aprovações Pendentes</h2>
+    <p style="color:var(--text-2); margin-bottom:24px; font-size:14px;">Vendedores que solicitaram acesso e aguardam sua liberação.</p>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr><th>Nome</th><th>E-mail</th><th>Solicitado em</th><th>Ação</th></tr>
+        </thead>
+        <tbody id="pendentesTable"><tr><td colspan="4" class="empty-state">Nenhuma solicitação pendente</td></tr></tbody>
+      </table>
+    </div>
+
+    <h2 style="font-size:20px; margin: 40px 0 16px; color:var(--text); font-weight:700;">Vendedores Aprovados</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr><th>Nome</th><th>E-mail</th><th>Aprovado em</th><th>Ação</th></tr>
+        </thead>
+        <tbody id="vendedoresTable"><tr><td colspan="4" class="empty-state">Nenhum vendedor aprovado</td></tr></tbody>
       </table>
     </div>
   </div>
 
 </section>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('show')">
+  <img id="lightboxImg" src="" alt="Comprovante">
+</div>
 
 <script>
   const firebaseConfig = {
@@ -288,141 +288,191 @@
     measurementId: "G-K36P51TK4M"
   };
 
-  let db = null;
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
+
+  let currentUser = null;
+  let isAdmin = false;
   let pixes = [];
-  let firebaseConnected = false;
+  let pendentes = [];
+  let vendedores = [];
   let pixListener = null;
+  let pendentesListener = null;
+  let vendedoresListener = null;
+  let firebaseConnected = false;
 
   // ── HELPERS ──
   function escapeHTML(s) {
-    return String(s ?? '').replace(/[&<>"']/g, c => ({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    }[c]));
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
-
-  function safeURL(u) {
-    if (!u) return '#';
-    try {
-      const url = new URL(u);
-      return ['http:','https:'].includes(url.protocol) ? u : '#';
-    } catch { return '#'; }
-  }
-
   function formatarReal(valor) {
     const n = Number(valor);
     if (isNaN(n)) return '0,00';
     return n.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
   }
-
-  function formatarDoc(receiver, type) {
-    if (!receiver) return '—';
-    const v = String(receiver).replace(/\D/g, '');
-    if (type === 'cpf' || v.length === 11) {
-      return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    }
-    if (v.length === 14) {
-      return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-    }
-    return v;
-  }
-
   function statusLabel(status) {
     const labels = { 'pending': 'Aguardando', 'analysis': 'Em Análise', 'conciled': 'Conciliado' };
     return labels[status] || status;
   }
+  function formatarDoc(receiver, type) {
+    if (!receiver) return '—';
+    const v = String(receiver).replace(/\D/g, '');
+    if (type === 'cpf' || v.length === 11) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    if (v.length === 14) return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    return v;
+  }
 
-  // ── INICIALIZAÇÃO FIREBASE ──
-  try {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
-    console.log('✓ Firebase inicializado');
+  // ── AUTH ──
+  function loginWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    auth.signInWithPopup(provider).catch(err => alert('Erro ao fazer login: ' + err.message));
+  }
 
-    // Detecção real de conexão
+  function logout() {
+    [pixListener, pendentesListener, vendedoresListener].forEach(r => { if (r) r.off(); });
+    pixListener = pendentesListener = vendedoresListener = null;
+    auth.signOut();
+  }
+
+  function showOverlay(id) {
+    ['authOverlay','deniedOverlay'].forEach(o => {
+      document.getElementById(o).style.display = (o === id) ? 'flex' : 'none';
+    });
+    const showApp = !id;
+    document.getElementById('appNav').style.display = showApp ? 'flex' : 'none';
+    document.getElementById('appHeader').style.display = showApp ? 'block' : 'none';
+    document.getElementById('appContent').style.display = showApp ? 'block' : 'none';
+  }
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      currentUser = null;
+      isAdmin = false;
+      showOverlay('authOverlay');
+      return;
+    }
+    currentUser = user;
+    try {
+      const adminSnap = await db.ref('admins/' + user.uid).once('value');
+      if (adminSnap.exists()) {
+        isAdmin = true;
+        bootstrapAdmin();
+      } else if (user.email === 'jejescatena@gmail.com') {
+        // Bootstrap inicial: cria admin automaticamente
+        await db.ref('admins/' + user.uid).set({
+          email: user.email,
+          name: user.displayName || user.email,
+          addedAt: new Date().toISOString()
+        });
+        isAdmin = true;
+        bootstrapAdmin();
+      } else {
+        isAdmin = false;
+        showOverlay('deniedOverlay');
+      }
+    } catch(err) {
+      console.error('Erro ao checar permissões:', err);
+      showOverlay('deniedOverlay');
+    }
+  });
+
+  function bootstrapAdmin() {
+    showOverlay(null);
+    document.getElementById('userAvatar').src = currentUser.photoURL || '';
+    document.getElementById('userName').textContent = currentUser.displayName || currentUser.email;
+
+    // Detecta conexão real
     db.ref('.info/connected').on('value', (s) => {
       firebaseConnected = !!s.val();
       updateFirebaseStatus(firebaseConnected);
-      if (firebaseConnected) console.log('✓ Conectado ao RTDB em tempo real');
-      else console.warn('⚠️ Desconectado do RTDB');
     });
 
+    // Listener de PIX
     pixListener = db.ref('pix-envios');
     pixListener.on('value', (snapshot) => {
       pixes = [];
-      snapshot.forEach((child) => {
-        const v = child.val();
-        if (v && typeof v === 'object') pixes.push(v);
-      });
+      snapshot.forEach((c) => { const v = c.val(); if (v) pixes.push(v); });
       pixes.sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
-      console.log('✓ ' + pixes.length + ' PIX carregados');
       renderAll();
-    }, (error) => {
-      console.error('❌ Erro ao ler RTDB:', error.message);
-      updateFirebaseStatus(false);
-      tryFallback();
-    });
+    }, (err) => console.error('Erro pix:', err));
 
-  } catch(e) {
-    console.error('❌ Erro Firebase:', e.message);
-    updateFirebaseStatus(false);
-    tryFallback();
-  }
+    // Listener de pendentes
+    pendentesListener = db.ref('vendedoresPendentes');
+    pendentesListener.on('value', (snapshot) => {
+      pendentes = [];
+      snapshot.forEach((c) => {
+        const v = c.val();
+        if (v) pendentes.push({ uid: c.key, ...v });
+      });
+      pendentes.sort((a, b) => new Date(b.requestedAt || 0) - new Date(a.requestedAt || 0));
+      renderPendentes();
+      updateApprovalsBadge();
+    }, (err) => console.error('Erro pendentes:', err));
 
-  function tryFallback() {
-    // Tenta ler do localStorage da própria máquina (se houver)
-    try {
-      const stored = JSON.parse(localStorage.getItem('pix_envios') || '[]');
-      if (stored.length > 0) {
-        pixes = stored.sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
-        console.log('📦 Lendo de localStorage:', pixes.length, 'PIX');
-        renderAll();
-        return;
-      }
-    } catch(_) {}
-    initDemo();
+    // Listener de vendedores aprovados
+    vendedoresListener = db.ref('vendedores');
+    vendedoresListener.on('value', (snapshot) => {
+      vendedores = [];
+      snapshot.forEach((c) => {
+        const v = c.val();
+        if (v) vendedores.push({ uid: c.key, ...v });
+      });
+      vendedores.sort((a, b) => (a.name||'').localeCompare(b.name||''));
+      renderVendedores();
+    }, (err) => console.error('Erro vendedores:', err));
   }
 
   function updateFirebaseStatus(connected) {
     const badge = document.getElementById('firebaseStatus');
     const text = document.getElementById('firebaseText');
-    if (connected) {
-      badge.classList.remove('offline');
-      text.textContent = 'Conectado';
+    if (connected) { badge.classList.remove('offline'); text.textContent = 'Conectado'; }
+    else { badge.classList.add('offline'); text.textContent = 'Modo offline'; }
+  }
+
+  function updateApprovalsBadge() {
+    const count = pendentes.length;
+    const stat = document.getElementById('statApprovals');
+    const badge = document.getElementById('approvalsBadge');
+    stat.textContent = count;
+    if (count > 0) {
+      badge.style.display = 'inline-block';
+      badge.textContent = count;
     } else {
-      badge.classList.add('offline');
-      text.textContent = 'Modo offline';
+      badge.style.display = 'none';
     }
   }
 
-  // ── THEME TOGGLE ──
+  // ── THEME ──
   (function(){
     const root = document.documentElement;
-    const btnL = document.getElementById('themeLight');
-    const btnD = document.getElementById('themeDark');
-    function apply(theme){
-      root.setAttribute('data-theme', theme);
-      try { localStorage.setItem('mx-theme', theme); } catch(e){}
-      btnL.classList.toggle('active', theme==='light');
-      btnD.classList.toggle('active', theme==='dark');
-    }
     let saved = 'dark';
     try {
       const stored = localStorage.getItem('mx-theme');
       if (stored) saved = stored;
       else saved = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
     } catch(e){}
-    apply(saved);
-    btnL.addEventListener('click', ()=>apply('light'));
-    btnD.addEventListener('click', ()=>apply('dark'));
-  })();
+    root.setAttribute('data-theme', saved);
 
-  // ── DEMO (apenas se não tem Firebase nem localStorage) ──
-  function initDemo() {
-    pixes = [
-      { id: 'pix_demo_001', vendor: 'João Silva', store: 'Loja 001', datetime: new Date().toISOString(), amount: 1500, key: 'joao@example.com', receiver: '00111222000111', documentType: 'cnpj', status: 'pending', submittedAt: new Date().toISOString(), proofFile: 'comprovante_001.pdf' },
-      { id: 'pix_demo_002', vendor: 'Maria Santos', store: 'Loja 002', datetime: new Date().toISOString(), amount: 2800.50, key: '11999887766', receiver: '00222333000222', documentType: 'cnpj', status: 'pending', submittedAt: new Date().toISOString(), proofFile: 'comprovante_002.jpg' }
-    ];
-    renderAll();
-  }
+    const observer = new MutationObserver(() => {
+      const btnL = document.getElementById('themeLight');
+      const btnD = document.getElementById('themeDark');
+      if (btnL && btnD && document.getElementById('appNav').style.display !== 'none' && !btnL._bound) {
+        btnL._bound = true;
+        function apply(theme){
+          root.setAttribute('data-theme', theme);
+          try { localStorage.setItem('mx-theme', theme); } catch(e){}
+          btnL.classList.toggle('active', theme==='light');
+          btnD.classList.toggle('active', theme==='dark');
+        }
+        apply(root.getAttribute('data-theme') || 'dark');
+        btnL.addEventListener('click', ()=>apply('light'));
+        btnD.addEventListener('click', ()=>apply('dark'));
+      }
+    });
+    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['style'] });
+  })();
 
   // ── RENDERS ──
   function renderStats() {
@@ -434,12 +484,10 @@
   function renderDashboard() {
     const tbody = document.getElementById('dashboardTable');
     const pendingPixes = pixes.filter(p => p.status !== 'conciled');
-
     if (pendingPixes.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" class="empty-state">✓ Todos os PIX foram processados!</td></tr>';
       return;
     }
-
     tbody.innerHTML = pendingPixes.map(p => `
       <tr>
         <td><strong>${escapeHTML(p.vendor)}</strong></td>
@@ -454,19 +502,17 @@
 
   function renderFila() {
     const tbody = document.getElementById('filaTable');
-
     if (pixes.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Nenhum PIX recebido</td></tr>';
       return;
     }
-
     tbody.innerHTML = pixes.map(p => `
       <tr>
-        <td><strong>${escapeHTML(p.vendor)}</strong></td>
+        <td><strong>${escapeHTML(p.vendor)}</strong><br><span style="font-size:11px; color:var(--text-3);">${escapeHTML(p.vendorEmail || '')}</span></td>
         <td>${escapeHTML(new Date(p.datetime).toLocaleString('pt-BR'))}</td>
         <td><strong>R$ ${formatarReal(p.amount)}</strong></td>
-        <td>${escapeHTML(p.key)}</td>
-        <td>${p.proofURL ? `<a href="${escapeHTML(safeURL(p.proofURL))}" target="_blank" rel="noopener noreferrer" style="color:var(--cyan); text-decoration:none;">📎 Ver</a>` : '—'}</td>
+        <td>${escapeHTML(p.clienteName || '')}<br><span style="font-size:11px; color:var(--text-3);">${escapeHTML(formatarDoc(p.receiver, p.documentType))}</span></td>
+        <td>${p.proofBase64 ? `<button class="btn" onclick="abrirComprovante('${p.id}')">📎 Ver</button>` : '—'}</td>
         <td><span class="badge ${escapeHTML(p.status)}">${escapeHTML(statusLabel(p.status))}</span></td>
         <td>${getActionButton(p)}</td>
       </tr>
@@ -475,26 +521,66 @@
 
   function getActionButton(p) {
     const safeId = escapeHTML(p.id);
-    if (p.status === 'pending') return `<button class="btn" onclick="updateStatus('${safeId}', 'analysis')">Analisar</button>`;
-    if (p.status === 'analysis') return `<button class="btn success" onclick="updateStatus('${safeId}', 'conciled')">Conciliar</button>`;
+    if (p.status === 'pending') return `<button class="btn" onclick="updatePixStatus('${safeId}', 'analysis')">Analisar</button>`;
+    if (p.status === 'analysis') return `<button class="btn success" onclick="updatePixStatus('${safeId}', 'conciled')">Conciliar</button>`;
     return '<span style="color:var(--text-3);">—</span>';
+  }
+
+  function abrirComprovante(pixId) {
+    const p = pixes.find(x => x.id === pixId);
+    if (!p || !p.proofBase64) return;
+    document.getElementById('lightboxImg').src = p.proofBase64;
+    document.getElementById('lightbox').classList.add('show');
   }
 
   function renderConciliacao() {
     const tbody = document.getElementById('conciliacaoTable');
     const conciled = pixes.filter(p => p.status === 'conciled');
-
     if (conciled.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Nenhuma conciliação realizada</td></tr>';
       return;
     }
-
     tbody.innerHTML = conciled.map(p => `
       <tr>
         <td><strong>${escapeHTML(p.vendor)}</strong></td>
         <td>R$ ${formatarReal(p.amount)}</td>
         <td>${p.conciliatedAt ? escapeHTML(new Date(p.conciliatedAt).toLocaleString('pt-BR')) : '—'}</td>
         <td><span class="badge conciled">✓ Conciliado</span></td>
+      </tr>
+    `).join('');
+  }
+
+  function renderPendentes() {
+    const tbody = document.getElementById('pendentesTable');
+    if (pendentes.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Nenhuma solicitação pendente</td></tr>';
+      return;
+    }
+    tbody.innerHTML = pendentes.map(p => `
+      <tr>
+        <td><strong>${escapeHTML(p.name)}</strong></td>
+        <td>${escapeHTML(p.email)}</td>
+        <td>${p.requestedAt ? escapeHTML(new Date(p.requestedAt).toLocaleString('pt-BR')) : '—'}</td>
+        <td>
+          <button class="btn success" onclick="aprovarVendedor('${escapeHTML(p.uid)}')">✓ Aprovar</button>
+          <button class="btn danger" onclick="rejeitarVendedor('${escapeHTML(p.uid)}')" style="margin-left:6px;">✕ Rejeitar</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function renderVendedores() {
+    const tbody = document.getElementById('vendedoresTable');
+    if (vendedores.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Nenhum vendedor aprovado ainda</td></tr>';
+      return;
+    }
+    tbody.innerHTML = vendedores.map(v => `
+      <tr>
+        <td><strong>${escapeHTML(v.name)}</strong></td>
+        <td>${escapeHTML(v.email)}</td>
+        <td>${v.approvedAt ? escapeHTML(new Date(v.approvedAt).toLocaleString('pt-BR')) : '—'}</td>
+        <td><button class="btn danger" onclick="removerVendedor('${escapeHTML(v.uid)}', '${escapeHTML(v.name)}')">Remover</button></td>
       </tr>
     `).join('');
   }
@@ -506,23 +592,56 @@
     renderConciliacao();
   }
 
-  // ── ATUALIZAÇÃO DE STATUS ──
-  async function updateStatus(pixId, newStatus) {
-    if (!firebaseConnected || !db) {
-      alert('Sem conexão com o Firebase. Não é possível atualizar status no momento.');
+  // ── AÇÕES ──
+  async function updatePixStatus(pixId, newStatus) {
+    if (!isAdmin || !firebaseConnected) {
+      alert('Sem conexão ou permissão');
       return;
     }
     const updates = { status: newStatus };
-    // conciliatedAt apenas quando realmente concilia
     if (newStatus === 'analysis') updates.analyzedAt = new Date().toISOString();
     if (newStatus === 'conciled') updates.conciliatedAt = new Date().toISOString();
-
     try {
       await db.ref(`pix-envios/${pixId}`).update(updates);
-      console.log(`✓ Status atualizado: ${pixId} → ${newStatus}`);
-    } catch(error) {
-      console.error('Erro ao atualizar:', error);
-      alert('Erro ao atualizar: ' + error.message);
+    } catch(err) {
+      alert('Erro: ' + err.message);
+    }
+  }
+
+  async function aprovarVendedor(uid) {
+    const p = pendentes.find(x => x.uid === uid);
+    if (!p) return;
+    if (!confirm(`Aprovar ${p.name} (${p.email})?`)) return;
+    try {
+      await db.ref('vendedores/' + uid).set({
+        email: p.email,
+        name: p.name,
+        approvedAt: new Date().toISOString(),
+        approvedBy: currentUser.email
+      });
+      await db.ref('vendedoresPendentes/' + uid).remove();
+    } catch(err) {
+      alert('Erro ao aprovar: ' + err.message);
+    }
+  }
+
+  async function rejeitarVendedor(uid) {
+    const p = pendentes.find(x => x.uid === uid);
+    if (!p) return;
+    if (!confirm(`Rejeitar ${p.name} (${p.email})? Eles podem solicitar novamente depois.`)) return;
+    try {
+      await db.ref('vendedoresPendentes/' + uid).remove();
+    } catch(err) {
+      alert('Erro: ' + err.message);
+    }
+  }
+
+  async function removerVendedor(uid, name) {
+    if (!confirm(`Remover ${name} dos vendedores autorizados? Eles perderão acesso imediatamente.`)) return;
+    try {
+      await db.ref('vendedores/' + uid).remove();
+    } catch(err) {
+      alert('Erro: ' + err.message);
     }
   }
 
@@ -537,13 +656,11 @@
     });
   });
 
-  // Cleanup ao sair
+  // Cleanup
   window.addEventListener('beforeunload', () => {
-    if (pixListener) pixListener.off();
+    [pixListener, pendentesListener, vendedoresListener].forEach(r => { if (r) r.off(); });
     if (db) db.ref('.info/connected').off();
   });
-
-  renderAll();
 </script>
 </body>
 </html>
