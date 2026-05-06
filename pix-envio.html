@@ -1019,10 +1019,16 @@
       let proofURL = '';
 
       // Upload arquivo se Firebase está configurado
-      if (firebaseReady && storage) {
-        const storageRef = firebase.storage().ref(`pix-comprovantes/${pixId}/${selectedFile.name}`);
-        await storageRef.put(selectedFile);
-        proofURL = await storageRef.getDownloadURL();
+      if (firebaseReady && storage && selectedFile) {
+        try {
+          const storageRef = firebase.storage().ref(`pix-comprovantes/${pixId}/${selectedFile.name}`);
+          await storageRef.put(selectedFile);
+          proofURL = await storageRef.getDownloadURL();
+          console.log('✓ Comprovante enviado:', proofURL);
+        } catch(uploadError) {
+          console.warn('⚠️ Erro ao enviar comprovante (continuando mesmo assim):', uploadError.message);
+          // Continua mesmo se upload falhar
+        }
       }
 
       // Salvar dados
