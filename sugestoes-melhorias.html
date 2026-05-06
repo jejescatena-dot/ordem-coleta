@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sugestões e Melhorias — Max Atacadista</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/build/es5/index.min.js"></script>
+<style>
+  :root, html[data-theme="dark"] {
+    --bg: #080810;
+    --bg2: #0d0d1a;
+    --nav-bg: rgba(8,8,16,0.7);
+    --surface: rgba(255,255,255,0.04);
+    --surface-hover: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.16);
+    --red: #e31e24;
+    --red-soft: rgba(227,30,36,0.15);
+    --red-glow: rgba(227,30,36,0.3);
+    --text: #f0f0f5;
+    --text-2: rgba(240,240,245,0.55);
+    --text-3: rgba(240,240,245,0.3);
+    --green: #22c55e;
+    --grid-line: rgba(255,255,255,0.025);
+    --bg-glow-1: rgba(227,30,36,0.08);
+    --bg-glow-2: rgba(60,60,140,0.06);
+    --font: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  html[data-theme="light"] {
+    --bg: #f7f7fa;
+    --bg2: #ffffff;
+    --nav-bg: rgba(255,255,255,0.85);
+    --surface: rgba(0,0,0,0.025);
+    --surface-hover: rgba(0,0,0,0.05);
+    --border: rgba(0,0,0,0.08);
+    --border-hover: rgba(0,0,0,0.16);
+    --red: #e31e24;
+    --red-soft: rgba(227,30,36,0.08);
+    --red-glow: rgba(227,30,36,0.2);
+    --text: #14141c;
+    --text-2: rgba(20,20,28,0.6);
+    --text-3: rgba(20,20,28,0.35);
+    --green: #22c55e;
+    --grid-line: rgba(0,0,0,0.04);
+    --bg-glow-1: rgba(227,30,36,0.06);
+    --bg-glow-2: rgba(60,60,140,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── BACKGROUND ── */
+  .bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .bg-canvas::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 600px;
+    background: radial-gradient(ellipse at center, var(--bg-glow-1) 0%, transparent 70%);
+  }
+  .bg-canvas::after {
+    content: '';
+    position: absolute;
+    bottom: 10%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(ellipse at center, var(--bg-glow-2) 0%, transparent 70%);
+  }
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 100%);
+  }
+
+  /* ── NAVBAR ── */
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 0 40px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--nav-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+  .nav-logo-mark {
+    width: 32px;
+    height: 32px;
+    background: var(--red);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 900;
+    color: #fff;
+    font-style: italic;
+    letter-spacing: -1px;
+    flex-shrink: 0;
+  }
+  .nav-logo-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .nav-logo-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.3px;
+  }
+  .nav-logo-sub {
+    font-size: 10px;
+    color: var(--text-2);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .nav-right { display:flex; align-items:center; gap:14px; }
+  .nav-badge {
+    font-size: 11px;
+    color: var(--text-2);
+    font-weight: 500;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+  .theme-toggle {
+    display:inline-flex; align-items:center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+    position: relative;
+  }
+  .theme-toggle button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    width: 30px; height: 26px;
+    border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text-2);
+    font-size: 13px;
+    transition: color 0.2s;
+    font-family: inherit;
+  }
+  .theme-toggle button:hover { color: var(--text); }
+  .theme-toggle button.active {
+    background: var(--red);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(227,30,36,0.35);
+  }
+  .theme-toggle button svg { width: 14px; height: 14px; }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    position: relative;
+    z-index: 1;
+    padding: 160px 40px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .page-title {
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .page-subtitle {
+    font-size: 16px;
+    color: var(--text-2);
+    max-width: 600px;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 40px 100px;
+  }
+
+  /* ── FORM CARD ── */
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 32px;
+  }
+
+  /* ── FORM GROUP ── */
+  .form-group {
+    margin-bottom: 24px;
+  }
+  .form-group:last-child {
+    margin-bottom: 0;
+  }
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .form-label .required {
+    color: var(--red);
+  }
+  .form-select, .form-input, .form-textarea {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: var(--font);
+    transition: all 0.2s ease;
+  }
+  .form-select:focus, .form-input:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px var(--red-soft);
+  }
+  .form-textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+  .form-hint {
+    font-size: 12px;
+    color: var(--text-3);
+    margin-top: 6px;
+  }
+
+  /* ── UPLOAD ZONE ── */
+  .upload-section {
+    margin: 28px 0;
+  }
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--bg2);
+  }
+  .upload-zone:hover {
+    border-color: var(--red);
+    background: var(--surface);
+  }
+  .upload-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+  .upload-text {
+    font-size: 14px;
+    color: var(--text-2);
+    margin-bottom: 6px;
+  }
+  .upload-hint {
+    font-size: 12px;
+    color: var(--text-3);
+  }
+  .file-input {
+    display: none;
+  }
+
+  /* ── FILE CHIPS ── */
+  .file-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .file-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .file-chip-remove {
+    cursor: pointer;
+    color: var(--text-3);
+    font-weight: bold;
+    transition: color 0.2s;
+  }
+  .file-chip-remove:hover {
+    color: var(--red);
+  }
+
+  /* ── BUTTONS ── */
+  .btn-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    font-family: var(--font);
+  }
+  .btn-primary {
+    background: var(--red);
+    color: #fff;
+  }
+  .btn-primary:hover {
+    background: #c01a1f;
+  }
+  .btn-secondary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-2);
+  }
+  .btn-secondary:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ── SUCCESS MESSAGE ── */
+  .success-message {
+    display: none;
+    background: rgba(34,197,94,0.1);
+    border: 1px solid var(--green);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    color: var(--green);
+    font-size: 14px;
+    line-height: 1.6;
+    animation: slideIn 0.3s ease;
+  }
+  .success-message.show {
+    display: block;
+  }
+  .success-message strong {
+    font-weight: 700;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .success-message small {
+    opacity: 0.85;
+  }
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ── GALLERY SECTION ── */
+  .gallery-section {
+    margin-top: 60px;
+  }
+  .gallery-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .gallery-item {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .gallery-item:hover {
+    border-color: var(--border-hover);
+    transform: scale(1.05);
+  }
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .gallery-count {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .footer-left {
+    font-size: 13px;
+    color: var(--text-3);
+  }
+  .footer-left strong {
+    color: var(--text-2);
+    font-weight: 600;
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 768px) {
+    .nav { padding: 0 20px; }
+    .nav-badge { display: none; }
+    .page-header { padding: 120px 20px 40px; }
+    .section { padding: 0 20px 60px; }
+    .form-card { padding: 20px; }
+    .upload-zone { padding: 20px; }
+    .btn-group { flex-direction: column; }
+    .btn { width: 100%; justify-content: center; }
+    .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+    .footer { flex-direction: column; gap: 8px; text-align: center; padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-canvas">
+  <div class="bg-grid"></div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-logo" href="index.html">
+    <div class="nav-logo-mark">M</div>
+    <div class="nav-logo-text">
+      <div class="nav-logo-name">Max Atacadista</div>
+      <div class="nav-logo-sub">Portal Televendas</div>
+    </div>
+  </a>
+  <div class="nav-right">
+    <div class="nav-badge">Irmãos Muffato S.A.</div>
+    <div class="theme-toggle" role="group" aria-label="Alternar tema">
+      <button id="themeLight" type="button" title="Tema claro" aria-label="Tema claro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
+      </button>
+      <button id="themeDark" type="button" title="Tema escuro" aria-label="Tema escuro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1 class="page-title">Sugestões e Melhorias</h1>
+  <p class="page-subtitle">Compartilhe suas ideias para melhorar o portal. Seus feedbacks nos ajudam a evoluir.</p>
+</div>
+
+<!-- SECTION -->
+<section class="section">
+
+  <div class="form-card">
+    <div class="success-message" id="successMsg">
+      ✓ Sugestão enviada com sucesso! Obrigado pelo feedback.
+    </div>
+
+    <form id="feedbackForm">
+      <!-- CATEGORIA -->
+      <div class="form-group">
+        <label class="form-label">
+          📋 Qual item você quer sugerir? <span class="required">*</span>
+        </label>
+        <select class="form-select" id="category" required>
+          <option value="">Selecione uma opção...</option>
+          <option value="ordem-coleta">Ordem de Coleta</option>
+          <option value="crediffato">CrediFFato</option>
+          <option value="portal">Portal (geral)</option>
+          <option value="outro">Outro</option>
+        </select>
+        <div class="form-hint">Selecione a área onde você encontrou o ponto de melhoria</div>
+      </div>
+
+      <!-- TIPO -->
+      <div class="form-group">
+        <label class="form-label">
+          🏷️ Tipo de sugestão <span class="required">*</span>
+        </label>
+        <select class="form-select" id="type" required>
+          <option value="">Selecione uma opção...</option>
+          <option value="erro">Reportar um erro</option>
+          <option value="melhoria">Sugerir melhoria</option>
+          <option value="recurso">Solicitar novo recurso</option>
+          <option value="design">Comentário sobre design</option>
+          <option value="performance">Performance/lentidão</option>
+        </select>
+        <div class="form-hint">Isso nos ajuda a categorizar e priorizar</div>
+      </div>
+
+      <!-- DESCRIÇÃO -->
+      <div class="form-group">
+        <label class="form-label">
+          💬 Sua sugestão <span class="required">*</span>
+        </label>
+        <textarea class="form-textarea" id="description" placeholder="Descreva sua ideia brevemente. Seja claro e sucinto." required></textarea>
+        <div class="form-hint">Máximo 1000 caracteres</div>
+      </div>
+
+      <!-- UPLOAD SECTION -->
+      <div class="upload-section">
+        <label class="form-label">📸 Anexar prints (opcional)</label>
+        <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">Clique para selecionar ou arraste aquivos</div>
+          <div class="upload-hint">PNG, JPG, JPEG (máx 3 arquivos, até 5MB cada)</div>
+        </div>
+        <input type="file" id="fileInput" class="file-input" accept="image/*" multiple>
+        <div class="file-chips" id="fileChips"></div>
+      </div>
+
+      <!-- BUTTONS -->
+      <div class="btn-group">
+        <button type="submit" class="btn btn-primary">
+          ✓ Enviar Sugestão
+        </button>
+        <button type="reset" class="btn btn-secondary">
+          ↺ Limpar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- GALLERY SECTION -->
+  <div class="gallery-section" id="gallerySection" style="display:none;">
+    <div class="gallery-title">📂 Galeria de Imagens Enviadas</div>
+    <div class="gallery-grid" id="galleryGrid"></div>
+  </div>
+
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-left">
+    <strong>Max Atacadista</strong> · Portal Televendas · Irmãos Muffato S.A.
+  </div>
+</footer>
+
+<script>
+  // Theme toggle
+  (function(){
+    const root = document.documentElement;
+    const btnL = document.getElementById('themeLight');
+    const btnD = document.getElementById('themeDark');
+    function apply(theme){
+      root.setAttribute('data-theme', theme);
+      try { localStorage.setItem('mx-theme', theme); } catch(e){}
+      btnL.classList.toggle('active', theme==='light');
+      btnD.classList.toggle('active', theme==='dark');
+    }
+    let saved = localStorage.getItem('mx-theme');
+    if (!saved) {
+      saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    }
+    apply(saved);
+    btnL.addEventListener('click', ()=>apply('light'));
+    btnD.addEventListener('click', ()=>apply('dark'));
+  })();
+
+  // File upload handling
+  let uploadedFiles = [];
+  const maxFiles = 3;
+  const maxSize = 5 * 1024 * 1024; // 5MB
+
+  document.getElementById('fileInput').addEventListener('change', (e) => {
+    const files = Array.from(e.target.files);
+
+    if (uploadedFiles.length + files.length > maxFiles) {
+      alert(`Máximo ${maxFiles} arquivos permitidos. Você já enviou ${uploadedFiles.length}.`);
+      return;
+    }
+
+    files.forEach(file => {
+      if (file.size > maxSize) {
+        alert(`Arquivo "${file.name}" é muito grande. Máximo 5MB.`);
+        return;
+      }
+      uploadedFiles.push(file);
+    });
+
+    updateFileChips();
+  });
+
+  function updateFileChips() {
+    const container = document.getElementById('fileChips');
+    container.innerHTML = '';
+
+    uploadedFiles.forEach((file, index) => {
+      const chip = document.createElement('div');
+      chip.className = 'file-chip';
+      chip.innerHTML = `
+        📄 ${file.name}
+        <span class="file-chip-remove" onclick="removeFile(${index})">&times;</span>
+      `;
+      container.appendChild(chip);
+    });
+  }
+
+  function removeFile(index) {
+    uploadedFiles.splice(index, 1);
+    updateFileChips();
+  }
+
+  // Inicializar EmailJS
+  (function(){
+    emailjs.init('emo0KI7cqNUnwSyoA');
+  })();
+
+  // Form submission com EmailJS
+  document.getElementById('feedbackForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const category = document.getElementById('category').value;
+    const type = document.getElementById('type').value;
+    const description = document.getElementById('description').value;
+    const timestamp = new Date().toLocaleString('pt-BR');
+
+    if (!category || !type || !description) {
+      alert('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = '⏳ Enviando...';
+
+    // Preparar lista de arquivos
+    const fileList = uploadedFiles.length > 0
+      ? uploadedFiles.map(f => f.name).join(', ')
+      : 'Nenhum arquivo anexado';
+
+    // Enviar via EmailJS
+    emailjs.send('service_gaz7xxo', 'template_5vwaht9', {
+      to_email: 'jsrodrigues@muffato.com.br',
+      category: category,
+      type: type,
+      description: description,
+      imageCount: uploadedFiles.length,
+      imageList: fileList,
+      timestamp: timestamp
+    }).then((response) => {
+      // Sucesso - salvar em localStorage também
+      const feedback = {
+        id: Date.now(),
+        category,
+        type,
+        description,
+        files: uploadedFiles.length,
+        timestamp: timestamp
+      };
+
+      let feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
+      feedbacks.push(feedback);
+      localStorage.setItem('feedbacks', JSON.stringify(feedbacks));
+
+      // Salvar imagens em localStorage
+      if (uploadedFiles.length > 0) {
+        uploadedFiles.forEach((file, i) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            let gallery = JSON.parse(localStorage.getItem('gallery') || '[]');
+            gallery.push({
+     

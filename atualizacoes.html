@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atualizações — Max Atacadista</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root, html[data-theme="dark"] {
+    --bg: #080810;
+    --bg2: #0d0d1a;
+    --nav-bg: rgba(8,8,16,0.7);
+    --surface: rgba(255,255,255,0.04);
+    --surface-hover: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.16);
+    --red: #e31e24;
+    --red-soft: rgba(227,30,36,0.15);
+    --red-glow: rgba(227,30,36,0.3);
+    --text: #f0f0f5;
+    --text-2: rgba(240,240,245,0.55);
+    --text-3: rgba(240,240,245,0.3);
+    --green: #22c55e;
+    --green-soft: rgba(34,197,94,0.12);
+    --amber: #f59e0b;
+    --amber-soft: rgba(245,158,11,0.12);
+    --grid-line: rgba(255,255,255,0.025);
+    --bg-glow-1: rgba(227,30,36,0.08);
+    --bg-glow-2: rgba(60,60,140,0.06);
+    --font: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  html[data-theme="light"] {
+    --bg: #f7f7fa;
+    --bg2: #ffffff;
+    --nav-bg: rgba(255,255,255,0.85);
+    --surface: rgba(0,0,0,0.025);
+    --surface-hover: rgba(0,0,0,0.05);
+    --border: rgba(0,0,0,0.08);
+    --border-hover: rgba(0,0,0,0.16);
+    --red: #e31e24;
+    --red-soft: rgba(227,30,36,0.08);
+    --red-glow: rgba(227,30,36,0.2);
+    --text: #14141c;
+    --text-2: rgba(20,20,28,0.6);
+    --text-3: rgba(20,20,28,0.35);
+    --green: #22c55e;
+    --green-soft: rgba(34,197,94,0.08);
+    --amber: #f59e0b;
+    --amber-soft: rgba(245,158,11,0.08);
+    --grid-line: rgba(0,0,0,0.04);
+    --bg-glow-1: rgba(227,30,36,0.06);
+    --bg-glow-2: rgba(60,60,140,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── BACKGROUND ── */
+  .bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .bg-canvas::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 600px;
+    background: radial-gradient(ellipse at center, var(--bg-glow-1) 0%, transparent 70%);
+  }
+  .bg-canvas::after {
+    content: '';
+    position: absolute;
+    bottom: 10%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(ellipse at center, var(--bg-glow-2) 0%, transparent 70%);
+  }
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 100%);
+  }
+
+  /* ── NAVBAR ── */
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 0 40px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--nav-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+  .nav-logo-mark {
+    width: 32px;
+    height: 32px;
+    background: var(--red);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 900;
+    color: #fff;
+    font-style: italic;
+    letter-spacing: -1px;
+    flex-shrink: 0;
+  }
+  .nav-logo-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .nav-logo-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.3px;
+  }
+  .nav-logo-sub {
+    font-size: 10px;
+    color: var(--text-2);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .nav-right { display:flex; align-items:center; gap:14px; }
+  .nav-badge {
+    font-size: 11px;
+    color: var(--text-2);
+    font-weight: 500;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+  .theme-toggle {
+    display:inline-flex; align-items:center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+    position: relative;
+  }
+  .theme-toggle button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    width: 30px; height: 26px;
+    border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text-2);
+    font-size: 13px;
+    transition: color 0.2s;
+    font-family: inherit;
+  }
+  .theme-toggle button:hover { color: var(--text); }
+  .theme-toggle button.active {
+    background: var(--red);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(227,30,36,0.35);
+  }
+  .theme-toggle button svg { width: 14px; height: 14px; }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    position: relative;
+    z-index: 1;
+    padding: 160px 40px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .page-title {
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .page-subtitle {
+    font-size: 16px;
+    color: var(--text-2);
+    max-width: 600px;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    position: relative;
+    z-index: 1;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 40px 100px;
+  }
+
+  /* ── FILTERS ── */
+  .filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-btn {
+    padding: 8px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface);
+    color: var(--text-2);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    font-family: var(--font);
+  }
+  .filter-btn:hover {
+    border-color: var(--border-hover);
+    background: var(--surface-hover);
+    color: var(--text);
+  }
+  .filter-btn.active {
+    border-color: var(--red);
+    background: var(--red-soft);
+    color: var(--red);
+  }
+
+  /* ── TIMELINE ── */
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .timeline-item {
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+  }
+  .timeline-item:hover {
+    border-color: var(--border-hover);
+    background: var(--surface-hover);
+  }
+  .timeline-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .version-badge {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--red);
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+  .timeline-date {
+    font-size: 12px;
+    color: var(--text-3);
+  }
+  .timeline-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .timeline-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .timeline-change {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--text-2);
+    line-height: 1.5;
+  }
+  .change-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .change-icon.feature { color: var(--green); }
+  .change-icon.fix { color: var(--amber); }
+  .change-icon.improvement { color: var(--red); }
+
+  /* ── FOOTER ── */
+  .footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .footer-left {
+    font-size: 13px;
+    color: var(--text-3);
+  }
+  .footer-left strong {
+    color: var(--text-2);
+    font-weight: 600;
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 768px) {
+    .nav { padding: 0 20px; }
+    .nav-badge { display: none; }
+    .page-header { padding: 120px 20px 40px; }
+    .section { padding: 0 20px 60px; }
+    .filters { gap: 8px; }
+    .filter-btn { font-size: 12px; padding: 7px 14px; }
+    .timeline-item { padding: 18px; }
+    .footer { flex-direction: column; gap: 8px; text-align: center; padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-canvas">
+  <div class="bg-grid"></div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-logo" href="index.html">
+    <div class="nav-logo-mark">M</div>
+    <div class="nav-logo-text">
+      <div class="nav-logo-name">Max Atacadista</div>
+      <div class="nav-logo-sub">Portal Televendas</div>
+    </div>
+  </a>
+  <div class="nav-right">
+    <div class="nav-badge">Irmãos Muffato S.A.</div>
+    <div class="theme-toggle" role="group" aria-label="Alternar tema">
+      <button id="themeLight" type="button" title="Tema claro" aria-label="Tema claro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
+      </button>
+      <button id="themeDark" type="button" title="Tema escuro" aria-label="Tema escuro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1 class="page-title">Atualizações</h1>
+  <p class="page-subtitle">Histórico de melhorias, ajustes e mudanças realizadas no portal.</p>
+</div>
+
+<!-- SECTION -->
+<section class="section">
+
+  <!-- FILTERS -->
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterType('all')">Todas</button>
+    <button class="filter-btn" onclick="filterType('feature')">✨ Novos</button>
+    <button class="filter-btn" onclick="filterType('improvement')">⚡ Melhorias</button>
+    <button class="filter-btn" onclick="filterType('fix')">🔧 Ajustes</button>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="timeline">
+
+    <!-- v2.0 PIX ENVIO -->
+    <div class="timeline-item" data-type="feature improvement">
+      <div class="timeline-header">
+        <span class="version-badge">v2.0</span>
+        <span class="timeline-date">05 mai 2026</span>
+      </div>
+      <div class="timeline-title">🚀 Sistema Completo de Envio PIX</div>
+      <div class="timeline-items">
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span>Integração Firebase Realtime Database (sincronização em nuvem)</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span>70+ lojas do Max Atacadista com carregamento automático</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span>Tabela dinâmica para gerenciamento de múltiplos pedidos</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span>Suporte a NOTA DANFE e CUPOM FISCAL com validações inteligentes</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span>Painel informativo com 5 regras de pagamento</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span>Formatação automática de CPF/CNPJ (000.000.000-00 e 00.000.000/0000-00)</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span>Formatação brasileira de valores (R$ 1.500,50 com vírgula decimal)</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span>Alertas em tempo real com validações bloqueadoras</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span>Histórico sincronizado com dados salvos em Firebase</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span>Upload de comprovante com drag-and-drop (até 5MB)</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span>Cálculo automático de totais de pedidos e descontos (Acordo Comercial)</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span>Validação de diferença entre PIX enviado e total de pedidos</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.5 -->
+    <div class="timeline-item" data-type="feature improvement">
+      <div class="timeline-header">
+        <span class="version-badge">v1.5</span>
+        <span class="timeline-date">05 mai 2026</span>
+      </div>
+      <div class="timeline-title">Melhorias em CrediFFato</div>
+      <div class="timeline-items">
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span>Novo template de email com "TELEVENDAS" no assunto</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span>Interface de seleção de templates melhorada</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.4 -->
+    <div class="timeline-item" data-type="feature improvement">
+      <div class="timeline-header">
+        <span class="version-badge">v1.4</span>
+        <span class="timeline-date">28 abr 2026</span>
+      </div>
+      <div class="timeline-title">Nova página de Sugestões</div>
+      <div class="timeline-items">
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span>Lançada página Sugestões e Melhorias</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span>Sistema de upload de imagens com repositório</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span>Filtro de categorias para envio de sugestões</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.3 -->
+    <div class="timeline-item" data-type="feature improvement">
+      <div class="timeline-header">
+        <span class="version-badge">v1.3</span>
+        <span class="timeline-date">15 abr 2026</span>
+      </div>
+      <div class="timeline-title">Nova página de Atualizações</div>
+      <div class="timeline-items">
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span>Criada página de histórico de atualizações com filtros</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span>Sistema de versioning integrado ao portal</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.2 -->
+    <div class="timeline-item" data-type="improvement fix">
+      <div class="timeline-header">
+        <span class="version-badge">v1.2</span>
+        <span class="timeline-date">08 abr 2026</span>
+      </div>
+      <div class="timeline-title">Otimizações de Performance</div>
+      <div class="timeline-items">
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span>Melhorada velocidade de carregamento do Ordem de Coleta</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon fix">🔧</span>
+          <span>Corrigido bug na validação de CPF em formulários</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span>Responsividade mobile aprimorada</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.1 -->
+    <div class="timeline-item" data-type="improvement fix">
+      <div class="timeline-header">
+        <span class="version-badge">v1.1</span>
+        <span class="timeline-date">01 abr 2026</span>
+      </div>
+      <div class="timeline-title">Estabilidade e Ajustes</div>
+      <div class="timeline-items">
+        <div class="timeline-change">
+          <span class="change-icon fix">🔧</span>
+          <span>Corrigida leitura de NF-e em alguns formatos</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span>Melhorado tratamento de erros no upload de arquivos</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.0 -->
+    <div class="timeline-item" data-type="feature">
+      <div class="timeline-header">
+        <span class="version-badge">v1.0</span>
+        <span class="timeline-date">15 mar 2026</span>
+      </div>
+      <div class="timeline-title">Lançamento do Portal Televendas</div>
+      <div class="timeline-items">
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span>Portal inicial com 2 aplicações: Ordem de Coleta e CrediFFato</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span>Sistema de autenticação integrado</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span>Tema claro/escuro disponível</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-left">
+    <strong>Max Atacadista</strong> · Portal Televendas · Irmãos Muffato S.A.
+  </div>
+</footer>
+
+<script>
+  // Theme toggle
+  (function(){
+    const root = document.documentElement;
+    const btnL = document.getElementById('themeLight');
+    const btnD = document.getElementById('themeDark');
+    function apply(theme){
+      root.setAttribute('data-theme', theme);
+      try { localStorage.setItem('mx-theme', theme); } catch(e){}
+      btnL.classList.toggle('active', theme==='light');
+      btnD.classList.toggle('active', theme==='dark');
+    }
+    let saved = 'dark';
+    try { saved = localStorage.getItem('mx-theme') || 'dark'; } catch(e){}
+    apply(saved);
+    btnL.addEventListener('click', ()=>apply('light'));
+    btnD.addEventListener('click', ()=>apply('dark'));
+  })();
+
+  // Filter functionality
+  function filterType(type) {
+    const items = document.querySelectorAll('.timeline-item');
+    const buttons = document.querySelectorAll('.filter-btn');
+
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+
+    items.forEach(item => {
+      if (type === 'all' || item.getAttribute('data-type').includes(type)) {
+        item.style.display = 'block';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  }
+</script>
+</body>
+</html>

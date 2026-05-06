@@ -1560,7 +1560,7 @@ function gerarEmailAumento(){
     return;
   }
 
-  const subject = `Aumento Limite loja "${filial}" cliente "${cnpj}" "${razao}" - ${limNovo}`;
+  const subject = `TELEVENDAS - Aumento Limite loja "${filial}" cliente "${cnpj}" "${razao}" - ${limNovo}`;
 
   const dreDoc = dre
     ? '\n• DRE e Balancete dos últimos 2 anos (obrigatório – novo limite acima de R$ 45.000)\n'
@@ -1630,7 +1630,7 @@ Vendedor: ${vend}
 CNPJ: ${cnpj}
 Razão Social: ${razao}${limite ? '\nLimite no cadastro: '+limite : ''}
 
-Assunto: Reativar o limite do cliente no televendas da loja.
+Assunto: TELEVENDAS - Reativar o limite do cliente no televendas da loja.
 Prazo: 21 dias.`;
 
   document.getElementById('fr_msgBody').textContent = msg;
