@@ -1126,7 +1126,9 @@
   }
 
   function clearForm() {
-    document.getElementById('vendorName').value = '';
+    // Manter vendorName para continuar mostrando histórico
+    const vendorName = document.getElementById('vendorName').value;
+
     document.getElementById('storeSelect').value = '';
     document.getElementById('pixDateTime').value = '';
     document.getElementById('pixAmount').value = '';
@@ -1141,10 +1143,14 @@
     renderizarPedidos();
     removeFile();
     document.getElementById('formAlert').innerHTML = '';
+
+    // Restaurar vendorName
+    document.getElementById('vendorName').value = vendorName;
   }
 
   // ── LOAD HISTORY ON NAME CHANGE ──
   document.getElementById('vendorName').addEventListener('change', loadHistory);
+  document.getElementById('vendorName').addEventListener('input', loadHistory);
 
   // Set current date/time
   const now = new Date();
