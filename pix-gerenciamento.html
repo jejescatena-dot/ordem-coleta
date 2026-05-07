@@ -98,10 +98,18 @@
 
   .empty-state { text-align: center; padding: 48px 24px; color: var(--text-3); }
 
-  /* Lightbox para comprovante */
-  .lightbox { position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; padding: 40px; cursor: pointer; }
-  .lightbox.show { display:flex; }
-  .lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  /* Modal Split-View Comprovante */
+  .comp-modal { position:fixed; inset:0; z-index:400; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; padding:20px; }
+  .comp-modal.show { display:flex; }
+  .comp-modal-panel { background:var(--bg2); border:1px solid var(--border); border-radius:16px; width:100%; max-width:1100px; max-height:92vh; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 24px 80px rgba(0,0,0,0.7); }
+  .comp-modal-header { padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; gap:12px; }
+  .comp-modal-body { flex:1; display:grid; grid-template-columns:1fr 1fr; overflow:hidden; min-height:0; }
+  .comp-img-side { background:#000; display:flex; align-items:center; justify-content:center; padding:20px; overflow:auto; position:relative; border-right:1px solid var(--border); }
+  .comp-img-side img { max-width:100%; max-height:65vh; border-radius:4px; transition:transform .3s ease; cursor:zoom-in; object-fit:contain; }
+  .comp-img-side img.zoomed { transform:scale(2.2); transform-origin:center center; cursor:zoom-out; }
+  .comp-form-side { padding:24px; overflow-y:auto; display:flex; flex-direction:column; gap:14px; }
+  .comp-zoom-hint { position:absolute; bottom:10px; right:12px; font-size:10px; color:rgba(255,255,255,0.5); background:rgba(0,0,0,0.5); padding:3px 8px; border-radius:4px; pointer-events:none; }
+  @media (max-width:700px) { .comp-modal-body { grid-template-columns:1fr; } .comp-img-side { max-height:40vh; border-right:none; border-bottom:1px solid var(--border); } }
 
   /* Auth overlay */
   .auth-overlay { position: fixed; inset: 0; z-index: 200; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 20px; }
@@ -310,9 +318,26 @@
   </div>
 </div>
 
-<!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox" onclick="this.classList.remove('show')">
-  <img id="lightboxImg" src="" alt="Comprovante">
+<!-- MODAL COMPROVANTE (split-view) -->
+<div class="comp-modal" id="compModal">
+  <div class="comp-modal-panel">
+    <div class="comp-modal-header">
+      <span id="compModalTitle" style="font-size:14px; font-weight:700; color:var(--text);"></span>
+      <button class="btn" onclick="fecharCompModal()" style="background:var(--surface); color:var(--text); border:1px solid var(--border); flex-shrink:0;">&#10005; Fechar</button>
+    </div>
+    <div class="comp-modal-body">
+      <div class="comp-img-side">
+        <img id="compModalImg" src="" alt="Comprovante" onclick="toggleCompZoom(this)">
+        <div class="comp-zoom-hint" id="compZoomHint">Clique para ampliar</div>
+      </div>
+      <div class="comp-form-side" id="compFormSide"></div>
+    </div>
+    <div style="padding:14px 20px; border-top:1px solid var(--border); display:flex; gap:10px; align-items:center; flex-shrink:0;">
+      <button class="btn" style="background:var(--amber); color:#000; font-weight:700;" onclick="salvarCompModal()">&#128190; Salvar Altera&#231;&#245;es</button>
+      <button class="btn" style="background:var(--surface); color:var(--text); border:1px solid var(--border);" onclick="fecharCompModal()">Fechar</button>
+      <span style="font-size:12px; color:var(--text-3); margin-left:auto;" id="compNavLabel"></span>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -566,10 +591,89 @@
     return auditBtn;
   }
 
-  function abrirComprovante(src) {
-    if (!src) return;
-    document.getElementById('lightboxImg').src = src;
-    document.getElementById('lightbox').classList.add('show');
+  let compModalEntryId = null;
+
+  function abrirComprovante(fileIndex) {
+    const p = pixes.find(x => x.id === auditPixId);
+    if (!p) return;
+    const proofFiles = p.proofFiles || (p.proofBase64 ? [{ name: p.proofFile||'comprovante', base64: p.proofBase64 }] : []);
+    const entries = p.pixEntries || [{ id: 'legacy', datetime: p.datetime, valor: p.amount, emitente: p.clienteName||'' }];
+    const file = proofFiles[fileIndex];
+    if (!file) return;
+    const linkedEntry = entries[fileIndex] !== undefined ? entries[fileIndex] : entries[0];
+    compModalEntryId = linkedEntry ? linkedEntry.id : null;
+    const img = document.getElementById('compModalImg');
+    img.src = file.base64 || '';
+    img.classList.remove('zoomed');
+    const hint = document.getElementById('compZoomHint');
+    if (hint) hint.textContent = 'Clique para ampliar';
+    const total = proofFiles.length;
+    document.getElementById('compModalTitle').textContent = '🔍 Comprovante ' + (fileIndex+1) + '/' + total + (file.name ? ' — ' + file.name : '');
+    document.getElementById('compNavLabel').textContent = linkedEntry ? 'PIX vinculado: R$ ' + formatarReal(linkedEntry.valor||0) : '';
+    renderCompForm(linkedEntry);
+    document.getElementById('compModal').classList.add('show');
+  }
+
+  function renderCompForm(entry) {
+    const side = document.getElementById('compFormSide');
+    if (!entry) {
+      side.innerHTML = '<p style="color:var(--text-3); font-size:13px; text-align:center; padding:40px 0;">Sem entrada PIX vinculada</p>';
+      return;
+    }
+    let dtDate = '', dtTime = '';
+    if (entry.datetime) {
+      try {
+        const dt = new Date(entry.datetime);
+        const pad = n => String(n).padStart(2,'0');
+        dtDate = dt.getFullYear() + '-' + pad(dt.getMonth()+1) + '-' + pad(dt.getDate());
+        dtTime = pad(dt.getHours()) + ':' + pad(dt.getMinutes());
+      } catch(e) {}
+    }
+    const idHighlight = entry.idAutoCapturado && entry.idValidacao ? 'border-color:rgba(245,158,11,0.5); background:rgba(245,158,11,0.06);' : '';
+    const idAutoLabel = entry.idAutoCapturado ? ' <span style="color:var(--amber);font-size:10px;">🔒 OCR</span>' : '';
+    side.innerHTML = `
+      <div style="font-size:13px; font-weight:700; color:var(--cyan); padding-bottom:12px; border-bottom:1px solid var(--border);">&#128179; PIX &#8212; R$ ${formatarReal(entry.valor||0)}</div>
+      <div class="audit-field">
+        <label>Data de Emiss&#227;o</label>
+        <input type="date" value="${escapeHTML(dtDate)}" data-entry-id="${escapeHTML(entry.id)}" data-campo="data" onchange="auditEditEntry(this)">
+      </div>
+      <div class="audit-field">
+        <label>Hor&#225;rio</label>
+        <input type="time" value="${escapeHTML(dtTime)}" data-entry-id="${escapeHTML(entry.id)}" data-campo="hora" onchange="auditEditEntry(this)">
+      </div>
+      <div class="audit-field">
+        <label>Emitente</label>
+        <input type="text" value="${escapeHTML(entry.emitente||'')}" data-entry-id="${escapeHTML(entry.id)}" data-campo="emitente" onchange="auditEditEntry(this)" placeholder="Nome do remetente">
+      </div>
+      <div class="audit-field">
+        <label>ID Valida&#231;&#227;o` + idAutoLabel + `</label>
+        <input type="text" value="${escapeHTML(entry.idValidacao||'')}"
+          data-entry-id="${escapeHTML(entry.id)}" data-campo="idValidacao"
+          placeholder="E... (PIX) ou UUID (TED/DOC)"
+          onchange="auditEditEntry(this)"
+          style="font-family:monospace; font-size:12px; ` + idHighlight + `">
+      </div>
+      <div class="audit-field">
+        <label>Valor</label>
+        <input type="text" value="R$ ${formatarReal(entry.valor||0)}" disabled style="opacity:0.6; cursor:not-allowed;">
+      </div>
+    `;
+  }
+
+  function fecharCompModal() {
+    document.getElementById('compModal').classList.remove('show');
+    document.getElementById('compModalImg').classList.remove('zoomed');
+  }
+
+  function toggleCompZoom(img) {
+    img.classList.toggle('zoomed');
+    const hint = document.getElementById('compZoomHint');
+    if (hint) hint.textContent = img.classList.contains('zoomed') ? 'Clique para reduzir' : 'Clique para ampliar';
+  }
+
+  async function salvarCompModal() {
+    await salvarEdicaoAudit();
+    fecharCompModal();
   }
 
   function renderConciliacao() {
@@ -761,7 +865,7 @@
       <h3>&#128206; Comprovantes (${proofFiles.length})</h3>
       <div class="audit-images">
         ${proofFiles.length > 0 ? proofFiles.map((f,i) => `
-          <div class="audit-img-wrap" onclick="abrirComprovante('${f.base64||''}')">
+          <div class="audit-img-wrap" onclick="abrirComprovante(${i})">
             <img src="${f.base64||''}" alt="Comprovante ${i+1}" onerror="this.style.display='none'">
             <div class="audit-img-label">${escapeHTML(f.name||'Comp.'+(i+1))}</div>
           </div>
@@ -926,6 +1030,19 @@
       this.classList.add('active');
       document.getElementById('tab-' + tabName).style.display = 'block';
     });
+  });
+
+  // Atalhos de teclado e click-outside
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const cm = document.getElementById('compModal');
+      if (cm && cm.classList.contains('show')) { fecharCompModal(); return; }
+      const am = document.getElementById('auditModal');
+      if (am && am.classList.contains('show')) { fecharAudit(); return; }
+    }
+  });
+  document.getElementById('compModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('compModal')) fecharCompModal();
   });
 
   // Cleanup

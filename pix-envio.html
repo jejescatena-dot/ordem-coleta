@@ -242,17 +242,35 @@
       </div>
     </div>
 
-    <!-- UPLOAD DE COMPROVANTES (topo) -->
-    <div style="margin-bottom:24px; padding:20px; background:var(--surface); border-radius:12px; border:1px solid var(--border);">
-      <h3 style="margin-top:0; margin-bottom:6px; color:var(--text); font-weight:700; font-size:16px;">📎 Comprovantes do PIX</h3>
-      <p style="font-size:13px; color:var(--text-2); margin-bottom:14px;">Envie primeiro os comprovantes — o sistema tentará preencher automaticamente ID, valor e emitente de cada PIX via leitura da imagem.</p>
-      <div class="file-upload" id="fileUploadArea">
-        <div class="file-icon">📁</div>
-        <div class="file-text">Clique ou arraste os comprovantes aqui</div>
-        <div class="file-hint">PNG, JPG ou WEBP — múltiplos arquivos permitidos • OCR extrai ID, valor e emitente automaticamente</div>
-        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" multiple>
+    <!-- IMPORTAÇÃO LADO A LADO -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; align-items:start;">
+
+      <!-- 📎 Comprovantes PIX -->
+      <div style="padding:20px; background:var(--surface); border-radius:12px; border:1px solid var(--border);">
+        <h3 style="margin-top:0; margin-bottom:6px; color:var(--text); font-weight:700; font-size:15px;">📎 Comprovantes PIX</h3>
+        <p style="font-size:12px; color:var(--text-2); margin-bottom:14px; line-height:1.5;">Arraste imagens <strong>ou PDFs</strong> dos comprovantes. OCR preenche ID, valor e emitente. Clique na miniatura para conferir e editar.</p>
+        <div class="file-upload" id="fileUploadArea" style="padding:18px;">
+          <div class="file-icon" style="font-size:28px; margin-bottom:8px;">📁</div>
+          <div class="file-text" style="font-size:13px;">Clique ou arraste aqui</div>
+          <div class="file-hint" style="font-size:11px;">PNG, JPG, WEBP ou PDF • múltiplos • clique na miniatura para editar</div>
+          <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,application/pdf" multiple>
+        </div>
+        <div class="file-list" id="fileList"></div>
       </div>
-      <div class="file-list" id="fileList"></div>
+
+      <!-- 📄 Pedidos PDF -->
+      <div style="padding:20px; background:var(--surface); border-radius:12px; border:1px solid rgba(8,145,178,0.25);">
+        <h3 style="margin-top:0; margin-bottom:6px; color:var(--cyan); font-weight:700; font-size:15px;">📄 Pedidos (PDF)</h3>
+        <p style="font-size:12px; color:var(--text-2); margin-bottom:14px; line-height:1.5;">Arraste os PDFs dos pedidos. Preenche nº pedido, loja, cliente, tipo (DANFE/CUPOM) e valores automaticamente.</p>
+        <div id="pdfUploadArea" style="border:2px dashed rgba(8,145,178,0.3); border-radius:10px; padding:18px; text-align:center; cursor:pointer; background:rgba(8,145,178,0.04); transition:all 0.2s;">
+          <div style="font-size:28px; margin-bottom:8px;">📑</div>
+          <div style="font-size:13px; font-weight:500; color:var(--text); margin-bottom:3px;">Clique ou arraste aqui</div>
+          <div style="font-size:11px; color:var(--text-3);">Apenas .PDF • extrai nº pedido, loja, tipo e valores</div>
+          <input type="file" id="pdfInput" accept="application/pdf,.pdf" multiple style="display:none;">
+        </div>
+        <div id="pdfStatus" style="margin-top:10px;"></div>
+      </div>
+
     </div>
 
     <div style="margin-bottom:24px; padding:20px; background:var(--surface); border-radius:12px; border:1px solid var(--border);">
@@ -328,19 +346,6 @@
           </tbody>
         </table>
       </div>
-      <!-- Upload PDF Pedidos -->
-      <div style="margin-bottom:16px; padding:16px; background:var(--bg2); border-radius:10px; border:1px dashed rgba(8,145,178,0.35);">
-        <div style="font-weight:700; color:var(--cyan); margin-bottom:6px; font-size:13px;">📄 Importar Pedidos por PDF</div>
-        <p style="font-size:12px; color:var(--text-2); margin-bottom:12px; line-height:1.5;">Carregue o PDF do pedido para preenchimento automático de número, loja, cliente, valores e tipo (DANFE/CUPOM). Múltiplos PDFs da <strong>mesma loja</strong> são permitidos.</p>
-        <div id="pdfUploadArea" style="border:2px dashed var(--border); border-radius:8px; padding:16px; text-align:center; cursor:pointer; background:var(--surface); transition:all 0.2s;">
-          <div style="font-size:24px; margin-bottom:6px;">📑</div>
-          <div style="font-size:13px; font-weight:500; color:var(--text); margin-bottom:3px;">Clique ou arraste os PDFs dos pedidos aqui</div>
-          <div style="font-size:11px; color:var(--text-3);">Apenas arquivos .PDF • Extrai pedido, loja, cliente, valores e tipo automaticamente</div>
-          <input type="file" id="pdfInput" accept="application/pdf,.pdf" multiple style="display:none;">
-        </div>
-        <div id="pdfStatus" style="margin-top:10px;"></div>
-      </div>
-
       <button class="btn" style="background:var(--cyan); color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:600; font-size:13px; margin-bottom:16px;" onclick="adicionarPedido()">+ Adicionar Pedido</button>
       <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:16px;">
         <div style="background:var(--bg2); padding:12px; border-radius:8px; border-left:4px solid var(--cyan);">
@@ -391,6 +396,57 @@
       </table>
     </div>
   </div>
+
+<!-- ── MODAL COMPROVANTE ── -->
+<div id="comprovanteModal" style="display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.88); align-items:center; justify-content:center; padding:16px;">
+  <div style="background:var(--bg2); border:1px solid var(--border); border-radius:20px; width:100%; max-width:980px; max-height:92vh; display:flex; overflow:hidden; position:relative; box-shadow:0 24px 60px rgba(0,0,0,0.6);">
+
+    <!-- Botão fechar -->
+    <button onclick="fecharModalComprovante()" style="position:absolute; top:12px; right:12px; background:var(--surface); border:1px solid var(--border); color:var(--text); border-radius:50%; width:34px; height:34px; font-size:18px; cursor:pointer; z-index:10; display:flex; align-items:center; justify-content:center; line-height:1;">✕</button>
+
+    <!-- ESQUERDA: Imagem -->
+    <div style="flex:1; min-width:0; display:flex; flex-direction:column; background:var(--bg);">
+      <div style="padding:12px 16px; font-size:12px; font-weight:600; color:var(--text-2); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px;">
+        <span>🖼 Comprovante</span>
+        <span id="modalFileName" style="color:var(--text-3); font-weight:400; font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+      </div>
+      <div id="modalImageContainer" style="flex:1; overflow:auto; display:flex; align-items:flex-start; justify-content:center; padding:16px; cursor:zoom-in;" onclick="toggleZoom(event)">
+        <img id="modalImage" style="max-width:100%; border-radius:8px; display:block; transition:transform 0.25s ease; transform-origin:top left;" alt="Comprovante">
+      </div>
+      <div style="padding:8px 16px; text-align:center; font-size:10px; color:var(--text-3); border-top:1px solid var(--border);">
+        Clique na imagem para ampliar — role para navegar na imagem ampliada
+      </div>
+    </div>
+
+    <!-- DIREITA: Formulário PIX -->
+    <div style="width:300px; flex-shrink:0; border-left:1px solid var(--border); display:flex; flex-direction:column; overflow:auto;">
+      <div style="padding:16px; font-size:14px; font-weight:700; color:var(--text); border-bottom:1px solid var(--border);">✏️ Dados do PIX</div>
+      <div style="padding:16px; display:flex; flex-direction:column; gap:14px; flex:1;">
+        <div>
+          <label style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; display:block;">Data / Hora</label>
+          <input type="datetime-local" id="modalDatetime" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:13px; font-family:inherit;">
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; display:block;">Emitente (Remetente)</label>
+          <input type="text" id="modalEmitente" placeholder="Nome do remetente" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:13px; font-family:inherit;">
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; display:block;">Valor (R$)</label>
+          <input type="text" id="modalValor" placeholder="0,00" oninput="let v=this.value.replace(/\D/g,''); this.value=v?(parseInt(v,10)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):''" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:13px; font-family:inherit; text-align:right;">
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; display:block;">ID da Transação (PIX/TED)</label>
+          <input type="text" id="modalIdValidacao" placeholder="E... ou UUID — preencha se o OCR não achou" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:11px; font-family:monospace;">
+          <div id="modalIdHint" style="font-size:10px; color:var(--text-3); margin-top:3px;"></div>
+        </div>
+      </div>
+      <div style="padding:14px 16px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:8px;">
+        <button onclick="salvarModalComprovante()" style="width:100%; padding:10px; background:var(--cyan); color:white; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; transition:background 0.2s;">✓ Salvar</button>
+        <button onclick="fecharModalComprovante()" style="width:100%; padding:8px; background:var(--surface); color:var(--text-2); border:1px solid var(--border); border-radius:8px; font-size:13px; cursor:pointer; font-family:inherit;">Fechar sem salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </section>
 
@@ -560,7 +616,7 @@
 
   // ── FILE UPLOAD (múltiplos arquivos) ──
   let processedFiles = []; // [{name, base64, sizeKB}]
-  const TIPOS_OK = ['image/png','image/jpeg','image/jpg','image/webp'];
+  const TIPOS_OK = ['image/png','image/jpeg','image/jpg','image/webp','application/pdf'];
   const MAX_DIM = 1280;          // dimensão máxima
   const TARGET_KB = 200;         // tamanho alvo em KB do base64
   const HARD_LIMIT_KB = 250;     // limite máximo absoluto
@@ -579,21 +635,22 @@
 
   async function handleFilesSelect(files) {
     for (const file of files) {
-      if (!TIPOS_OK.includes(file.type)) {
-        showAlert('formAlert', `❌ Tipo inválido: ${escapeHTML(file.name)}. Use PNG, JPG ou WEBP.`, 'error');
+      const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      if (!TIPOS_OK.includes(file.type) && !isPDF) {
+        showAlert('formAlert', `❌ Tipo inválido: ${escapeHTML(file.name)}. Use PNG, JPG, WEBP ou PDF.`, 'error');
         continue;
       }
-      if (file.size > 10 * 1024 * 1024) {
-        showAlert('formAlert', `❌ Imagem muito grande: ${escapeHTML(file.name)} (máx. 10MB)`, 'error');
+      if (file.size > 20 * 1024 * 1024) {
+        showAlert('formAlert', `❌ Arquivo muito grande: ${escapeHTML(file.name)} (máx. 20MB)`, 'error');
         continue;
       }
-      const placeholder = { name: file.name, base64: null, sizeKB: 0 };
+      const placeholder = { name: file.name, base64: null, sizeKB: 0, isPDF };
       processedFiles.push(placeholder);
       updateFileList();
       try {
-        const result = await comprimirImagem(file);
+        const result = isPDF ? await pdfParaImagem(file) : await comprimirImagem(file);
         if (result.sizeKB > HARD_LIMIT_KB) {
-          showAlert('formAlert', `❌ Não foi possível comprimir ${escapeHTML(file.name)} (${result.sizeKB}KB). Use imagem mais simples.`, 'error');
+          showAlert('formAlert', `❌ Não foi possível comprimir ${escapeHTML(file.name)} (${result.sizeKB}KB).`, 'error');
           processedFiles = processedFiles.filter(f => f !== placeholder);
           updateFileList();
           continue;
@@ -601,7 +658,6 @@
         placeholder.base64 = result.base64;
         placeholder.sizeKB = result.sizeKB;
         updateFileList();
-        // Dispara OCR em background para capturar ID da transação
         if (typeof Tesseract !== 'undefined') {
           _tentarOCRParaEntry(result.base64);
         }
@@ -668,15 +724,48 @@
     });
   }
 
+  // Converte página 1 de um PDF em imagem JPEG comprimida (para comprovantes)
+  async function pdfParaImagem(file) {
+    if (typeof pdfjsLib === 'undefined') throw new Error('PDF.js não carregado');
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const page = await pdf.getPage(1);
+    const tryScale = async (scale) => {
+      const vp = page.getViewport({ scale });
+      const canvas = document.createElement('canvas');
+      canvas.width = vp.width; canvas.height = vp.height;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      await page.render({ canvasContext: ctx, viewport: vp }).promise;
+      const qualities = [0.85, 0.75, 0.65, 0.55, 0.45];
+      let best = null;
+      for (const q of qualities) {
+        const dataUrl = canvas.toDataURL('image/jpeg', q);
+        const sizeKB = Math.round(dataUrl.length * 0.75 / 1024);
+        best = { base64: dataUrl, sizeKB };
+        if (sizeKB <= TARGET_KB) break;
+      }
+      return best;
+    };
+    let result = await tryScale(2.0);
+    if (result.sizeKB > HARD_LIMIT_KB) result = await tryScale(1.2);
+    if (result.sizeKB > HARD_LIMIT_KB) result = await tryScale(0.8);
+    return result;
+  }
+
   function updateFileList() {
     const fileList = document.getElementById('fileList');
     if (processedFiles.length === 0) { fileList.innerHTML = ''; return; }
-    fileList.innerHTML = processedFiles.map((f, i) => `
-      <div style="display:inline-block; margin-right:10px; margin-bottom:10px; vertical-align:top; text-align:center;">
-        ${f.base64 ? `<img src="${f.base64}" alt="Preview" style="display:block; width:120px; height:120px; object-fit:cover; border-radius:8px; border:1px solid var(--border); margin-bottom:6px;">` : `<div style="width:120px; height:120px; border-radius:8px; border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:6px;">⏳</div>`}
-        <div class="file-chip" style="display:block; width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px;">${escapeHTML(f.name)} ${f.sizeKB > 0 ? '('+f.sizeKB+'KB)' : ''} ${f.sizeKB > 0 ? `<button onclick="removeFile(${i})">✕</button>` : ''}</div>
-      </div>
-    `).join('');
+    fileList.innerHTML = processedFiles.map((f, i) => {
+      const thumb = f.base64
+        ? `<img src="${f.base64}" alt="Preview" onclick="abrirModalComprovante(${i})" title="Clique para ver e editar" style="display:block; width:110px; height:110px; object-fit:cover; border-radius:8px; border:2px solid var(--border); margin-bottom:6px; cursor:pointer; transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--border)'">`
+        : `<div style="width:110px; height:110px; border-radius:8px; border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:6px;">⏳</div>`;
+      const badge = f.isPDF ? `<span style="font-size:9px; background:rgba(8,145,178,0.15); color:var(--cyan); border-radius:4px; padding:1px 4px; margin-left:3px;">PDF→img</span>` : '';
+      return `<div style="display:inline-block; margin-right:8px; margin-bottom:8px; vertical-align:top; text-align:center;">
+        ${thumb}
+        <div class="file-chip" style="display:block; width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; padding:4px 6px;">${escapeHTML(f.name.length>14?f.name.slice(0,12)+'..':f.name)}${badge} ${f.sizeKB > 0 ? `<button onclick="removeFile(${i})" style="margin-left:2px;">✕</button>` : ''}</div>
+      </div>`;
+    }).join('');
   }
   function removeFile(index) {
     processedFiles.splice(index, 1);
@@ -1058,6 +1147,90 @@
     }
   }
 
+  // ── MODAL COMPROVANTE ──
+  let _modalFileIndex = -1;
+  let _isZoomed = false;
+
+  function abrirModalComprovante(index) {
+    const file = processedFiles[index];
+    if (!file || !file.base64) return;
+    _modalFileIndex = index;
+    _isZoomed = false;
+    const img = document.getElementById('modalImage');
+    img.src = file.base64;
+    img.style.transform = 'none';
+    img.style.maxWidth = '100%';
+    img.style.width = '';
+    document.getElementById('modalFileName').textContent = file.name;
+    document.getElementById('modalImageContainer').style.cursor = 'zoom-in';
+    document.getElementById('modalImageContainer').style.justifyContent = 'center';
+
+    const entry = pixEntries[index] !== undefined ? pixEntries[index]
+                : (pixEntries.length > 0 ? pixEntries[Math.min(index, pixEntries.length-1)] : null);
+    if (entry) {
+      document.getElementById('modalDatetime').value = entry.datetime || '';
+      document.getElementById('modalEmitente').value = entry.emitente || '';
+      document.getElementById('modalValor').value = entry.valor || '';
+      document.getElementById('modalIdValidacao').value = entry.idValidacao || '';
+      document.getElementById('modalIdHint').textContent = entry.idAutoCapturado
+        ? '🔒 Capturado via OCR — edite aqui para corrigir' : 'Preencha se o OCR não encontrou';
+    } else {
+      ['modalDatetime','modalEmitente','modalValor','modalIdValidacao'].forEach(id => { document.getElementById(id).value = ''; });
+      document.getElementById('modalIdHint').textContent = 'Preencha os dados desta transferência';
+    }
+    document.getElementById('comprovanteModal').style.display = 'flex';
+  }
+
+  function fecharModalComprovante() {
+    document.getElementById('comprovanteModal').style.display = 'none';
+    _modalFileIndex = -1;
+    _isZoomed = false;
+  }
+
+  function toggleZoom() {
+    const img = document.getElementById('modalImage');
+    const container = document.getElementById('modalImageContainer');
+    _isZoomed = !_isZoomed;
+    img.style.maxWidth = _isZoomed ? 'none' : '100%';
+    img.style.width = _isZoomed ? '180%' : '';
+    container.style.justifyContent = _isZoomed ? 'flex-start' : 'center';
+    container.style.cursor = _isZoomed ? 'zoom-out' : 'zoom-in';
+  }
+
+  function salvarModalComprovante() {
+    const idx = _modalFileIndex;
+    const datetime = document.getElementById('modalDatetime').value;
+    const emitente = document.getElementById('modalEmitente').value.trim();
+    const valor = document.getElementById('modalValor').value;
+    const idValidacao = document.getElementById('modalIdValidacao').value.trim();
+
+    let entry = (idx >= 0 && pixEntries[idx] !== undefined) ? pixEntries[idx]
+              : (pixEntries.length > 0 ? pixEntries[Math.min(Math.max(idx,0), pixEntries.length-1)] : null);
+    if (!entry) {
+      adicionarPixEntry();
+      entry = pixEntries[pixEntries.length - 1];
+    }
+    if (entry) {
+      if (datetime) entry.datetime = datetime;
+      if (emitente) entry.emitente = emitente;
+      if (valor) entry.valor = valor;
+      if (idValidacao) { entry.idValidacao = idValidacao; entry.idAutoCapturado = false; }
+    }
+    if (emitente && !document.getElementById('clienteName').value.trim()) {
+      document.getElementById('clienteName').value = emitente;
+    }
+    renderizarPixEntries();
+    verificarDiferenca();
+    fecharModalComprovante();
+  }
+
+  document.getElementById('comprovanteModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('comprovanteModal')) fecharModalComprovante();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('comprovanteModal').style.display === 'flex') fecharModalComprovante();
+  });
+
   // ── PDF.js — PARSER DE PEDIDOS ──
   if (typeof pdfjsLib !== 'undefined') {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -1101,8 +1274,11 @@
     const t = texto.replace(/\s+/g, ' ');
     const resultado = {};
 
-    // ── Nº Pedido
-    const mPedido = t.match(/Venda\s+normal\s*[-–]\s*Revenda\s+N[°º]?[:\-]?\s*(\d{7,12})/i);
+    // ── Nº Pedido — múltiplos padrões (OCR pode perder caracteres especiais)
+    const mPedido = t.match(/Revenda\s+N[°º.]?\s*[:\-]?\s*(\d{7,12})/i)
+                 || t.match(/Venda\s+normal.*?N[°º.]?\s*[:\-]?\s*(\d{7,12})/i)
+                 || t.match(/N[°º.]\s*[:\-]?\s*(\d{9,12})\b/i)
+                 || t.match(/(?:Pedido|Nro?)\s*[:\-]?\s*(\d{7,12})\b/i);
     if (mPedido) resultado.numero = mPedido[1];
 
     // ── Código da Loja (4 dígitos iniciando em 1, próximo a nome de loja)
