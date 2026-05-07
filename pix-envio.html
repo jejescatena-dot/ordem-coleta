@@ -10,7 +10,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <style>
   :root, html[data-theme="dark"] {
     --bg: #080810; --bg2: #0d0d1a; --nav-bg: rgba(8,8,16,0.7);
@@ -312,8 +311,8 @@
       <div class="file-upload" id="fileUploadArea">
         <div class="file-icon">📁</div>
         <div class="file-text">Clique ou arraste o comprovante aqui</div>
-        <div class="file-hint">PNG, JPG, WEBP ou PDF até 5MB</div>
-        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,application/pdf">
+        <div class="file-hint">Apenas imagens: PNG, JPG ou WEBP (será redimensionada automaticamente)</div>
+        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp">
       </div>
       <div class="file-list" id="fileList"></div>
     </div>
@@ -343,7 +342,7 @@
 <script>
   // ── FIREBASE CONFIG ──
   const firebaseConfig = {
-    apiKey: "AIzaSyCJ5Wbw9OvcFidj1vRC6nkOpVS-AVIlwMk",
+    apiKey: "AIzaSyCJ5Wbw9OvcFidj1vRC6nkOpVS-AVIIwMk",
     authDomain: "max-atacadista-pix.firebaseapp.com",
     databaseURL: "https://max-atacadista-pix-default-rtdb.firebaseio.com",
     projectId: "max-atacadista-pix",
@@ -356,8 +355,6 @@
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.database();
-  let storage = null;
-  try { storage = firebase.storage(); } catch(e) { console.warn('Storage indisponível:', e.message); }
 
   let currentUser = null;
   let userRole = null; // 'admin' | 'vendor' | 'pending' | 'denied' | null
@@ -507,9 +504,14 @@
     root.setAttribute('data-theme', saved);
   })();
 
-  // ── FILE UPLOAD ──
+  // ── FILE UPLOAD (sem Storage: redimensiona + comprime + salva em base64) ──
   let selectedFile = null;
-  const TIPOS_OK = ['image/png','image/jpeg','image/jpg','image/webp','application/pdf'];
+  let processedBase64 = null;
+  let processedSize = 0;
+  const TIPOS_OK = ['image/png','image/jpeg','image/jpg','image/webp'];
+  const MAX_DIM = 1280;          // dimensão máxima
+  const TARGET_KB = 200;         // tamanho alvo em KB do base64
+  const HARD_LIMIT_KB = 250;     // limite máximo absoluto
 
   document.getElementById('fileUploadArea').addEventListener('click', () => document.getElementById('fileInput').click());
   document.getElementById('fileUploadArea').addEventListener('dragover', (e) => { e.preventDefault(); document.getElementById('fileUploadArea').classList.add('active'); });
@@ -523,27 +525,103 @@
     if (e.target.files.length > 0) handleFileSelect(e.target.files[0]);
   });
 
-  function handleFileSelect(file) {
+  async function handleFileSelect(file) {
     if (!TIPOS_OK.includes(file.type)) {
-      showAlert('formAlert', '❌ Tipo de arquivo não permitido. Use PNG, JPG, WEBP ou PDF.', 'error');
+      showAlert('formAlert', '❌ Tipo não permitido. Use PNG, JPG ou WEBP.', 'error');
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      showAlert('formAlert', '❌ Arquivo muito grande (máx. 5MB)', 'error');
+    if (file.size > 10 * 1024 * 1024) {
+      showAlert('formAlert', '❌ Imagem muito grande (máx. 10MB no original)', 'error');
       return;
     }
     selectedFile = file;
-    updateFileList();
+    document.getElementById('fileList').innerHTML = `<div class="file-chip">⏳ Processando ${escapeHTML(file.name)}...</div>`;
+
+    try {
+      const result = await comprimirImagem(file);
+      processedBase64 = result.base64;
+      processedSize = result.sizeKB;
+      if (processedSize > HARD_LIMIT_KB) {
+        showAlert('formAlert', `❌ Não foi possível comprimir o suficiente (${processedSize}KB). Tire uma foto com menos detalhes ou use uma imagem mais simples.`, 'error');
+        removeFile();
+        return;
+      }
+      updateFileList();
+    } catch(err) {
+      console.error(err);
+      showAlert('formAlert', '❌ Erro ao processar imagem: ' + err.message, 'error');
+      removeFile();
+    }
   }
+
+  // Redimensiona via canvas e comprime iterativamente até caber no alvo
+  function comprimirImagem(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Falha ao ler arquivo'));
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('Imagem inválida'));
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > MAX_DIM || height > MAX_DIM) {
+            const ratio = Math.min(MAX_DIM/width, MAX_DIM/height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Tenta qualidades crescentes em sequência decrescente
+          const tryQuality = (q) => {
+            const dataUrl = canvas.toDataURL('image/jpeg', q);
+            const sizeKB = Math.round(dataUrl.length * 0.75 / 1024); // base64 → bytes ≈ * 0.75
+            return { dataUrl, sizeKB };
+          };
+          const qualities = [0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25];
+          let best = null;
+          for (const q of qualities) {
+            const r = tryQuality(q);
+            best = r;
+            if (r.sizeKB <= TARGET_KB) break;
+          }
+          // Se ainda não couber, reduz dimensão e tenta de novo
+          if (best.sizeKB > TARGET_KB && Math.max(width, height) > 600) {
+            const ratio2 = 600 / Math.max(width, height);
+            canvas.width = Math.round(width * ratio2);
+            canvas.height = Math.round(height * ratio2);
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            best = tryQuality(0.65);
+          }
+          resolve({ base64: best.dataUrl, sizeKB: best.sizeKB });
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   function updateFileList() {
     const fileList = document.getElementById('fileList');
-    if (!selectedFile) { fileList.innerHTML = ''; return; }
-    fileList.innerHTML = `<div class="file-chip">📎 ${escapeHTML(selectedFile.name)}<button onclick="removeFile()">✕</button></div>`;
+    if (!selectedFile || !processedBase64) { fileList.innerHTML = ''; return; }
+    fileList.innerHTML = `
+      <div class="file-chip">📎 ${escapeHTML(selectedFile.name)} (${processedSize}KB)<button onclick="removeFile()">✕</button></div>
+      <div style="margin-top:12px;"><img src="${processedBase64}" alt="Pré-visualização" style="max-width:200px; max-height:200px; border-radius:8px; border:1px solid var(--border);"></div>
+    `;
   }
   function removeFile() {
     selectedFile = null;
+    processedBase64 = null;
+    processedSize = 0;
     document.getElementById('fileInput').value = '';
-    updateFileList();
+    document.getElementById('fileList').innerHTML = '';
   }
 
   // ── MÁSCARA DE MOEDA ──
@@ -720,8 +798,8 @@
       showAlert('formAlert', '⚠️ Preencha todos os campos obrigatórios', 'error');
       return;
     }
-    if (!selectedFile) {
-      showAlert('formAlert', '⚠️ Anexe o comprovante do PIX', 'error');
+    if (!selectedFile || !processedBase64) {
+      showAlert('formAlert', '⚠️ Anexe o comprovante do PIX (imagem)', 'error');
       return;
     }
     if (pedidosData.length === 0) {
@@ -755,22 +833,6 @@
 
       const newRef = db.ref('pix-envios').push();
       const pixId = newRef.key;
-      let proofURL = '';
-
-      if (storage && selectedFile) {
-        try {
-          const storageRef = storage.ref(`pix-comprovantes/${currentUser.uid}/${pixId}/${selectedFile.name}`);
-          await storageRef.put(selectedFile);
-          proofURL = await storageRef.getDownloadURL();
-          console.log('✓ Comprovante enviado:', proofURL);
-        } catch(uploadError) {
-          console.warn('⚠️ Erro ao enviar comprovante:', uploadError.message);
-          showAlert('formAlert', '⚠️ Não foi possível enviar o comprovante para o Storage. Verifique se o Storage está ativado.', 'error');
-          btn.disabled = false;
-          btn.innerHTML = 'Enviar PIX para Análise';
-          return;
-        }
-      }
 
       const pixData = {
         id: pixId,
@@ -780,7 +842,9 @@
         store, datetime: datetimeISO, amount, key, clienteName,
         documentType, receiver, notes,
         pedidos: pedidosNormalizados,
-        proofFile: selectedFile.name, proofURL,
+        proofFile: selectedFile.name,
+        proofBase64: processedBase64,
+        proofSizeKB: processedSize,
         status: 'pending',
         submittedAt: new Date().toISOString()
       };
