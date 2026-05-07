@@ -1525,9 +1525,14 @@ Solicitação: Cadastro à vista – cliente PJ.`;
 
 function copiarMsgVista(){
   const txt=document.getElementById('fv_msgBody').textContent;
-  navigator.clipboard.writeText(txt)
+  // Formata para o Agente Virtual Maia: substitui quebras de linha por separador visível
+  // pois o chat do Maia não preserva \n e exibe tudo junto sem espaço
+  const formatted = txt
+    .replace(/\n\n/g, ' | ')   // linhas em branco (seções) viram ' | '
+    .replace(/\n/g, ' | ');    // demais quebras de linha também viram ' | '
+  navigator.clipboard.writeText(formatted)
     .then(()=>showToast('✅ Mensagem copiada!','success'))
-    .catch(()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ Mensagem copiada!','success');});
+    .catch(()=>{const ta=document.createElement('textarea');ta.value=formatted;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ Mensagem copiada!','success');});
 }
 
 // ===== AUMENTO DE LIMITE =====
@@ -1640,9 +1645,13 @@ Prazo: 21 dias.`;
 
 function copiarMsgReativacao(){
   const txt = document.getElementById('fr_msgBody').textContent;
-  navigator.clipboard.writeText(txt)
+  // Formata para o Agente Virtual Maia: substitui quebras de linha por separador visível
+  const formatted = txt
+    .replace(/\n\n/g, ' | ')
+    .replace(/\n/g, ' | ');
+  navigator.clipboard.writeText(formatted)
     .then(()=>showToast('✅ Mensagem copiada!','success'))
-    .catch(()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ Mensagem copiada!','success');});
+    .catch(()=>{const ta=document.createElement('textarea');ta.value=formatted;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ Mensagem copiada!','success');});
 }
 
 // ===== NAVEGAÇÃO DIRETA (clique no stepper) =====
