@@ -10,6 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/tesseract.js@5.0.5/dist/tesseract.min.js"></script>
 <style>
   :root, html[data-theme="dark"] {
     --bg: #080810; --bg2: #0d0d1a; --nav-bg: rgba(8,8,16,0.7);
@@ -600,8 +601,12 @@
     const entries = p.pixEntries || [{ id: 'legacy', datetime: p.datetime, valor: p.amount, emitente: p.clienteName||'' }];
     const file = proofFiles[fileIndex];
     if (!file) return;
-    const linkedEntry = entries[fileIndex] !== undefined ? entries[fileIndex] : entries[0];
+
+    // Vincula estritamente por índice — sem fallback para entry[0]
+    // Evita que dados do PIX 1 apareçam ao abrir o comprovante 2
+    const linkedEntry = entries[fileIndex] !== undefined ? entries[fileIndex] : null;
     compModalEntryId = linkedEntry ? linkedEntry.id : null;
+
     const img = document.getElementById('compModalImg');
     img.src = file.base64 || '';
     img.classList.remove('zoomed');
@@ -609,17 +614,25 @@
     if (hint) hint.textContent = 'Clique para ampliar';
     const total = proofFiles.length;
     document.getElementById('compModalTitle').textContent = '🔍 Comprovante ' + (fileIndex+1) + '/' + total + (file.name ? ' — ' + file.name : '');
-    document.getElementById('compNavLabel').textContent = linkedEntry ? 'PIX vinculado: R$ ' + formatarReal(linkedEntry.valor||0) : '';
+    document.getElementById('compNavLabel').textContent = linkedEntry ? 'PIX vinculado: R$ ' + formatarReal(linkedEntry.valor||0) : 'Sem PIX vinculado';
     renderCompForm(linkedEntry);
     document.getElementById('compModal').classList.add('show');
+
+    // OCR assíncrono — roda após o modal abrir
+    if (file.base64) ocrComprovante(file.base64, linkedEntry);
   }
 
   function renderCompForm(entry) {
     const side = document.getElementById('compFormSide');
     if (!entry) {
-      side.innerHTML = '<p style="color:var(--text-3); font-size:13px; text-align:center; padding:40px 0;">Sem entrada PIX vinculada</p>';
+      side.innerHTML = '<p style="color:var(--text-3); font-size:13px; text-align:center; padding:40px 20px; line-height:1.6;">Sem entrada PIX vinculada a este comprovante.<br><small>Verifique se há entradas PIX neste lançamento.</small></p>';
       return;
     }
+
+    // Mescla auditEdits (edições pendentes) sobre os valores do Firebase
+    // Garante que o formulário sempre reflita o estado atual, não apenas o Firebase
+    const ed = auditEdits[entry.id] || {};
+
     let dtDate = '', dtTime = '';
     if (entry.datetime) {
       try {
@@ -629,10 +642,18 @@
         dtTime = pad(dt.getHours()) + ':' + pad(dt.getMinutes());
       } catch(e) {}
     }
-    const idHighlight = entry.idAutoCapturado && entry.idValidacao ? 'border-color:rgba(245,158,11,0.5); background:rgba(245,158,11,0.06);' : '';
-    const idAutoLabel = entry.idAutoCapturado ? ' <span style="color:var(--amber);font-size:10px;">🔒 OCR</span>' : '';
+    if (ed.data) dtDate = ed.data;
+    if (ed.hora) dtTime = ed.hora;
+    const emitente   = ed.emitente    !== undefined ? ed.emitente    : (entry.emitente    || '');
+    const idValidacao = ed.idValidacao !== undefined ? ed.idValidacao : (entry.idValidacao || '');
+
+    const isAutoId   = entry.idAutoCapturado && entry.idValidacao;
+    const idHighlight = isAutoId ? 'border-color:rgba(245,158,11,0.5); background:rgba(245,158,11,0.06);' : '';
+    const idAutoLabel = entry.idAutoCapturado ? ' <span style="color:var(--amber);font-size:10px;">&#128274; OCR</span>' : '';
+
     side.innerHTML = `
       <div style="font-size:13px; font-weight:700; color:var(--cyan); padding-bottom:12px; border-bottom:1px solid var(--border);">&#128179; PIX &#8212; R$ ${formatarReal(entry.valor||0)}</div>
+      <div id="ocrStatus" style="font-size:11px; color:var(--amber); min-height:18px; text-align:center; transition:opacity .3s;"></div>
       <div class="audit-field">
         <label>Data de Emiss&#227;o</label>
         <input type="date" value="${escapeHTML(dtDate)}" data-entry-id="${escapeHTML(entry.id)}" data-campo="data" onchange="auditEditEntry(this)">
@@ -643,13 +664,13 @@
       </div>
       <div class="audit-field">
         <label>Emitente</label>
-        <input type="text" value="${escapeHTML(entry.emitente||'')}" data-entry-id="${escapeHTML(entry.id)}" data-campo="emitente" onchange="auditEditEntry(this)" placeholder="Nome do remetente">
+        <input type="text" value="${escapeHTML(emitente)}" data-entry-id="${escapeHTML(entry.id)}" data-campo="emitente" onchange="auditEditEntry(this)" placeholder="Nome do remetente">
       </div>
       <div class="audit-field">
         <label>ID Valida&#231;&#227;o` + idAutoLabel + `</label>
-        <input type="text" value="${escapeHTML(entry.idValidacao||'')}"
+        <input type="text" id="compIdInput" value="${escapeHTML(idValidacao)}"
           data-entry-id="${escapeHTML(entry.id)}" data-campo="idValidacao"
-          placeholder="E... (PIX) ou UUID (TED/DOC)"
+          placeholder="Aguardando OCR... ou preencha manualmente"
           onchange="auditEditEntry(this)"
           style="font-family:monospace; font-size:12px; ` + idHighlight + `">
       </div>
@@ -658,6 +679,79 @@
         <input type="text" value="R$ ${formatarReal(entry.valor||0)}" disabled style="opacity:0.6; cursor:not-allowed;">
       </div>
     `;
+  }
+
+  async function ocrComprovante(base64Src, entry) {
+    if (!base64Src || typeof Tesseract === 'undefined') return;
+    const setStatus = msg => { const el = document.getElementById('ocrStatus'); if (el) el.textContent = msg; };
+    setStatus('🔍 Extraindo dados via OCR...');
+    try {
+      const { data: { text } } = await Tesseract.recognize(base64Src, 'por+eng', { logger: () => {} });
+
+      // ID de transação PIX (E2E ID): E + 8 (ISPB) + 8 (data) + 4 (hora) + 11 (random) = E+31 chars
+      const idMatch = text.match(/\bE[0-9]{8}[0-9]{8}[0-9]{4}[0-9A-Za-z]{11}\b/)
+                   || text.match(/\bE[0-9A-Za-z]{28,35}\b/);
+
+      // Data: DD/MM/YYYY
+      const dateMatch = text.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+
+      // Hora: HH:MM
+      const timeMatch = text.match(/(\d{2}):(\d{2})(?::\d{2})?/);
+
+      // Emitente: após palavras-chave comuns em comprovantes PIX
+      const emitenteMatch = text.match(/(?:origem|enviado\s+por|pagador|nome|remetente)\s*[:\-]?\s*([A-ZÀ-Ú][a-zA-ZÀ-úÃ-ũ\s]{3,40})/i)
+                         || text.match(/(?:de|from)\s*[:\-]?\s*([A-ZÀ-Ú][a-zA-ZÀ-úÃ-ũ\s]{3,30})/i);
+
+      if (!entry) { setStatus(idMatch ? '✓ ID encontrado (sem PIX vinculado)' : '— Sem dados reconhecidos'); return; }
+
+      const eid = entry.id;
+      const filled = [];
+
+      // ID de transação — preenche só se vazio
+      const idInput = document.getElementById('compIdInput');
+      const curId = (auditEdits[eid]?.idValidacao ?? entry.idValidacao ?? '').trim();
+      if (idMatch && !curId && idInput) {
+        idInput.value = idMatch[0];
+        auditEditEntry(idInput);
+        filled.push('ID');
+      }
+
+      // Emitente — preenche só se vazio
+      const emInput = document.querySelector(`[data-entry-id="${CSS.escape(eid)}"][data-campo="emitente"]`);
+      const curEm = (auditEdits[eid]?.emitente ?? entry.emitente ?? '').trim();
+      if (emitenteMatch && !curEm && emInput) {
+        emInput.value = emitenteMatch[1].trim();
+        auditEditEntry(emInput);
+        filled.push('Emitente');
+      }
+
+      // Data — preenche só se vazia
+      const dtInput = document.querySelector(`[data-entry-id="${CSS.escape(eid)}"][data-campo="data"]`);
+      const curDt = (auditEdits[eid]?.data ?? '').trim();
+      if (dateMatch && !curDt && dtInput) {
+        const [, d, m, y] = dateMatch;
+        dtInput.value = `${y}-${m}-${d}`;
+        auditEditEntry(dtInput);
+        filled.push('Data');
+      }
+
+      // Hora — preenche só se vazia
+      const hrInput = document.querySelector(`[data-entry-id="${CSS.escape(eid)}"][data-campo="hora"]`);
+      const curHr = (auditEdits[eid]?.hora ?? '').trim();
+      if (timeMatch && !curHr && hrInput) {
+        hrInput.value = `${timeMatch[1]}:${timeMatch[2]}`;
+        auditEditEntry(hrInput);
+        filled.push('Hora');
+      }
+
+      const msg = filled.length > 0 ? '✓ OCR preencheu: ' + filled.join(', ') : '— OCR concluído sem novos dados';
+      setStatus(msg);
+      setTimeout(() => setStatus(''), 5000);
+    } catch(e) {
+      console.warn('OCR erro:', e);
+      setStatus('— OCR indisponível');
+      setTimeout(() => setStatus(''), 3000);
+    }
   }
 
   function fecharCompModal() {
