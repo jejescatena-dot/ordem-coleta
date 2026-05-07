@@ -237,10 +237,22 @@
       </div>
     </div>
 
+    <!-- UPLOAD DE COMPROVANTES (topo) -->
+    <div style="margin-bottom:24px; padding:20px; background:var(--surface); border-radius:12px; border:1px solid var(--border);">
+      <h3 style="margin-top:0; margin-bottom:6px; color:var(--text); font-weight:700; font-size:16px;">📎 Comprovantes do PIX</h3>
+      <p style="font-size:13px; color:var(--text-2); margin-bottom:14px;">Envie primeiro os comprovantes — o sistema tentará preencher automaticamente ID, valor e emitente de cada PIX via leitura da imagem.</p>
+      <div class="file-upload" id="fileUploadArea">
+        <div class="file-icon">📁</div>
+        <div class="file-text">Clique ou arraste os comprovantes aqui</div>
+        <div class="file-hint">PNG, JPG ou WEBP — múltiplos arquivos permitidos • OCR extrai ID, valor e emitente automaticamente</div>
+        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" multiple>
+      </div>
+      <div class="file-list" id="fileList"></div>
+    </div>
 
     <div style="margin-bottom:24px; padding:20px; background:var(--surface); border-radius:12px; border:1px solid var(--border);">
       <h3 style="margin-top:0; margin-bottom:8px; color:var(--text); font-weight:700; font-size:16px;">💳 PIX Enviados</h3>
-      <p style="font-size:13px; color:var(--text-2); margin-bottom:16px;">Adicione um ou mais PIX deste lançamento. Emitente e destinatário devem ser iguais em todos.</p>
+      <p style="font-size:13px; color:var(--text-2); margin-bottom:16px;">Entradas criadas automaticamente ao anexar os comprovantes. Confira e complete o que estiver faltando.</p>
       <div class="table-container" style="margin-bottom:12px; overflow-x:auto;">
         <table style="width:100%; font-size:13px;">
           <thead>
@@ -253,7 +265,7 @@
             </tr>
           </thead>
           <tbody id="pixEntriesTable">
-            <tr style="opacity:0.5;"><td colspan="4" style="padding:20px; text-align:center; color:var(--text-3);">Clique em "+" para adicionar PIX</td></tr>
+            <tr style="opacity:0.5;"><td colspan="5" style="padding:20px; text-align:center; color:var(--text-3);">Anexe os comprovantes acima para preenchimento automático</td></tr>
           </tbody>
         </table>
       </div>
@@ -340,17 +352,6 @@
         <div class="form-group" style="margin-bottom:24px;">
       <label class="form-label">Observações (opcional)</label>
       <textarea id="pixNotes" class="form-input" placeholder="Anotações adicionais..." style="min-height:100px; resize:vertical;"></textarea>
-    </div>
-
-    <div class="form-group" style="margin-bottom:24px;">
-      <label class="form-label">Comprovante do PIX</label>
-      <div class="file-upload" id="fileUploadArea">
-        <div class="file-icon">📁</div>
-        <div class="file-text">Clique ou arraste um ou mais comprovantes aqui</div>
-        <div class="file-hint">PNG, JPG ou WEBP — múltiplos arquivos permitidos (cada um será comprimido automaticamente)</div>
-        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" multiple>
-      </div>
-      <div class="file-list" id="fileList"></div>
     </div>
 
     <div class="btn-group">
@@ -687,42 +688,94 @@
     return _ocrInitPromise;
   }
 
-  async function extrairIdDoComprovante(base64DataUrl) {
-    if (typeof Tesseract === 'undefined') return null;
+  // Extrai ID, valor e emitente do comprovante via OCR
+  async function extrairDadosDoComprovante(base64DataUrl) {
+    if (typeof Tesseract === 'undefined') return {};
     const worker = await _getOCRWorker();
-    if (!worker) return null;
+    if (!worker) return {};
     try {
       const { data: { text } } = await worker.recognize(base64DataUrl);
-      // Normaliza espaços e quebras de linha
       const t = text.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
-      // PIX: começa com E + 32 ou mais caracteres hex (ex.: E332646682026050619301a9910ca24d)
+      const dados = {};
+
+      // ── ID da transação ──
       const m1 = t.match(/\bE[0-9A-Fa-f]{32,}\b/);
-      if (m1) return m1[0];
-      // TED/DOC: UUID (ex.: ff29a4b1-9741-4cee-9791-cb800e8ad010)
-      const m2 = t.match(/\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b/);
-      if (m2) return m2[0];
-      return null;
+      if (m1) dados.id = m1[0];
+      else {
+        const m2 = t.match(/\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b/);
+        if (m2) dados.id = m2[0];
+      }
+
+      // ── Valor ──
+      const valPatterns = [
+        /(?:Valor|Total|Quantia)[^R$]{0,20}R\$\s*([\d]+[.,][\d]{3}[.,][\d]{2}|[\d]+[.,][\d]{2})/i,
+        /R\$\s*([\d]{1,3}(?:[.,]\d{3})*[.,]\d{2})/,
+        /([\d]{1,3}(?:\.\d{3})*,\d{2})\s*(?:reais|BRL)/i
+      ];
+      for (const pat of valPatterns) {
+        const mv = t.match(pat);
+        if (mv) {
+          // Normaliza: remove separador de milhar, troca vírgula por ponto
+          const raw = mv[1].replace(/\./g, '').replace(',', '.');
+          const n = parseFloat(raw);
+          if (!isNaN(n) && n > 0) { dados.valor = n; break; }
+        }
+      }
+
+      // ── Emitente / Remetente ──
+      const emPatterns = [
+        /(?:Pagador|Remetente|Enviado\s+por|Nome\s+do\s+pagador|De)\s*[:\-]?\s*([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇÑ][A-Za-záéíóúàâêîôûãõçñ\s]{4,50})(?=\s{2,}|\s*(?:CPF|CNPJ|Banco|Ag[eê]n|Conta|\d{3}\.\d{3}))/i,
+        /(?:Pagador|Remetente|De)\s*[:\-]?\s*([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇÑ][A-Za-záéíóúàâêîôûãõçñ\s\.]{4,60}?)(?=\s*\n|\s{3,}|$)/im
+      ];
+      for (const pat of emPatterns) {
+        const me = t.match(pat);
+        if (me) { dados.emitente = me[1].trim().replace(/\s+/g, ' '); break; }
+      }
+
+      return dados;
     } catch(e) {
       console.warn('OCR recognition error:', e);
-      return null;
+      return {};
     }
   }
 
   async function _tentarOCRParaEntry(base64DataUrl) {
+    // Se não há nenhuma entry, cria uma automaticamente antes de processar
+    if (pixEntries.length === 0) {
+      adicionarPixEntry();
+    }
     // Encontra a primeira entry sem ID ainda (não loading)
     const entry = pixEntries.find(e => !e.idValidacao && e.idOcrStatus !== 'loading');
-    if (!entry) return; // todas já têm ID ou estão sendo processadas
+    if (!entry) return;
+
     entry.idOcrStatus = 'loading';
     renderizarPixEntries();
-    const idEncontrado = await extrairIdDoComprovante(base64DataUrl);
-    if (idEncontrado) {
-      entry.idValidacao = idEncontrado;
+
+    const dados = await extrairDadosDoComprovante(base64DataUrl);
+
+    // ── ID ──
+    if (dados.id) {
+      entry.idValidacao = dados.id;
       entry.idAutoCapturado = true;
       entry.idOcrStatus = 'found';
     } else {
       entry.idOcrStatus = 'not_found';
     }
+
+    // ── Valor (preenche só se a entry ainda não tiver) ──
+    if (dados.valor && !entry.valor) {
+      entry.valor = dados.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // ── Emitente (preenche entry e o campo Nome do Cliente se estiverem vazios) ──
+    if (dados.emitente) {
+      if (!entry.emitente) entry.emitente = dados.emitente;
+      const clienteInput = document.getElementById('clienteName');
+      if (clienteInput && !clienteInput.value.trim()) clienteInput.value = dados.emitente;
+    }
+
     renderizarPixEntries();
+    verificarDiferenca();
   }
 
   // ── MÁSCARA DE MOEDA (aplicada nos inputs de valor dos PIX entries via JS dinâmico) ──
@@ -1007,7 +1060,7 @@
       return;
     }
     if (pixEntries.length === 0) {
-      showAlert('formAlert', '⚠️ Adicione pelo menos um PIX na seção "PIX Enviados"', 'error');
+      showAlert('formAlert', '⚠️ Nenhum PIX adicionado. Anexe o comprovante ou clique em "+ Adicionar PIX" para incluir manualmente.', 'error');
       return;
     }
     if (totalPix <= 0) {
