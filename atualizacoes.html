@@ -403,6 +403,45 @@
   <!-- TIMELINE -->
   <div class="timeline">
 
+    <!-- v2.3 PDF PEDIDOS + CÓDIGO CLIENTE -->
+    <div class="timeline-item" data-type="feature improvement">
+      <div class="timeline-header">
+        <span class="version-badge">v2.3</span>
+        <span class="timeline-date">07 mai 2026</span>
+      </div>
+      <div class="timeline-title">📄 Importação de Pedidos por PDF + Fluxo Comprovantes</div>
+      <div class="timeline-items">
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Importar pedidos por PDF:</strong> nova área de upload na seção de pedidos — arraste ou selecione os PDFs para preenchimento automático de Nº Pedido, Loja, Cliente, Total e Acordo Comercial</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Tipo DANFE/CUPOM automático:</strong> detectado pelo campo "Tipo de Saída" do PDF — código 02 ou 03 → DANFE; qualquer outro → CUPOM. Sem necessidade de seleção manual</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Campo Código do Cliente:</strong> extraído automaticamente do PDF (ex: 1001522911) e enviado ao painel gerencial junto com os demais dados do lançamento</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span><strong>Validação de condição de pagamento:</strong> bloqueia o carregamento do pedido se a condição não for SIMPLES CONFERENCIA ou ACORDO COMERCIAL — alerta de erro com o valor encontrado</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span><strong>Validação de lojas:</strong> bloqueia se PDFs de lojas diferentes forem carregados no mesmo lançamento — exibe os códigos conflitantes</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span><strong>Comprovantes no topo do formulário:</strong> seção de upload PIX reorganizada para ficar logo acima da tabela de entradas — fluxo recomendado: primeiro comprovante, depois pedidos</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span><strong>Entrada PIX criada automaticamente ao anexar comprovante:</strong> se a lista estiver vazia, o sistema já insere uma linha e preenche ID, Valor e Emitente via OCR — vendedor só confere</span>
+        </div>
+      </div>
+    </div>
+
     <!-- v2.2 OCR + DUPLICATAS -->
     <div class="timeline-item" data-type="feature improvement">
       <div class="timeline-header">

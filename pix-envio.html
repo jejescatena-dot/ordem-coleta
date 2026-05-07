@@ -11,6 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://unpkg.com/tesseract.js@4/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root, html[data-theme="dark"] {
     --bg: #080810; --bg2: #0d0d1a; --nav-bg: rgba(8,8,16,0.7);
@@ -222,6 +223,10 @@
         <label class="form-label">Nome do Cliente</label>
         <input type="text" id="clienteName" class="form-input" placeholder="Nome da pessoa ou empresa que recebeu">
       </div>
+      <div class="form-group">
+        <label class="form-label">Código do Cliente</label>
+        <input type="text" id="codigoCliente" class="form-input" placeholder="Ex: 1001522911 (extraído do PDF)">
+      </div>
       <div class="form-group" style="display:grid; grid-template-columns:120px 1fr; gap:12px; align-items:flex-end;">
         <div>
           <label class="form-label">Documento</label>
@@ -323,6 +328,19 @@
           </tbody>
         </table>
       </div>
+      <!-- Upload PDF Pedidos -->
+      <div style="margin-bottom:16px; padding:16px; background:var(--bg2); border-radius:10px; border:1px dashed rgba(8,145,178,0.35);">
+        <div style="font-weight:700; color:var(--cyan); margin-bottom:6px; font-size:13px;">📄 Importar Pedidos por PDF</div>
+        <p style="font-size:12px; color:var(--text-2); margin-bottom:12px; line-height:1.5;">Carregue o PDF do pedido para preenchimento automático de número, loja, cliente, valores e tipo (DANFE/CUPOM). Múltiplos PDFs da <strong>mesma loja</strong> são permitidos.</p>
+        <div id="pdfUploadArea" style="border:2px dashed var(--border); border-radius:8px; padding:16px; text-align:center; cursor:pointer; background:var(--surface); transition:all 0.2s;">
+          <div style="font-size:24px; margin-bottom:6px;">📑</div>
+          <div style="font-size:13px; font-weight:500; color:var(--text); margin-bottom:3px;">Clique ou arraste os PDFs dos pedidos aqui</div>
+          <div style="font-size:11px; color:var(--text-3);">Apenas arquivos .PDF • Extrai pedido, loja, cliente, valores e tipo automaticamente</div>
+          <input type="file" id="pdfInput" accept="application/pdf,.pdf" multiple style="display:none;">
+        </div>
+        <div id="pdfStatus" style="margin-top:10px;"></div>
+      </div>
+
       <button class="btn" style="background:var(--cyan); color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:600; font-size:13px; margin-bottom:16px;" onclick="adicionarPedido()">+ Adicionar Pedido</button>
       <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:16px;">
         <div style="background:var(--bg2); padding:12px; border-radius:8px; border-left:4px solid var(--cyan);">
@@ -1040,6 +1058,184 @@
     }
   }
 
+  // ── PDF.js — PARSER DE PEDIDOS ──
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  document.getElementById('pdfUploadArea').addEventListener('click', () => document.getElementById('pdfInput').click());
+  document.getElementById('pdfUploadArea').addEventListener('dragover', (e) => {
+    e.preventDefault();
+    document.getElementById('pdfUploadArea').style.borderColor = 'var(--cyan)';
+    document.getElementById('pdfUploadArea').style.background = 'var(--cyan-soft)';
+  });
+  document.getElementById('pdfUploadArea').addEventListener('dragleave', () => {
+    document.getElementById('pdfUploadArea').style.borderColor = 'var(--border)';
+    document.getElementById('pdfUploadArea').style.background = 'var(--surface)';
+  });
+  document.getElementById('pdfUploadArea').addEventListener('drop', (e) => {
+    e.preventDefault();
+    document.getElementById('pdfUploadArea').style.borderColor = 'var(--border)';
+    document.getElementById('pdfUploadArea').style.background = 'var(--surface)';
+    if (e.dataTransfer.files.length > 0) processarPDFsPedidos(Array.from(e.dataTransfer.files));
+  });
+  document.getElementById('pdfInput').addEventListener('change', (e) => {
+    if (e.target.files.length > 0) processarPDFsPedidos(Array.from(e.target.files));
+    e.target.value = '';
+  });
+
+  async function extrairTextoPDF(file) {
+    if (typeof pdfjsLib === 'undefined') throw new Error('PDF.js não carregado');
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      fullText += textContent.items.map(item => item.str).join(' ') + '\n';
+    }
+    return fullText;
+  }
+
+  function parsearPedidoPDF(texto) {
+    const t = texto.replace(/\s+/g, ' ');
+    const resultado = {};
+
+    // ── Nº Pedido
+    const mPedido = t.match(/Venda\s+normal\s*[-–]\s*Revenda\s+N[°º]?[:\-]?\s*(\d{7,12})/i);
+    if (mPedido) resultado.numero = mPedido[1];
+
+    // ── Código da Loja (4 dígitos iniciando em 1, próximo a nome de loja)
+    const mCodLoja = t.match(/\b(1\d{3})\b\s*[-–]?\s*(?:MAX|DEBRET|COLOMBO|CAMPO|SAO|SÃO|MARECHAL|PIONEIROS|SAFIRA|OLIMIA|OLIVIA|CASTRO|TORRES|SARANDI)/i);
+    if (mCodLoja) {
+      resultado.codigoLoja = mCodLoja[1];
+    } else {
+      // fallback: busca código no rodapé (formato: número sozinho 4 dígitos)
+      const mCodFallback = t.match(/FILIAL[:\s]+[A-ZÀ-Ú\s]+?\b(1\d{3})\b/i);
+      if (mCodFallback) resultado.codigoLoja = mCodFallback[1];
+    }
+
+    // ── Código do Cliente + Nome do Cliente
+    const mCliente = t.match(/CLIENTE\s*[:\-]?\s*(\d{5,12})\s*[-–]\s*([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇ][A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇ\s\.\-&]{3,60}?)(?=\s{2,}|CPF|CNPJ|END|RUA|AV\.|$)/i);
+    if (mCliente) {
+      resultado.codigoCliente = mCliente[1];
+      resultado.nomeCliente = mCliente[2].trim().replace(/\s+/g, ' ');
+    }
+
+    // ── Valor Mercadorias (Total Pedido)
+    const mValor = t.match(/Valor\s+Mercadorias\s*[:\-]?\s*R?\$?\s*([\d\.]+,\d{2})/i);
+    if (mValor) resultado.valorPedido = mValor[1];
+
+    // ── Acordo Comercial
+    const mAcordo = t.match(/ACORDO\s+COMERCIAL\s*[:\-]?\s*R?\$?\s*([\d\.]+,\d{2})/i);
+    if (mAcordo) resultado.acordoComercial = mAcordo[1];
+
+    // ── Tipo de Saída → DANFE (02, 03) ou CUPOM (outros)
+    const mTipo = t.match(/Tipo\s+de\s+Sa[íi]da\s*[:\-]?\s*0*(\d{1,3})/i);
+    if (mTipo) {
+      const cod = mTipo[1].padStart(2, '0');
+      resultado.tipoSaida = cod;
+      resultado.tipoPedido = (cod === '02' || cod === '03') ? 'danfe' : 'cupom';
+    }
+
+    // ── Condição de Pagamento (validação)
+    const CONDS_ACEITAS = ['SIMPLES CONFERENCIA', 'ACORDO COMERCIAL'];
+    const mCond = t.match(/Condi[çc][ãa]o\s+de\s+Pagamento\s*[:\-]?\s*([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇ][A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇ\s]{3,50}?)(?=\s{2,}|Tipo|Valor|CLIENTE|$)/i);
+    if (mCond) {
+      const cond = mCond[1].trim().toUpperCase().replace(/\s+/g, ' ');
+      resultado.condicaoPagamento = cond;
+      resultado.condicaoValida = CONDS_ACEITAS.some(c => cond.includes(c));
+    }
+
+    return resultado;
+  }
+
+  async function processarPDFsPedidos(files) {
+    const statusEl = document.getElementById('pdfStatus');
+    const pdfsValidos = files.filter(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
+    const invalidos = files.filter(f => !(f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')));
+
+    if (invalidos.length > 0 && pdfsValidos.length === 0) {
+      statusEl.innerHTML = `<div class="alert error" style="padding:10px 14px; font-size:13px;">❌ Apenas arquivos PDF são aceitos.</div>`;
+      return;
+    }
+
+    statusEl.innerHTML = `<div class="alert info" style="padding:10px 14px; font-size:13px; display:flex; align-items:center; gap:8px;"><span class="spinner"></span> Processando ${pdfsValidos.length} PDF(s)...</div>`;
+
+    const resultados = [];
+    const erros = [];
+
+    for (const file of pdfsValidos) {
+      try {
+        const texto = await extrairTextoPDF(file);
+        const dados = parsearPedidoPDF(texto);
+        dados._fileName = file.name;
+
+        // Bloqueia se condição de pagamento inválida
+        if (dados.condicaoPagamento !== undefined && !dados.condicaoValida) {
+          erros.push(`❌ <strong>${escapeHTML(file.name)}</strong>: Condição de pagamento inválida — "<em>${escapeHTML(dados.condicaoPagamento)}</em>".<br>&nbsp;&nbsp;&nbsp;Aceitas: SIMPLES CONFERENCIA e ACORDO COMERCIAL.`);
+          continue;
+        }
+
+        resultados.push(dados);
+      } catch(e) {
+        erros.push(`❌ <strong>${escapeHTML(file.name)}</strong>: Erro ao ler — ${escapeHTML(e.message)}`);
+      }
+    }
+
+    if (erros.length > 0) {
+      statusEl.innerHTML = `<div class="alert error" style="padding:12px 14px; font-size:13px; line-height:1.7;">${erros.join('<br>')}</div>`;
+      return;
+    }
+
+    if (resultados.length === 0) {
+      statusEl.innerHTML = `<div class="alert error" style="padding:10px 14px; font-size:13px;">❌ Nenhum pedido válido encontrado nos PDFs.</div>`;
+      return;
+    }
+
+    // Valida que todos os PDFs são da mesma loja
+    const lojas = resultados.map(r => r.codigoLoja).filter(Boolean);
+    const lojasUnicas = [...new Set(lojas)];
+    if (lojasUnicas.length > 1) {
+      statusEl.innerHTML = `<div class="alert error" style="padding:12px 14px; font-size:13px;">❌ PDFs de lojas diferentes detectados: <strong>${lojasUnicas.join(', ')}</strong>.<br>Carregue apenas PDFs da mesma loja por lançamento.</div>`;
+      return;
+    }
+
+    // Preenche cabeçalho com dados do 1º PDF
+    const primeiro = resultados[0];
+
+    if (primeiro.codigoLoja) {
+      const selectLoja = document.getElementById('storeSelect');
+      const opcoes = Array.from(selectLoja.options);
+      const opcaoCorreta = opcoes.find(o => o.value.startsWith(primeiro.codigoLoja + ' ') || o.value.startsWith(primeiro.codigoLoja + '-'));
+      if (opcaoCorreta) selectLoja.value = opcaoCorreta.value;
+    }
+    if (primeiro.nomeCliente && !document.getElementById('clienteName').value.trim()) {
+      document.getElementById('clienteName').value = primeiro.nomeCliente;
+    }
+    if (primeiro.codigoCliente && !document.getElementById('codigoCliente').value.trim()) {
+      document.getElementById('codigoCliente').value = primeiro.codigoCliente;
+    }
+
+    // Adiciona cada PDF como uma linha na tabela de pedidos
+    resultados.forEach(dados => {
+      const id = 'pedido_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+      pedidosData.push({
+        id,
+        numero: dados.numero || '',
+        tipo: dados.tipoPedido || 'danfe',
+        valorPix: dados.valorPedido || '',
+        desconto: dados.acordoComercial || ''
+      });
+    });
+
+    renderizarPedidos();
+
+    const nomes = resultados.map(r => `<em>${escapeHTML(r._fileName)}</em>`).join(', ');
+    statusEl.innerHTML = `<div class="alert success" style="padding:10px 14px; font-size:13px;">✓ ${resultados.length} pedido(s) importado(s): ${nomes}</div>`;
+    setTimeout(() => { if (statusEl) statusEl.innerHTML = ''; }, 6000);
+  }
+
   // ── SUBMIT ──
   async function submitPIX() {
     if (!currentUser || (userRole !== 'vendor' && userRole !== 'admin')) {
@@ -1049,6 +1245,7 @@
     const store = document.getElementById('storeSelect').value;
     const key = document.getElementById('pixKey').value;
     const clienteName = document.getElementById('clienteName').value.trim();
+    const codigoCliente = document.getElementById('codigoCliente').value.trim();
     const documentType = document.getElementById('documentType').value;
     const receiver = document.getElementById('pixReceiver').value.replace(/\D/g, '');
     const notes = document.getElementById('pixNotes').value.trim();
@@ -1120,7 +1317,7 @@
         vendorUid: currentUser.uid,
         vendorEmail: currentUser.email,
         vendor: currentUser.displayName || currentUser.email,
-        store, datetime: datetimeISO, amount, key, clienteName,
+        store, datetime: datetimeISO, amount, key, clienteName, codigoCliente,
         documentType, receiver, notes, notaInformativa,
         pedidos: pedidosNormalizados,
         pixEntries: pixEntriesNorm,
@@ -1186,6 +1383,7 @@
   function clearFormSemConfirmar() {
     document.getElementById('storeSelect').value = '';
     document.getElementById('clienteName').value = '';
+    document.getElementById('codigoCliente').value = '';
     document.getElementById('documentType').value = 'cnpj';
     document.getElementById('pixReceiver').value = '';
     document.getElementById('pixReceiver').maxLength = 18;
