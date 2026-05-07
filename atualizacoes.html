@@ -403,6 +403,84 @@
   <!-- TIMELINE -->
   <div class="timeline">
 
+    <!-- v2.2 OCR + DUPLICATAS -->
+    <div class="timeline-item" data-type="feature improvement">
+      <div class="timeline-header">
+        <span class="version-badge">v2.2</span>
+        <span class="timeline-date">07 mai 2026</span>
+      </div>
+      <div class="timeline-title">🔍 ID Validação, OCR e Detecção de Duplicatas</div>
+      <div class="timeline-items">
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>OCR automático de comprovantes:</strong> ao anexar a imagem, o sistema lê automaticamente o ID da transação (PIX ou TED) usando reconhecimento de texto</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Campo ID Validação por PIX:</strong> exibe o ID capturado em destaque âmbar com cadeado 🔒 — bloqueado para edição pelo vendedor; editável apenas no painel gerencial</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Suporte a PIX (E + 32 hex) e TED/DOC (formato UUID)</strong> na extração automática</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span><strong>Detecção de duplicatas em 3 níveis:</strong> 🚫 ID de transação igual (duplicata confirmada) → ⚠️ mesmo emitente + valor + data (provável) → ℹ️ mesmo emitente na data (atenção)</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span>Painel gerencial: campo ID Validação editável por entrada PIX na auditoria, com indicador visual OCR e log de autoria (financeiro pode corrigir captura errada)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- v2.1 PIX MELHORIAS -->
+    <div class="timeline-item" data-type="feature improvement fix">
+      <div class="timeline-header">
+        <span class="version-badge">v2.1</span>
+        <span class="timeline-date">07 mai 2026</span>
+      </div>
+      <div class="timeline-title">⚡ Melhorias no Sistema de Envio PIX</div>
+      <div class="timeline-items">
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Múltiplos comprovantes:</strong> agora é possível anexar mais de um arquivo por lançamento — cada imagem é comprimida automaticamente e exibida em miniatura</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Múltiplos PIX por lançamento:</strong> tabela dinâmica com Data/Hora, Emitente e Valor por entrada; totalizador automático de quantidade e valor</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span>Campo "Valor PIX" renomeado para <strong>Total Pedido</strong> e "Desconto" para <strong>Acordo Comercial</strong> — nomenclatura alinhada ao processo interno</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Campo Nota Informativa:</strong> espaço livre para referência bancária, número de transação ou qualquer informação de vínculo do lançamento</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span>Validação de emitente único: alerta vermelho quando PIX do mesmo lançamento têm remetentes diferentes</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span>Painel gerencial: auditoria expandida com galeria de comprovantes, campos editáveis (data, hora, emitente) e tabela de pedidos com totais</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon fix">🔧</span>
+          <span>Corrigido erro de autenticação Firebase (chave de API com typo) — login Google voltou a funcionar</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon fix">🔧</span>
+          <span>Corrigida máscara de valores em tempo real nos campos Total Pedido e Acordo Comercial</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon fix">🔧</span>
+          <span>Corrigido erro ao limpar formulário (referência a variáveis removidas em versão anterior)</span>
+        </div>
+      </div>
+    </div>
+
     <!-- v2.0 PIX ENVIO -->
     <div class="timeline-item" data-type="feature improvement">
       <div class="timeline-header">
