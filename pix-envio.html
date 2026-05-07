@@ -659,7 +659,8 @@
         placeholder.sizeKB = result.sizeKB;
         updateFileList();
         if (typeof Tesseract !== 'undefined') {
-          _tentarOCRParaEntry(result.base64);
+          const fileIndex = processedFiles.indexOf(placeholder);
+          _tentarOCRParaEntry(result.base64, fileIndex);
         }
       } catch(err) {
         console.error(err);
@@ -846,13 +847,21 @@
     }
   }
 
-  async function _tentarOCRParaEntry(base64DataUrl) {
-    // Se não há nenhuma entry, cria uma automaticamente antes de processar
-    if (pixEntries.length === 0) {
-      adicionarPixEntry();
+  function _criarPixEntryVazia() {
+    const id = 'pix_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    const pad = n => String(n).padStart(2,'0');
+    const d = new Date();
+    const datetimeDefault = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const emitente = document.getElementById('clienteName').value.trim();
+    return { id, datetime: datetimeDefault, valor: '', emitente, idValidacao: '', idAutoCapturado: false, idOcrStatus: '' };
+  }
+
+  async function _tentarOCRParaEntry(base64DataUrl, fileIndex) {
+    // Garante que existe uma entry para este arquivo (por índice de arquivo)
+    while (pixEntries.length <= fileIndex) {
+      pixEntries.push(_criarPixEntryVazia());
     }
-    // Encontra a primeira entry sem ID ainda (não loading)
-    const entry = pixEntries.find(e => !e.idValidacao && e.idOcrStatus !== 'loading');
+    const entry = pixEntries[fileIndex];
     if (!entry) return;
 
     entry.idOcrStatus = 'loading';
@@ -1165,8 +1174,8 @@
     document.getElementById('modalImageContainer').style.cursor = 'zoom-in';
     document.getElementById('modalImageContainer').style.justifyContent = 'center';
 
-    const entry = pixEntries[index] !== undefined ? pixEntries[index]
-                : (pixEntries.length > 0 ? pixEntries[Math.min(index, pixEntries.length-1)] : null);
+    // Usa exatamente a entry do índice deste arquivo (sem fallback para outros)
+    const entry = pixEntries[index] || null;
     if (entry) {
       document.getElementById('modalDatetime').value = entry.datetime || '';
       document.getElementById('modalEmitente').value = entry.emitente || '';
@@ -1204,8 +1213,13 @@
     const valor = document.getElementById('modalValor').value;
     const idValidacao = document.getElementById('modalIdValidacao').value.trim();
 
-    let entry = (idx >= 0 && pixEntries[idx] !== undefined) ? pixEntries[idx]
-              : (pixEntries.length > 0 ? pixEntries[Math.min(Math.max(idx,0), pixEntries.length-1)] : null);
+    // Garante que existe entry exata para este índice de arquivo
+    if (idx >= 0) {
+      while (pixEntries.length <= idx) {
+        pixEntries.push(_criarPixEntryVazia());
+      }
+    }
+    let entry = (idx >= 0 && pixEntries[idx] !== undefined) ? pixEntries[idx] : null;
     if (!entry) {
       adicionarPixEntry();
       entry = pixEntries[pixEntries.length - 1];
@@ -1281,21 +1295,31 @@
                  || t.match(/(?:Pedido|Nro?)\s*[:\-]?\s*(\d{7,12})\b/i);
     if (mPedido) resultado.numero = mPedido[1];
 
-    // ── Código da Loja (4 dígitos iniciando em 1, próximo a nome de loja)
-    const mCodLoja = t.match(/\b(1\d{3})\b\s*[-–]?\s*(?:MAX|DEBRET|COLOMBO|CAMPO|SAO|SÃO|MARECHAL|PIONEIROS|SAFIRA|OLIMIA|OLIVIA|CASTRO|TORRES|SARANDI)/i);
+    // ── Código da Loja (4 dígitos iniciando em 1)
+    const nomesCidades = 'MAX|DEBRET|COLOMBO|CAMPO|SAO|SÃO|MARECHAL|PIONEIROS|SAFIRA|OLIMIA|CASTRO|TORRES|SARANDI|UMUARAMA|ROLANDIA|CATANDUVA|TOLEDO|APUCARANA|PARANAGUÁ|PARANAGUA|CIANORTE|ARAUCÁRIA|ARAUCARIA|PINHAIS|MEDIANEIRA|GUAIRA|TAUBATE|SOROCABA|MARILIA|CAMPINAS|GUARULHOS|OURINHOS|VOTUPORANGA|PIRACICABA|ASSIS';
+    const mCodLoja = t.match(new RegExp(`\\b(1\\d{3})\\b\\s*[-–]?\\s*(?:${nomesCidades})`, 'i'))
+                  || t.match(/(?:LOJA|FILIAL)\s*[:\-]?\s*(1\d{3})\b/i)
+                  || t.match(/\b(1\d{3})\b\s*[-–]\s*[A-ZÀ-Ú]{3}/i);
     if (mCodLoja) {
       resultado.codigoLoja = mCodLoja[1];
     } else {
-      // fallback: busca código no rodapé (formato: número sozinho 4 dígitos)
       const mCodFallback = t.match(/FILIAL[:\s]+[A-ZÀ-Ú\s]+?\b(1\d{3})\b/i);
       if (mCodFallback) resultado.codigoLoja = mCodFallback[1];
     }
 
-    // ── Código do Cliente + Nome do Cliente
-    const mCliente = t.match(/CLIENTE\s*[:\-]?\s*(\d{5,12})\s*[-–]\s*([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇ][A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇ\s\.\-&]{3,60}?)(?=\s{2,}|CPF|CNPJ|END|RUA|AV\.|$)/i);
-    if (mCliente) {
-      resultado.codigoCliente = mCliente[1];
-      resultado.nomeCliente = mCliente[2].trim().replace(/\s+/g, ' ');
+    // ── Código do Cliente + Razão Social / Nome do Cliente
+    // Padrão 1: "CLIENTE: 1001234 - NOME DO CLIENTE"
+    const mCliente1 = t.match(/CLIENTE\s*[:\-]?\s*(\d{5,12})\s*[-–]\s*([\wÀ-ÿ][^\n]{3,60}?)(?=\s{2,}|CPF|CNPJ|END|RUA|AV\.|FONE|CEP|$)/i);
+    // Padrão 2: código e razão social em campos separados
+    const mCodCli = t.match(/(?:COD\.?\s*CLIENTE|C[ÓO]DIGO\s+CLIENTE|CLIENTE\s*[:\-]?\s*N[°º]?)\s*[:\-]?\s*(\d{5,12})/i);
+    const mRazao = t.match(/(?:RAZ[ÃA]O\s+SOCIAL|NOME\s+DO\s+CLIENTE|EMPRESA)\s*[:\-]?\s*([\wÀ-ÿ][^\n]{3,80}?)(?=\s{2,}|CPF|CNPJ|END|RUA|AV\.|FONE|CEP|$)/i);
+
+    if (mCliente1) {
+      resultado.codigoCliente = mCliente1[1];
+      resultado.nomeCliente = mCliente1[2].trim().replace(/\s+/g, ' ');
+    } else {
+      if (mCodCli) resultado.codigoCliente = mCodCli[1];
+      if (mRazao) resultado.nomeCliente = mRazao[1].trim().replace(/\s+/g, ' ');
     }
 
     // ── Valor Mercadorias (Total Pedido)
@@ -1380,16 +1404,30 @@
     // Preenche cabeçalho com dados do 1º PDF
     const primeiro = resultados[0];
 
+    // Log de extração para facilitar diagnóstico de regex
+    console.log('[PDF] Dados extraídos do 1º PDF:', {
+      numero: primeiro.numero,
+      codigoLoja: primeiro.codigoLoja,
+      codigoCliente: primeiro.codigoCliente,
+      nomeCliente: primeiro.nomeCliente,
+      tipoPedido: primeiro.tipoPedido,
+      valorPedido: primeiro.valorPedido,
+      acordoComercial: primeiro.acordoComercial,
+      condicaoPagamento: primeiro.condicaoPagamento
+    });
+
     if (primeiro.codigoLoja) {
       const selectLoja = document.getElementById('storeSelect');
       const opcoes = Array.from(selectLoja.options);
       const opcaoCorreta = opcoes.find(o => o.value.startsWith(primeiro.codigoLoja + ' ') || o.value.startsWith(primeiro.codigoLoja + '-'));
       if (opcaoCorreta) selectLoja.value = opcaoCorreta.value;
     }
-    if (primeiro.nomeCliente && !document.getElementById('clienteName').value.trim()) {
+    // Preenche nome do cliente / razão social (sobrescreve se o PDF trouxer dado)
+    if (primeiro.nomeCliente) {
       document.getElementById('clienteName').value = primeiro.nomeCliente;
     }
-    if (primeiro.codigoCliente && !document.getElementById('codigoCliente').value.trim()) {
+    // Preenche código do cliente (sobrescreve se o PDF trouxer dado)
+    if (primeiro.codigoCliente) {
       document.getElementById('codigoCliente').value = primeiro.codigoCliente;
     }
 
