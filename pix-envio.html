@@ -10,6 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/tesseract.js@4/dist/tesseract.min.js"></script>
 <style>
   :root, html[data-theme="dark"] {
     --bg: #080810; --bg2: #0d0d1a; --nav-bg: rgba(8,8,16,0.7);
@@ -212,14 +213,7 @@
           <option value="1025 - Debret">1025 - Debret</option><option value="1037 - Max Tiradentes">1037 - Max Tiradentes</option><option value="1050 - Max Eldorado Prudente">1050 - Max Eldorado Prudente</option><option value="1057 - Max Floresta">1057 - Max Floresta</option><option value="1060 - Max Apucarana">1060 - Max Apucarana</option><option value="1065 - Colombo">1065 - Colombo</option><option value="1066 - Max São Cristóvão">1066 - Max São Cristóvão</option><option value="1067 - Max Paranaguá">1067 - Max Paranaguá</option><option value="1070 - Max Linha Verde">1070 - Max Linha Verde</option><option value="1073 - Potirendaba">1073 - Potirendaba</option><option value="1075 - Max Bairro Alto">1075 - Max Bairro Alto</option><option value="1076 - Max Campo Comprido">1076 - Max Campo Comprido</option><option value="1079 - Max São José">1079 - Max São José</option><option value="1084 - Max Zona Norte SJRP">1084 - Max Zona Norte SJRP</option><option value="1085 - Max Arapongas">1085 - Max Arapongas</option><option value="1086 - Max Foz BR 277">1086 - Max Foz BR 277</option><option value="1089 - Max Pinhais">1089 - Max Pinhais</option><option value="1090 - Max FRG">1090 - Max FRG</option><option value="1091 - Max Araucária">1091 - Max Araucária</option><option value="1092 - Max Chapada Ponta Grossa">1092 - Max Chapada Ponta Grossa</option><option value="1093 - Max Rolandia">1093 - Max Rolandia</option><option value="1094 - Max Tito Muffato">1094 - Max Tito Muffato</option><option value="1097 - Max Catanduva">1097 - Max Catanduva</option><option value="1102 - Max Toledo">1102 - Max Toledo</option><option value="1104 - Max Bela Vista">1104 - Max Bela Vista</option><option value="1105 - Max Guanabara">1105 - Max Guanabara</option><option value="1106 - Max Ourinhos">1106 - Max Ourinhos</option><option value="1107 - Max Fernandópolis">1107 - Max Fernandópolis</option><option value="1109 - Max Beltao">1109 - Max Beltao</option><option value="1110 - Max Cambé">1110 - Max Cambé</option><option value="1111 - Max Colombo RMC">1111 - Max Colombo RMC</option><option value="1112 - Max Medianeira">1112 - Max Medianeira</option><option value="1113 - Campo Largo">1113 - Campo Largo</option><option value="1114 - Max Cianorte">1114 - Max Cianorte</option><option value="1116 - Max Jardim Carvalho">1116 - Max Jardim Carvalho</option><option value="1118 - Max Sorocaba Ipanema">1118 - Max Sorocaba Ipanema</option><option value="1120 - Max Marechal">1120 - Max Marechal</option><option value="1122 - Max Hauer">1122 - Max Hauer</option><option value="1123 - Max Pioneiros">1123 - Max Pioneiros</option><option value="1126 - Max Taubaté">1126 - Max Taubaté</option><option value="1127 - Max Sorocaba Norte">1127 - Max Sorocaba Norte</option><option value="1128 - Max São José dos Campos">1128 - Max São José dos Campos</option><option value="1129 - Max Lapa">1129 - Max Lapa</option><option value="1130 - Max Eldorado Rio Preto">1130 - Max Eldorado Rio Preto</option><option value="1131 - Max Santo André">1131 - Max Santo André</option><option value="1132 - Max Votorantin">1132 - Max Votorantin</option><option value="1133 - Max Guarulhos">1133 - Max Guarulhos</option><option value="1134 - Max Piracicaba">1134 - Max Piracicaba</option><option value="1135 - Max Cedral">1135 - Max Cedral</option><option value="1136 - Max Interlagos">1136 - Max Interlagos</option><option value="1137 - Max Butantã">1137 - Max Butantã</option><option value="1138 - Max Marília">1138 - Max Marília</option><option value="1139 - Max Mogi">1139 - Max Mogi</option><option value="1140 - Max São Bernardo">1140 - Max São Bernardo</option><option value="1141 - Max Campinas">1141 - Max Campinas</option><option value="1142 - Max Assis">1142 - Max Assis</option><option value="1144 - Max JK Foz">1144 - Max JK Foz</option><option value="1145 - Max João Bettega">1145 - Max João Bettega</option><option value="1146 - Max Oficinas">1146 - Max Oficinas</option><option value="1148 - Max Jaçanã (Manuel Gaya)">1148 - Max Jaçanã (Manuel Gaya)</option><option value="1149 - Max Morumbi (Giovanni Gronchi)">1149 - Max Morumbi (Giovanni Gronchi)</option><option value="1150 - Max Safira">1150 - Max Safira</option><option value="1151 - Max Olímpia">1151 - Max Olímpia</option><option value="1152 - Max Castro">1152 - Max Castro</option><option value="1153 - Max Torres">1153 - Max Torres</option><option value="1154 - Max Votuporanga">1154 - Max Votuporanga</option><option value="1155 - Max Guaíra">1155 - Max Guaíra</option><option value="1156 - Max Sarandi">1156 - Max Sarandi</option><option value="1157 - Max Umuarama">1157 - Max Umuarama</option><option value="1158 - Max Marília Norte">1158 - Max Marília Norte</option>
         </select>
       </div>
-      <div class="form-group">
-        <label class="form-label">Data/Hora do PIX</label>
-        <input type="datetime-local" id="pixDateTime" class="form-input">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Valor (R$)</label>
-        <input type="text" id="pixAmount" class="form-input" placeholder="1.500,00" inputmode="decimal">
-      </div>
+
       <div class="form-group">
         <label class="form-label">Chave PIX Utilizada</label>
         <input type="text" id="pixKey" class="form-input" value="76430438000171" readonly>
@@ -240,6 +234,43 @@
           <label class="form-label">Número</label>
           <input type="text" id="pixReceiver" class="form-input" placeholder="00.000.000/0000-00" maxlength="18">
         </div>
+      </div>
+    </div>
+
+
+    <div style="margin-bottom:24px; padding:20px; background:var(--surface); border-radius:12px; border:1px solid var(--border);">
+      <h3 style="margin-top:0; margin-bottom:8px; color:var(--text); font-weight:700; font-size:16px;">💳 PIX Enviados</h3>
+      <p style="font-size:13px; color:var(--text-2); margin-bottom:16px;">Adicione um ou mais PIX deste lançamento. Emitente e destinatário devem ser iguais em todos.</p>
+      <div class="table-container" style="margin-bottom:12px; overflow-x:auto;">
+        <table style="width:100%; font-size:13px;">
+          <thead>
+            <tr>
+              <th style="text-align:left; padding:10px 8px; border-bottom:2px solid var(--border);">Data/Hora</th>
+              <th style="text-align:left; padding:10px 8px; border-bottom:2px solid var(--border);">Emitente (Remetente)</th>
+              <th style="text-align:right; padding:10px 8px; border-bottom:2px solid var(--border);">Valor (R$)</th>
+              <th style="text-align:left; padding:10px 8px; border-bottom:2px solid var(--border); min-width:170px;">ID Validação</th>
+              <th style="text-align:center; padding:10px 8px; border-bottom:2px solid var(--border);">Ação</th>
+            </tr>
+          </thead>
+          <tbody id="pixEntriesTable">
+            <tr style="opacity:0.5;"><td colspan="4" style="padding:20px; text-align:center; color:var(--text-3);">Clique em "+" para adicionar PIX</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="btn" style="margin-bottom:16px;" onclick="adicionarPixEntry()">+ Adicionar PIX</button>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px;">
+        <div style="background:var(--bg2); padding:12px; border-radius:8px; border-left:4px solid var(--cyan);">
+          <div style="font-size:11px; color:var(--text-3); margin-bottom:4px;">Qtd. de PIX</div>
+          <div style="font-size:18px; font-weight:700; color:var(--cyan);" id="totalQtdPix">0</div>
+        </div>
+        <div style="background:var(--bg2); padding:12px; border-radius:8px; border-left:4px solid var(--green);">
+          <div style="font-size:11px; color:var(--text-3); margin-bottom:4px;">Total PIX (R$)</div>
+          <div style="font-size:18px; font-weight:700; color:var(--green);" id="totalValorPix">R$ 0,00</div>
+        </div>
+      </div>
+      <div id="alertaEmitente" style="display:none; margin-top:12px; padding:12px; border-radius:8px; border-left:4px solid var(--red); background:rgba(227,30,36,0.1);">
+        <div style="font-weight:600; color:var(--red);">&#9940; Emitentes diferentes detectados</div>
+        <div style="font-size:13px; color:var(--text); margin-top:4px;" id="alertaEmitenteTexto"></div>
       </div>
     </div>
 
@@ -269,8 +300,8 @@
             <tr>
               <th style="text-align:left; padding:12px 8px; border-bottom:2px solid var(--border);">Nº Pedido</th>
               <th style="text-align:left; padding:12px 8px; border-bottom:2px solid var(--border);">Tipo</th>
-              <th style="text-align:right; padding:12px 8px; border-bottom:2px solid var(--border);">Valor PIX</th>
-              <th style="text-align:right; padding:12px 8px; border-bottom:2px solid var(--border);">Acordo</th>
+              <th style="text-align:right; padding:12px 8px; border-bottom:2px solid var(--border);">Total Pedido</th>
+              <th style="text-align:right; padding:12px 8px; border-bottom:2px solid var(--border);">Acordo Comercial</th>
               <th style="text-align:right; padding:12px 8px; border-bottom:2px solid var(--border);">Total</th>
               <th style="text-align:center; padding:12px 8px; border-bottom:2px solid var(--border);">Ação</th>
             </tr>
@@ -302,6 +333,11 @@
     </div>
 
     <div class="form-group" style="margin-bottom:24px;">
+      <label class="form-label">&#128204; Nota Informativa (banco / referência)</label>
+      <textarea id="notaInformativa" class="form-input" placeholder="Referência bancária, número de transação ou informação que vincule este lançamento..." style="min-height:80px; resize:vertical;"></textarea>
+    </div>
+
+        <div class="form-group" style="margin-bottom:24px;">
       <label class="form-label">Observações (opcional)</label>
       <textarea id="pixNotes" class="form-input" placeholder="Anotações adicionais..." style="min-height:100px; resize:vertical;"></textarea>
     </div>
@@ -310,9 +346,9 @@
       <label class="form-label">Comprovante do PIX</label>
       <div class="file-upload" id="fileUploadArea">
         <div class="file-icon">📁</div>
-        <div class="file-text">Clique ou arraste o comprovante aqui</div>
-        <div class="file-hint">Apenas imagens: PNG, JPG ou WEBP (será redimensionada automaticamente)</div>
-        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp">
+        <div class="file-text">Clique ou arraste um ou mais comprovantes aqui</div>
+        <div class="file-hint">PNG, JPG ou WEBP — múltiplos arquivos permitidos (cada um será comprimido automaticamente)</div>
+        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" multiple>
       </div>
       <div class="file-list" id="fileList"></div>
     </div>
@@ -459,7 +495,6 @@
     document.getElementById('userAvatar').src = currentUser.photoURL || '';
     document.getElementById('userName').textContent = currentUser.displayName || currentUser.email;
     document.getElementById('vendorName').value = currentUser.displayName || currentUser.email;
-    setDataHoraAtual();
     loadHistory();
   }
 
@@ -504,10 +539,8 @@
     root.setAttribute('data-theme', saved);
   })();
 
-  // ── FILE UPLOAD (sem Storage: redimensiona + comprime + salva em base64) ──
-  let selectedFile = null;
-  let processedBase64 = null;
-  let processedSize = 0;
+  // ── FILE UPLOAD (múltiplos arquivos) ──
+  let processedFiles = []; // [{name, base64, sizeKB}]
   const TIPOS_OK = ['image/png','image/jpeg','image/jpg','image/webp'];
   const MAX_DIM = 1280;          // dimensão máxima
   const TARGET_KB = 200;         // tamanho alvo em KB do base64
@@ -519,38 +552,46 @@
   document.getElementById('fileUploadArea').addEventListener('drop', (e) => {
     e.preventDefault();
     document.getElementById('fileUploadArea').classList.remove('active');
-    if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files.length > 0) handleFilesSelect(Array.from(e.dataTransfer.files));
   });
   document.getElementById('fileInput').addEventListener('change', (e) => {
-    if (e.target.files.length > 0) handleFileSelect(e.target.files[0]);
+    if (e.target.files.length > 0) handleFilesSelect(Array.from(e.target.files));
   });
 
-  async function handleFileSelect(file) {
-    if (!TIPOS_OK.includes(file.type)) {
-      showAlert('formAlert', '❌ Tipo não permitido. Use PNG, JPG ou WEBP.', 'error');
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      showAlert('formAlert', '❌ Imagem muito grande (máx. 10MB no original)', 'error');
-      return;
-    }
-    selectedFile = file;
-    document.getElementById('fileList').innerHTML = `<div class="file-chip">⏳ Processando ${escapeHTML(file.name)}...</div>`;
-
-    try {
-      const result = await comprimirImagem(file);
-      processedBase64 = result.base64;
-      processedSize = result.sizeKB;
-      if (processedSize > HARD_LIMIT_KB) {
-        showAlert('formAlert', `❌ Não foi possível comprimir o suficiente (${processedSize}KB). Tire uma foto com menos detalhes ou use uma imagem mais simples.`, 'error');
-        removeFile();
-        return;
+  async function handleFilesSelect(files) {
+    for (const file of files) {
+      if (!TIPOS_OK.includes(file.type)) {
+        showAlert('formAlert', `❌ Tipo inválido: ${escapeHTML(file.name)}. Use PNG, JPG ou WEBP.`, 'error');
+        continue;
       }
+      if (file.size > 10 * 1024 * 1024) {
+        showAlert('formAlert', `❌ Imagem muito grande: ${escapeHTML(file.name)} (máx. 10MB)`, 'error');
+        continue;
+      }
+      const placeholder = { name: file.name, base64: null, sizeKB: 0 };
+      processedFiles.push(placeholder);
       updateFileList();
-    } catch(err) {
-      console.error(err);
-      showAlert('formAlert', '❌ Erro ao processar imagem: ' + err.message, 'error');
-      removeFile();
+      try {
+        const result = await comprimirImagem(file);
+        if (result.sizeKB > HARD_LIMIT_KB) {
+          showAlert('formAlert', `❌ Não foi possível comprimir ${escapeHTML(file.name)} (${result.sizeKB}KB). Use imagem mais simples.`, 'error');
+          processedFiles = processedFiles.filter(f => f !== placeholder);
+          updateFileList();
+          continue;
+        }
+        placeholder.base64 = result.base64;
+        placeholder.sizeKB = result.sizeKB;
+        updateFileList();
+        // Dispara OCR em background para capturar ID da transação
+        if (typeof Tesseract !== 'undefined') {
+          _tentarOCRParaEntry(result.base64);
+        }
+      } catch(err) {
+        console.error(err);
+        showAlert('formAlert', `❌ Erro ao processar ${escapeHTML(file.name)}: ` + err.message, 'error');
+        processedFiles = processedFiles.filter(f => f !== placeholder);
+        updateFileList();
+      }
     }
   }
 
@@ -610,27 +651,81 @@
 
   function updateFileList() {
     const fileList = document.getElementById('fileList');
-    if (!selectedFile || !processedBase64) { fileList.innerHTML = ''; return; }
-    fileList.innerHTML = `
-      <div class="file-chip">📎 ${escapeHTML(selectedFile.name)} (${processedSize}KB)<button onclick="removeFile()">✕</button></div>
-      <div style="margin-top:12px;"><img src="${processedBase64}" alt="Pré-visualização" style="max-width:200px; max-height:200px; border-radius:8px; border:1px solid var(--border);"></div>
-    `;
+    if (processedFiles.length === 0) { fileList.innerHTML = ''; return; }
+    fileList.innerHTML = processedFiles.map((f, i) => `
+      <div style="display:inline-block; margin-right:10px; margin-bottom:10px; vertical-align:top; text-align:center;">
+        ${f.base64 ? `<img src="${f.base64}" alt="Preview" style="display:block; width:120px; height:120px; object-fit:cover; border-radius:8px; border:1px solid var(--border); margin-bottom:6px;">` : `<div style="width:120px; height:120px; border-radius:8px; border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:6px;">⏳</div>`}
+        <div class="file-chip" style="display:block; width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px;">${escapeHTML(f.name)} ${f.sizeKB > 0 ? '('+f.sizeKB+'KB)' : ''} ${f.sizeKB > 0 ? `<button onclick="removeFile(${i})">✕</button>` : ''}</div>
+      </div>
+    `).join('');
   }
-  function removeFile() {
-    selectedFile = null;
-    processedBase64 = null;
-    processedSize = 0;
+  function removeFile(index) {
+    processedFiles.splice(index, 1);
     document.getElementById('fileInput').value = '';
-    document.getElementById('fileList').innerHTML = '';
+    updateFileList();
   }
 
-  // ── MÁSCARA DE MOEDA ──
-  document.getElementById('pixAmount').addEventListener('input', function(e) {
-    let v = e.target.value.replace(/\D/g, '');
-    if (!v) { e.target.value = ''; return; }
-    e.target.value = (parseInt(v, 10) / 100).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-  });
-  document.getElementById('pixAmount').addEventListener('change', verificarDiferenca);
+  // ── OCR — extração automática de ID do comprovante ──
+  let _ocrWorker = null;
+  let _ocrInitPromise = null;
+
+  async function _getOCRWorker() {
+    if (_ocrWorker) return _ocrWorker;
+    if (_ocrInitPromise) return _ocrInitPromise;
+    if (typeof Tesseract === 'undefined') return null;
+    _ocrInitPromise = (async () => {
+      try {
+        const w = await Tesseract.createWorker('por+eng', 1, { logger: () => {} });
+        _ocrWorker = w;
+        return w;
+      } catch(e) {
+        console.warn('OCR worker init failed:', e);
+        _ocrWorker = null;
+        return null;
+      }
+    })();
+    return _ocrInitPromise;
+  }
+
+  async function extrairIdDoComprovante(base64DataUrl) {
+    if (typeof Tesseract === 'undefined') return null;
+    const worker = await _getOCRWorker();
+    if (!worker) return null;
+    try {
+      const { data: { text } } = await worker.recognize(base64DataUrl);
+      // Normaliza espaços e quebras de linha
+      const t = text.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
+      // PIX: começa com E + 32 ou mais caracteres hex (ex.: E332646682026050619301a9910ca24d)
+      const m1 = t.match(/\bE[0-9A-Fa-f]{32,}\b/);
+      if (m1) return m1[0];
+      // TED/DOC: UUID (ex.: ff29a4b1-9741-4cee-9791-cb800e8ad010)
+      const m2 = t.match(/\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b/);
+      if (m2) return m2[0];
+      return null;
+    } catch(e) {
+      console.warn('OCR recognition error:', e);
+      return null;
+    }
+  }
+
+  async function _tentarOCRParaEntry(base64DataUrl) {
+    // Encontra a primeira entry sem ID ainda (não loading)
+    const entry = pixEntries.find(e => !e.idValidacao && e.idOcrStatus !== 'loading');
+    if (!entry) return; // todas já têm ID ou estão sendo processadas
+    entry.idOcrStatus = 'loading';
+    renderizarPixEntries();
+    const idEncontrado = await extrairIdDoComprovante(base64DataUrl);
+    if (idEncontrado) {
+      entry.idValidacao = idEncontrado;
+      entry.idAutoCapturado = true;
+      entry.idOcrStatus = 'found';
+    } else {
+      entry.idOcrStatus = 'not_found';
+    }
+    renderizarPixEntries();
+  }
+
+  // ── MÁSCARA DE MOEDA (aplicada nos inputs de valor dos PIX entries via JS dinâmico) ──
 
   // ── CPF/CNPJ ──
   function formatarCPF(valor) {
@@ -660,11 +755,116 @@
     e.target.value = tipo === 'cpf' ? formatarCPF(e.target.value) : formatarCNPJ(e.target.value);
   });
 
+  // ── PIX ENTRIES ──
+  let pixEntries = [];
+
+  function adicionarPixEntry() {
+    const id = 'pix_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    const pad = n => String(n).padStart(2,'0');
+    const d = new Date();
+    const datetimeDefault = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const emitente = document.getElementById('clienteName').value.trim();
+    pixEntries.push({ id, datetime: datetimeDefault, valor: '', emitente, idValidacao: '', idAutoCapturado: false, idOcrStatus: '' });
+    renderizarPixEntries();
+    verificarDiferenca();
+  }
+
+  function removerPixEntry(id) {
+    pixEntries = pixEntries.filter(p => p.id !== id);
+    renderizarPixEntries();
+    verificarDiferenca();
+  }
+
+  function renderizarPixEntries() {
+    const tbody = document.getElementById('pixEntriesTable');
+    if (pixEntries.length === 0) {
+      tbody.innerHTML = '<tr style="opacity:0.5;"><td colspan="5" style="padding:20px; text-align:center; color:var(--text-3);">Clique em "+" para adicionar PIX</td></tr>';
+      document.getElementById('totalQtdPix').textContent = '0';
+      document.getElementById('totalValorPix').textContent = 'R$ 0,00';
+      document.getElementById('alertaEmitente').style.display = 'none';
+      return;
+    }
+    tbody.innerHTML = pixEntries.map(p => {
+      let idCell;
+      if (p.idOcrStatus === 'loading') {
+        idCell = `<td style="padding:8px;"><div style="display:flex;align-items:center;gap:6px;padding:6px;font-size:11px;color:var(--text-3);"><span class="spinner"></span> Lendo comprovante...</div></td>`;
+      } else if (p.idAutoCapturado && p.idValidacao) {
+        idCell = `<td style="padding:8px;" title="Capturado automaticamente via OCR. Edição apenas no painel gerencial.">
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:14px;">🔒</span>
+            <input type="text" value="${escapeHTML(p.idValidacao)}" data-campo="idValidacao" readonly
+              style="flex:1;padding:5px 7px;border:1px solid rgba(245,158,11,0.4);border-radius:6px;background:rgba(245,158,11,0.07);color:var(--amber);font-size:10px;cursor:not-allowed;font-family:monospace;overflow:hidden;text-overflow:ellipsis;">
+          </div>
+          <div style="font-size:10px;color:var(--text-3);margin-top:2px;padding-left:20px;">Auto OCR ✓</div>
+        </td>`;
+      } else {
+        const ph = p.idOcrStatus === 'not_found' ? 'Não encontrado — informe manualmente' : 'ID da transação (E... ou UUID)';
+        idCell = `<td style="padding:8px;"><input type="text" value="${escapeHTML(p.idValidacao||'')}" data-campo="idValidacao"
+          placeholder="${ph}"
+          style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:11px;font-family:monospace;"></td>`;
+      }
+      return `
+      <tr data-pix-id="${escapeHTML(p.id)}" style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px;"><input type="datetime-local" value="${escapeHTML(p.datetime)}" data-campo="datetime" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px;"></td>
+        <td style="padding:8px;"><input type="text" value="${escapeHTML(p.emitente)}" data-campo="emitente" placeholder="Nome do remetente" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px;"></td>
+        <td style="padding:8px; text-align:right;"><input type="text" value="${escapeHTML(p.valor)}" data-campo="valor" placeholder="0,00" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px; text-align:right;"></td>
+        ${idCell}
+        <td style="padding:8px; text-align:center;"><button onclick="removerPixEntry('${escapeHTML(p.id)}')" style="background:var(--red); color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:600;">Remover</button></td>
+      </tr>`;
+    }).join('');
+    tbody.querySelectorAll('tr[data-pix-id]').forEach(tr => {
+      const pid = tr.getAttribute('data-pix-id');
+      tr.querySelectorAll('[data-campo]').forEach(el => {
+        el.addEventListener('input', () => {
+          if (el.dataset.campo === 'valor') {
+            let v = el.value.replace(/\D/g, '');
+            el.value = v ? (parseInt(v,10)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
+          }
+          atualizarPixEntryCampo(pid, el.dataset.campo, el.value);
+        });
+        el.addEventListener('change', () => atualizarPixEntryCampo(pid, el.dataset.campo, el.value));
+      });
+    });
+    atualizarPixEntriesTotais();
+  }
+
+  function atualizarPixEntryCampo(id, campo, valor) {
+    const entry = pixEntries.find(p => p.id === id);
+    if (!entry) return;
+    entry[campo] = valor;
+    atualizarPixEntriesTotais();
+    verificarDiferenca();
+  }
+
+  function atualizarPixEntriesTotais() {
+    document.getElementById('totalQtdPix').textContent = pixEntries.length;
+    document.getElementById('totalValorPix').textContent = 'R$ ' + formatarReal(getTotalPix());
+    validarEmitentesIguais();
+  }
+
+  function getTotalPix() {
+    return pixEntries.reduce((s,p) => s + parseReal(p.valor ? p.valor.toString() : '0'), 0);
+  }
+
+  function validarEmitentesIguais() {
+    if (pixEntries.length <= 1) { document.getElementById('alertaEmitente').style.display='none'; return true; }
+    const emits = pixEntries.map(p => (p.emitente||'').trim().toLowerCase());
+    const primeiro = emits[0];
+    if (emits.some(e => e !== primeiro)) {
+      const unicos = [...new Set(pixEntries.map(p => (p.emitente||'').trim()))];
+      document.getElementById('alertaEmitente').style.display = 'block';
+      document.getElementById('alertaEmitenteTexto').textContent = 'Emitentes encontrados: "' + unicos.join('" / "') + '" — Todos devem ser do mesmo remetente.';
+      return false;
+    }
+    document.getElementById('alertaEmitente').style.display = 'none';
+    return true;
+  }
+
   // ── PEDIDOS ──
   let pedidosData = [];
   function adicionarPedido() {
     const id = 'pedido_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-    pedidosData.push({ id, numero: '', tipo: 'danfe', valorPix: 0, desconto: 0 });
+    pedidosData.push({ id, numero: '', tipo: 'danfe', valorPix: '', desconto: '' });
     renderizarPedidos();
   }
   function removerPedido(id) {
@@ -697,6 +897,14 @@
     tbody.querySelectorAll('tr[data-pid]').forEach(tr => {
       const pid = tr.getAttribute('data-pid');
       tr.querySelectorAll('[data-campo]').forEach(el => {
+        // Máscara de moeda em tempo real para Total Pedido e Acordo Comercial
+        if (el.dataset.campo === 'valorPix' || el.dataset.campo === 'desconto') {
+          el.addEventListener('input', () => {
+            let v = el.value.replace(/\D/g, '');
+            el.value = v ? (parseInt(v, 10) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+            atualizarPedidoCampo(pid, el.dataset.campo, el.value);
+          });
+        }
         el.addEventListener('change', () => atualizarPedidoCampo(pid, el.dataset.campo, el.value));
       });
     });
@@ -727,7 +935,7 @@
     verificarDiferenca();
   }
   function validarRegrasDocumento() {
-    const pixAmount = parseReal(document.getElementById('pixAmount').value.toString());
+    const pixAmount = getTotalPix();
     let alertas = [];
     let totalCupom = 0, qtdCupom = 0, qtdDanfe = 0;
     pedidosData.forEach(p => {
@@ -742,7 +950,7 @@
     return alertas;
   }
   function verificarDiferenca() {
-    const pixAmount = parseReal(document.getElementById('pixAmount').value.toString());
+    const pixAmount = getTotalPix();
     let somaValores = 0, somaDescontos = 0;
     pedidosData.forEach(p => {
       somaValores += parseReal(p.valorPix.toString());
@@ -786,20 +994,36 @@
       return;
     }
     const store = document.getElementById('storeSelect').value;
-    const datetimeRaw = document.getElementById('pixDateTime').value;
-    const amount = parseReal(document.getElementById('pixAmount').value);
     const key = document.getElementById('pixKey').value;
     const clienteName = document.getElementById('clienteName').value.trim();
     const documentType = document.getElementById('documentType').value;
     const receiver = document.getElementById('pixReceiver').value.replace(/\D/g, '');
     const notes = document.getElementById('pixNotes').value.trim();
+    const notaInformativa = document.getElementById('notaInformativa').value.trim();
+    const totalPix = getTotalPix();
 
-    if (!store || !datetimeRaw || !amount || !key || !clienteName || !receiver) {
+    if (!store || !clienteName || !receiver) {
       showAlert('formAlert', '⚠️ Preencha todos os campos obrigatórios', 'error');
       return;
     }
-    if (!selectedFile || !processedBase64) {
-      showAlert('formAlert', '⚠️ Anexe o comprovante do PIX (imagem)', 'error');
+    if (pixEntries.length === 0) {
+      showAlert('formAlert', '⚠️ Adicione pelo menos um PIX na seção "PIX Enviados"', 'error');
+      return;
+    }
+    if (totalPix <= 0) {
+      showAlert('formAlert', '⚠️ Informe o valor em pelo menos um PIX', 'error');
+      return;
+    }
+    if (!validarEmitentesIguais()) {
+      showAlert('formAlert', '❌ Emitentes diferentes detectados. Todos os PIX devem ser do mesmo remetente.', 'error');
+      return;
+    }
+    if (pixEntries.some(p => !p.datetime || !p.emitente.trim())) {
+      showAlert('formAlert', '⚠️ Preencha Data/Hora e Emitente em todos os PIX', 'error');
+      return;
+    }
+    if (processedFiles.filter(f => f.sizeKB > 0).length === 0) {
+      showAlert('formAlert', '⚠️ Anexe pelo menos um comprovante do PIX', 'error');
       return;
     }
     if (pedidosData.length === 0) {
@@ -812,8 +1036,8 @@
       return;
     }
     const totalLiquido = pedidosData.reduce((s,p) => s + parseReal(p.valorPix.toString()) - parseReal(p.desconto.toString()), 0);
-    if (Math.abs(amount - totalLiquido) > 0.01) {
-      showAlert('formAlert', `❌ Valor do PIX (R$ ${formatarReal(amount)}) não bate com soma dos pedidos (R$ ${formatarReal(totalLiquido)}). Corrija antes de enviar.`, 'error');
+    if (Math.abs(totalPix - totalLiquido) > 0.01) {
+      showAlert('formAlert', `❌ Total dos PIX (R$ ${formatarReal(totalPix)}) não bate com soma dos pedidos (R$ ${formatarReal(totalLiquido)}). Corrija antes de enviar.`, 'error');
       return;
     }
 
@@ -823,13 +1047,17 @@
 
     try {
       const pedidosNormalizados = pedidosData.map(p => ({
-        id: p.id,
-        numero: String(p.numero || ''),
-        tipo: p.tipo,
-        valorPix: parseReal(p.valorPix.toString()),
-        desconto: parseReal(p.desconto.toString())
+        id: p.id, numero: String(p.numero||''), tipo: p.tipo,
+        valorPix: parseReal(p.valorPix.toString()), desconto: parseReal(p.desconto.toString())
       }));
-      const datetimeISO = new Date(datetimeRaw).toISOString();
+      const pixEntriesNorm = pixEntries.map(p => ({
+        id: p.id, datetime: new Date(p.datetime).toISOString(),
+        valor: parseReal(p.valor ? p.valor.toString() : '0'), emitente: p.emitente,
+        idValidacao: p.idValidacao || '', idAutoCapturado: p.idAutoCapturado || false
+      }));
+      const proofFilesData = processedFiles.filter(f => f.sizeKB > 0).map(f => ({ name: f.name, base64: f.base64, sizeKB: f.sizeKB }));
+      const datetimeISO = pixEntriesNorm.length > 0 ? pixEntriesNorm[0].datetime : new Date().toISOString();
+      const amount = totalPix;
 
       const newRef = db.ref('pix-envios').push();
       const pixId = newRef.key;
@@ -840,11 +1068,13 @@
         vendorEmail: currentUser.email,
         vendor: currentUser.displayName || currentUser.email,
         store, datetime: datetimeISO, amount, key, clienteName,
-        documentType, receiver, notes,
+        documentType, receiver, notes, notaInformativa,
         pedidos: pedidosNormalizados,
-        proofFile: selectedFile.name,
-        proofBase64: processedBase64,
-        proofSizeKB: processedSize,
+        pixEntries: pixEntriesNorm,
+        proofFiles: proofFilesData,
+        proofFile: proofFilesData[0]?.name || '',
+        proofBase64: proofFilesData[0]?.base64 || '',
+        proofSizeKB: proofFilesData[0]?.sizeKB || 0,
         status: 'pending',
         submittedAt: new Date().toISOString()
       };
@@ -895,32 +1125,28 @@
 
   // ── CLEAR ──
   function clearForm() {
-    if (pedidosData.length > 0 || selectedFile || document.getElementById('pixAmount').value || document.getElementById('clienteName').value) {
+    if (pedidosData.length > 0 || pixEntries.length > 0 || processedFiles.length > 0 || document.getElementById('clienteName').value) {
       if (!confirm('Limpar todos os campos? Isso não pode ser desfeito.')) return;
     }
     clearFormSemConfirmar();
   }
   function clearFormSemConfirmar() {
     document.getElementById('storeSelect').value = '';
-    document.getElementById('pixAmount').value = '';
     document.getElementById('clienteName').value = '';
     document.getElementById('documentType').value = 'cnpj';
     document.getElementById('pixReceiver').value = '';
     document.getElementById('pixReceiver').maxLength = 18;
     document.getElementById('pixReceiver').placeholder = '00.000.000/0000-00';
     document.getElementById('pixNotes').value = '';
+    document.getElementById('notaInformativa').value = '';
     pedidosData = [];
     renderizarPedidos();
-    removeFile();
+    pixEntries = [];
+    renderizarPixEntries();
+    processedFiles = [];
+    document.getElementById('fileInput').value = '';
+    updateFileList();
     document.getElementById('formAlert').innerHTML = '';
-    setDataHoraAtual();
-  }
-
-  function setDataHoraAtual() {
-    const pad = n => String(n).padStart(2,'0');
-    const d = new Date();
-    document.getElementById('pixDateTime').value =
-      `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
   window.addEventListener('beforeunload', () => {

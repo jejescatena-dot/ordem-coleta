@@ -113,6 +113,32 @@
   .google-btn:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-1px); }
   .google-btn svg { width: 18px; height: 18px; }
 
+
+  /* ── AUDIT MODAL ── */
+  .audit-modal { position:fixed; inset:0; z-index:250; background:rgba(0,0,0,0.75); display:none; align-items:center; justify-content:center; padding:20px; }
+  .audit-modal.show { display:flex; }
+  .audit-panel { background:var(--bg2); border:1px solid var(--border); border-radius:16px; max-width:1100px; width:100%; max-height:90vh; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 24px 80px rgba(0,0,0,0.6); }
+  .audit-header { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; gap:12px; }
+  .audit-header h2 { font-size:15px; font-weight:700; color:var(--text); flex:1; }
+  .audit-body { flex:1; overflow-y:auto; padding:24px; display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .audit-section { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:16px; }
+  .audit-section h3 { font-size:13px; font-weight:700; color:var(--text); margin-bottom:14px; }
+  .audit-images { display:flex; flex-wrap:wrap; gap:10px; }
+  .audit-img-wrap { cursor:pointer; text-align:center; }
+  .audit-img-wrap img { width:130px; height:130px; object-fit:cover; border-radius:8px; border:2px solid var(--border); transition:border-color .2s; display:block; }
+  .audit-img-wrap:hover img { border-color:var(--cyan); }
+  .audit-img-label { font-size:10px; color:var(--text-3); margin-top:4px; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .audit-field { margin-bottom:10px; }
+  .audit-field label { font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:.4px; display:block; margin-bottom:3px; }
+  .audit-field input { background:var(--bg); border:1px solid var(--border); color:var(--text); padding:7px 10px; border-radius:7px; font-family:inherit; font-size:13px; width:100%; transition:border-color .2s; }
+  .audit-field input:focus { outline:none; border-color:var(--cyan); box-shadow:0 0 0 3px rgba(8,145,178,0.1); }
+  .audit-pix-entry { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:10px; }
+  .audit-pix-entry-header { font-size:12px; font-weight:700; color:var(--cyan); margin-bottom:10px; }
+  .audit-pix-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .duplicate-warn { background:rgba(245,158,11,0.12); border:1px solid var(--amber); border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:12px; color:var(--amber); }
+  .audit-footer { padding:14px 24px; border-top:1px solid var(--border); display:flex; gap:10px; flex-shrink:0; flex-wrap:wrap; align-items:center; }
+  @media (max-width:768px) { .audit-body { grid-template-columns:1fr; } }
+
   @media (max-width: 768px) {
     .nav { padding: 0 20px; }
     .page-header { padding: 120px 20px 30px; }
@@ -270,6 +296,19 @@
   </div>
 
 </section>
+
+
+<!-- AUDIT MODAL -->
+<div class="audit-modal" id="auditModal">
+  <div class="audit-panel">
+    <div class="audit-header">
+      <h2 id="auditTitle">&#128269; Auditoria de PIX</h2>
+      <button class="btn" onclick="fecharAudit()" style="background:var(--surface); color:var(--text); border:1px solid var(--border); flex-shrink:0;">&#10005; Fechar</button>
+    </div>
+    <div class="audit-body" id="auditBody"></div>
+    <div class="audit-footer" id="auditFooter"></div>
+  </div>
+</div>
 
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="this.classList.remove('show')">
@@ -512,7 +551,7 @@
         <td>${escapeHTML(new Date(p.datetime).toLocaleString('pt-BR'))}</td>
         <td><strong>R$ ${formatarReal(p.amount)}</strong></td>
         <td>${escapeHTML(p.clienteName || '')}<br><span style="font-size:11px; color:var(--text-3);">${escapeHTML(formatarDoc(p.receiver, p.documentType))}</span></td>
-        <td>${p.proofBase64 ? `<button class="btn" onclick="abrirComprovante('${p.id}')">📎 Ver</button>` : '—'}</td>
+        <td>${((p.proofFiles&&p.proofFiles.length>0)||p.proofBase64) ? `<button class="btn" style="font-size:11px;" onclick="abrirAudit('${escapeHTML(p.id)}')">&#128269; Ver</button>` : '—'}</td>
         <td><span class="badge ${escapeHTML(p.status)}">${escapeHTML(statusLabel(p.status))}</span></td>
         <td>${getActionButton(p)}</td>
       </tr>
@@ -521,15 +560,15 @@
 
   function getActionButton(p) {
     const safeId = escapeHTML(p.id);
-    if (p.status === 'pending') return `<button class="btn" onclick="updatePixStatus('${safeId}', 'analysis')">Analisar</button>`;
-    if (p.status === 'analysis') return `<button class="btn success" onclick="updatePixStatus('${safeId}', 'conciled')">Conciliar</button>`;
-    return '<span style="color:var(--text-3);">—</span>';
+    const auditBtn = `<button class="btn" style="background:transparent; color:var(--cyan); border:1px solid var(--cyan); margin-right:6px;" onclick="abrirAudit('${safeId}')">&#128269; Auditar</button>`;
+    if (p.status === 'pending') return auditBtn + `<button class="btn" onclick="updatePixStatus('${safeId}', 'analysis')">Analisar</button>`;
+    if (p.status === 'analysis') return auditBtn + `<button class="btn success" onclick="updatePixStatus('${safeId}', 'conciled')">Conciliar</button>`;
+    return auditBtn;
   }
 
-  function abrirComprovante(pixId) {
-    const p = pixes.find(x => x.id === pixId);
-    if (!p || !p.proofBase64) return;
-    document.getElementById('lightboxImg').src = p.proofBase64;
+  function abrirComprovante(src) {
+    if (!src) return;
+    document.getElementById('lightboxImg').src = src;
     document.getElementById('lightbox').classList.add('show');
   }
 
@@ -643,6 +682,239 @@
     } catch(err) {
       alert('Erro: ' + err.message);
     }
+  }
+
+
+  // ── AUDITORIA ──
+  let auditPixId = null;
+  let auditEdits = {};
+
+  function abrirAudit(pixId) {
+    const p = pixes.find(x => x.id === pixId);
+    if (!p) return;
+    auditPixId = pixId;
+    auditEdits = {};
+    document.getElementById('auditTitle').textContent = `Auditoria — ${p.vendor} | R$ ${formatarReal(p.amount)} | ${new Date(p.datetime).toLocaleString('pt-BR')}`;
+    renderAuditBody(p);
+    renderAuditFooter(p);
+    document.getElementById('auditModal').classList.add('show');
+  }
+
+  function fecharAudit() {
+    document.getElementById('auditModal').classList.remove('show');
+    auditPixId = null;
+    auditEdits = {};
+  }
+
+  function renderAuditBody(p) {
+    const proofFiles = p.proofFiles || (p.proofBase64 ? [{ name: p.proofFile||'comprovante', base64: p.proofBase64 }] : []);
+    const entries = p.pixEntries || [{ id: 'legacy', datetime: p.datetime, valor: p.amount, emitente: p.clienteName||'' }];
+    const emitente = (p.clienteName||'').toLowerCase();
+    const dia = new Date(p.datetime).toDateString();
+    const currentValor = p.amount || 0;
+
+    // IDs de transação deste lançamento
+    const currentIds = (p.pixEntries || [])
+      .map(e => (e.idValidacao||'').trim())
+      .filter(id => id.length > 0);
+
+    // Sinal 1: mesmo ID de transação (duplicata certa)
+    const dupPorId = pixes.filter(x => {
+      if (x.id === p.id) return false;
+      if (currentIds.length === 0) return false;
+      const otherIds = (x.pixEntries || []).map(e => (e.idValidacao||'').trim()).filter(id => id.length > 0);
+      return currentIds.some(id => otherIds.includes(id));
+    });
+
+    // Sinal 2: mesmo emitente + mesmo valor + mesma data (duplicata provável)
+    const dupPorValorDia = pixes.filter(x => {
+      if (x.id === p.id || dupPorId.some(d => d.id === x.id)) return false;
+      const xEm = (x.clienteName||'').toLowerCase();
+      const xDia = new Date(x.datetime).toDateString();
+      return xEm === emitente && xDia === dia && Math.abs((x.amount||0) - currentValor) < 0.01;
+    });
+
+    // Sinal 3: mesmo emitente + mesma data (atenção)
+    const dupPorDia = pixes.filter(x => {
+      if (x.id === p.id) return false;
+      if (dupPorId.some(d => d.id === x.id) || dupPorValorDia.some(d => d.id === x.id)) return false;
+      const xEm = (x.clienteName||'').toLowerCase();
+      const xDia = new Date(x.datetime).toDateString();
+      return xEm === emitente && xDia === dia;
+    });
+
+    const duplicatas = [...dupPorId, ...dupPorValorDia, ...dupPorDia];
+
+    let leftCol = '';
+
+    if (dupPorId.length > 0) {
+      leftCol += `<div class="duplicate-warn" style="border-color:var(--red); background:rgba(227,30,36,0.12); color:var(--red);">
+        &#128721; <strong>DUPLICATA CONFIRMADA:</strong> ${dupPorId.length} lançamento(s) com o mesmo ID de transação detectado!</div>`;
+    } else if (dupPorValorDia.length > 0) {
+      leftCol += `<div class="duplicate-warn">&#9888; <strong>Possível duplicata:</strong> ${dupPorValorDia.length} lançamento(s) do mesmo emitente, valor idêntico e mesma data.</div>`;
+    } else if (dupPorDia.length > 0) {
+      leftCol += `<div class="duplicate-warn" style="border-color:var(--cyan); background:rgba(8,145,178,0.08); color:var(--cyan);">
+        &#8505; <strong>Atenção:</strong> ${dupPorDia.length} lançamento(s) do mesmo emitente nesta data (valores diferentes).</div>`;
+    }
+
+    leftCol += `<div class="audit-section">
+      <h3>&#128206; Comprovantes (${proofFiles.length})</h3>
+      <div class="audit-images">
+        ${proofFiles.length > 0 ? proofFiles.map((f,i) => `
+          <div class="audit-img-wrap" onclick="abrirComprovante('${f.base64||''}')">
+            <img src="${f.base64||''}" alt="Comprovante ${i+1}" onerror="this.style.display='none'">
+            <div class="audit-img-label">${escapeHTML(f.name||'Comp.'+(i+1))}</div>
+          </div>
+        `).join('') : '<span style="color:var(--text-3); font-size:13px;">Sem comprovante</span>'}
+      </div>
+    </div>`;
+
+    if (p.notaInformativa) {
+      leftCol += `<div class="audit-section">
+        <h3>&#128204; Nota Informativa</h3>
+        <div style="font-size:13px; color:var(--text-2); white-space:pre-wrap; line-height:1.5;">${escapeHTML(p.notaInformativa)}</div>
+      </div>`;
+    }
+
+    leftCol += `<div class="audit-section">
+      <h3>&#128203; Dados do Lançamento</h3>
+      <div style="font-size:13px; line-height:1.8; color:var(--text-2);">
+        <div><strong style="color:var(--text);">Vendedor:</strong> ${escapeHTML(p.vendor)}</div>
+        <div><strong style="color:var(--text);">Loja:</strong> ${escapeHTML(p.store)}</div>
+        <div><strong style="color:var(--text);">Emitente:</strong> ${escapeHTML(p.clienteName||'—')}</div>
+        <div><strong style="color:var(--text);">Documento:</strong> ${escapeHTML(formatarDoc(p.receiver, p.documentType))}</div>
+        <div><strong style="color:var(--text);">Chave PIX Dest.:</strong> ${escapeHTML(p.key||'—')}</div>
+        ${p.notes ? `<div><strong style="color:var(--text);">Obs:</strong> ${escapeHTML(p.notes)}</div>` : ''}
+      </div>
+    </div>`;
+
+    let rightCol = `<div class="audit-section">
+      <h3>&#128179; PIX Enviados (${entries.length}) — <span style="color:var(--green);">Total: R$ ${formatarReal(entries.reduce((s,e)=>s+(e.valor||0),0))}</span></h3>`;
+    entries.forEach((entry, i) => {
+      let dtValue = '';
+      let dtDate = '', dtTime = '';
+      if (entry.datetime) {
+        try {
+          const dt = new Date(entry.datetime);
+          const pad = n => String(n).padStart(2,'0');
+          dtDate = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
+          dtTime = `${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+        } catch(e) {}
+      }
+      const idAutoLabel = entry.idAutoCapturado ? ' <span style="color:var(--amber);font-size:10px;font-weight:400;">🔒 OCR</span>' : '';
+      rightCol += `<div class="audit-pix-entry">
+        <div class="audit-pix-entry-header">PIX ${i+1} — R$ ${formatarReal(entry.valor||0)}</div>
+        <div class="audit-pix-grid">
+          <div class="audit-field">
+            <label>Data de Emiss&#227;o</label>
+            <input type="date" value="${escapeHTML(dtDate)}" data-entry-id="${escapeHTML(entry.id)}" data-campo="data" onchange="auditEditEntry(this)">
+          </div>
+          <div class="audit-field">
+            <label>Hor&#225;rio</label>
+            <input type="time" value="${escapeHTML(dtTime)}" data-entry-id="${escapeHTML(entry.id)}" data-campo="hora" onchange="auditEditEntry(this)">
+          </div>
+          <div class="audit-field">
+            <label>Emitente</label>
+            <input type="text" value="${escapeHTML(entry.emitente||'')}" data-entry-id="${escapeHTML(entry.id)}" data-campo="emitente" onchange="auditEditEntry(this)">
+          </div>
+        </div>
+        <div class="audit-field" style="margin-top:8px;">
+          <label>ID Valida&#231;&#227;o${idAutoLabel}</label>
+          <input type="text" value="${escapeHTML(entry.idValidacao||'')}"
+            data-entry-id="${escapeHTML(entry.id)}" data-campo="idValidacao"
+            placeholder="E... (PIX) ou UUID (TED/DOC) — editável pelo financeiro"
+            onchange="auditEditEntry(this)"
+            style="font-family:monospace; font-size:12px; ${entry.idAutoCapturado && entry.idValidacao ? 'border-color:rgba(245,158,11,0.5); background:rgba(245,158,11,0.06);' : ''}">
+        </div>
+      </div>`;
+    });
+    rightCol += `</div>`;
+
+    if (p.pedidos && p.pedidos.length > 0) {
+      const totPed = p.pedidos.reduce((s,pd)=>s+(pd.valorPix||0),0);
+      const totDesc = p.pedidos.reduce((s,pd)=>s+(pd.desconto||0),0);
+      rightCol += `<div class="audit-section">
+        <h3>&#128203; Pedidos (${p.pedidos.length})</h3>
+        <table style="width:100%; font-size:12px; border-collapse:collapse;">
+          <thead><tr>
+            <th style="text-align:left; padding:6px 4px; border-bottom:1px solid var(--border);">N&#176; Pedido</th>
+            <th style="padding:6px 4px; border-bottom:1px solid var(--border);">Tipo</th>
+            <th style="text-align:right; padding:6px 4px; border-bottom:1px solid var(--border);">Total Pedido</th>
+            <th style="text-align:right; padding:6px 4px; border-bottom:1px solid var(--border);">Acordo Comercial</th>
+            <th style="text-align:right; padding:6px 4px; border-bottom:1px solid var(--border); color:var(--green);">L&#237;quido</th>
+          </tr></thead>
+          <tbody>
+            ${p.pedidos.map(pd => `<tr>
+              <td style="padding:6px 4px;">${escapeHTML(pd.numero||'—')}</td>
+              <td style="padding:6px 4px; text-align:center;">${pd.tipo==='cupom'?'&#129534; CUPOM':'&#128196; DANFE'}</td>
+              <td style="padding:6px 4px; text-align:right;">R$ ${formatarReal(pd.valorPix||0)}</td>
+              <td style="padding:6px 4px; text-align:right; color:var(--red);">R$ ${formatarReal(pd.desconto||0)}</td>
+              <td style="padding:6px 4px; text-align:right; color:var(--green); font-weight:600;">R$ ${formatarReal((pd.valorPix||0)-(pd.desconto||0))}</td>
+            </tr>`).join('')}
+          </tbody>
+          <tfoot><tr>
+            <td colspan="2" style="padding:6px 4px; font-weight:700; color:var(--text); border-top:1px solid var(--border);">TOTAL</td>
+            <td style="padding:6px 4px; text-align:right; font-weight:700; border-top:1px solid var(--border);">R$ ${formatarReal(totPed)}</td>
+            <td style="padding:6px 4px; text-align:right; font-weight:700; color:var(--red); border-top:1px solid var(--border);">R$ ${formatarReal(totDesc)}</td>
+            <td style="padding:6px 4px; text-align:right; font-weight:700; color:var(--green); border-top:1px solid var(--border);">R$ ${formatarReal(totPed-totDesc)}</td>
+          </tr></tfoot>
+        </table>
+      </div>`;
+    }
+
+    document.getElementById('auditBody').innerHTML = `<div>${leftCol}</div><div>${rightCol}</div>`;
+  }
+
+  function renderAuditFooter(p) {
+    const safeId = escapeHTML(p.id);
+    let btns = `<button class="btn" style="background:var(--amber); color:#000; font-weight:700;" onclick="salvarEdicaoAudit()">&#128190; Salvar Edi&#231;&#245;es</button>`;
+    if (p.status === 'pending') btns += ` <button class="btn" onclick="updatePixStatusAudit('${safeId}','analysis')">&#8594; Analisar</button>`;
+    if (p.status === 'analysis') btns += ` <button class="btn success" onclick="updatePixStatusAudit('${safeId}','conciled')">&#10003; Conciliar</button>`;
+    btns += ` <button class="btn" style="background:var(--surface); color:var(--text); border:1px solid var(--border);" onclick="fecharAudit()">Fechar</button>`;
+    btns += `<span style="font-size:12px; color:var(--text-3); margin-left:auto;">Status: <strong style="color:var(--text);">${escapeHTML(statusLabel(p.status))}</strong></span>`;
+    document.getElementById('auditFooter').innerHTML = btns;
+  }
+
+  function auditEditEntry(el) {
+    const entryId = el.getAttribute('data-entry-id');
+    const campo = el.getAttribute('data-campo');
+    if (!auditEdits[entryId]) auditEdits[entryId] = {};
+    auditEdits[entryId][campo] = el.value;
+  }
+
+  async function salvarEdicaoAudit() {
+    if (!auditPixId || !firebaseConnected) { alert('Sem conexão ou sessão inválida.'); return; }
+    const p = pixes.find(x => x.id === auditPixId);
+    if (!p) return;
+    const entries = p.pixEntries ? JSON.parse(JSON.stringify(p.pixEntries)) : [{ id: 'legacy', datetime: p.datetime, valor: p.amount, emitente: p.clienteName||'' }];
+    let hasChanges = false;
+    entries.forEach(entry => {
+      const ed = auditEdits[entry.id];
+      if (!ed) return;
+      hasChanges = true;
+      let dt = new Date(entry.datetime || new Date());
+      if (ed.data) { const [y,m,d]=ed.data.split('-').map(Number); dt.setFullYear(y,m-1,d); }
+      if (ed.hora) { const [h,min]=ed.hora.split(':').map(Number); dt.setHours(h,min,0,0); }
+      entry.datetime = dt.toISOString();
+      if (ed.emitente !== undefined) entry.emitente = ed.emitente;
+      if (ed.idValidacao !== undefined) {
+        entry.idValidacao = ed.idValidacao;
+        entry.idAutoCapturado = false; // Financeiro editou manualmente — remove flag OCR
+      }
+    });
+    if (!hasChanges) { alert('Nenhuma alteração detectada.'); return; }
+    try {
+      const updates = { pixEntries: entries, datetime: entries[0].datetime };
+      if (entries[0].emitente) updates.clienteName = entries[0].emitente;
+      await db.ref(`pix-envios/${auditPixId}`).update(updates);
+      auditEdits = {};
+      alert('Alterações salvas com sucesso!');
+    } catch(err) { alert('Erro ao salvar: ' + err.message); }
+  }
+
+  async function updatePixStatusAudit(pixId, newStatus) {
+    await updatePixStatus(pixId, newStatus);
+    fecharAudit();
   }
 
   // ── TABS ──
