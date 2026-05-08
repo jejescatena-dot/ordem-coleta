@@ -403,6 +403,49 @@
   <!-- TIMELINE -->
   <div class="timeline">
 
+    <!-- v2.4 IA BADGE + OCR AVANÇADO PIX -->
+    <div class="timeline-item" data-type="feature improvement">
+      <div class="timeline-header">
+        <span class="version-badge">v2.4</span>
+        <span class="timeline-date">07 mai 2026</span>
+      </div>
+      <div class="timeline-title">🤖 IA Avançada no Comprovante PIX + Badge de Extração</div>
+      <div class="timeline-items">
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Detecção de banco e tipo (PIX/TED):</strong> o sistema identifica automaticamente o banco emissor (BTG, XP, Bradesco, Itaú, Nubank, etc.) e o tipo da transação via OCR no comprovante</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Extração de ID por tipo:</strong> E-code para PIX (ex: E3326…) e UUID para TED (ex: ff29a4b1-…) — identificados e travados automaticamente com cadeado 🔒</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>CNPJ mascarado do pagador:</strong> extrai o CNPJ ou CPF mascarado do comprovante (ex: **.946.343/0001-**) e cruza com o CNPJ do cliente cadastrado no formulário</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Correlação de CNPJ em tempo real:</strong> badge de verificação automática — ✅ confere completo, 🟡 confere parcialmente, ⚠ não confere — atualizado ao digitar o CNPJ do cliente</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Badge 🤖 IA nas entradas:</strong> cada linha da tabela exibe um selo indicando se os dados foram extraídos automaticamente pela IA — e se houve edição manual posterior (🤖 IA · ✏ Editado)</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Visibilidade no painel gerencial:</strong> o financeiro também vê o badge de extração IA em cada entrada, podendo identificar rapidamente quais dados são originais do OCR e quais foram corrigidos</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span><strong>Novas colunas na tabela PIX:</strong> colunas "Tipo" (badge PIX/TED colorido) e "CNPJ Pag." com badge de correlação adicionadas à tabela de entradas</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span><strong>Novos campos no modal:</strong> Tipo (PIX/TED), Banco e CNPJ/CPF do Pagador adicionados ao modal de edição do comprovante, com correlação em tempo real</span>
+        </div>
+      </div>
+    </div>
+
     <!-- v2.3 PDF PEDIDOS + CÓDIGO CLIENTE -->
     <div class="timeline-item" data-type="feature improvement">
       <div class="timeline-header">

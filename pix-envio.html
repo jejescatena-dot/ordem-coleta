@@ -281,14 +281,16 @@
           <thead>
             <tr>
               <th style="text-align:left; padding:10px 8px; border-bottom:2px solid var(--border);">Data/Hora</th>
+              <th style="text-align:center; padding:10px 8px; border-bottom:2px solid var(--border); white-space:nowrap;">Tipo</th>
               <th style="text-align:left; padding:10px 8px; border-bottom:2px solid var(--border);">Emitente (Remetente)</th>
+              <th style="text-align:left; padding:10px 8px; border-bottom:2px solid var(--border); min-width:140px;">CNPJ Pag.</th>
               <th style="text-align:right; padding:10px 8px; border-bottom:2px solid var(--border);">Valor (R$)</th>
               <th style="text-align:left; padding:10px 8px; border-bottom:2px solid var(--border); min-width:170px;">ID Validação</th>
               <th style="text-align:center; padding:10px 8px; border-bottom:2px solid var(--border);">Ação</th>
             </tr>
           </thead>
           <tbody id="pixEntriesTable">
-            <tr style="opacity:0.5;"><td colspan="5" style="padding:20px; text-align:center; color:var(--text-3);">Anexe os comprovantes acima para preenchimento automático</td></tr>
+            <tr style="opacity:0.5;"><td colspan="7" style="padding:20px; text-align:center; color:var(--text-3);">Anexe os comprovantes acima para preenchimento automático</td></tr>
           </tbody>
         </table>
       </div>
@@ -434,6 +436,25 @@
         <div>
           <label style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; display:block;">Valor (R$)</label>
           <input type="text" id="modalValor" placeholder="0,00" oninput="let v=this.value.replace(/\D/g,''); this.value=v?(parseInt(v,10)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):''" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:13px; font-family:inherit; text-align:right;">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div>
+            <label style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; display:block;">Tipo</label>
+            <select id="modalTipo" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:13px; font-family:inherit;">
+              <option value="">—</option>
+              <option value="PIX">PIX</option>
+              <option value="TED">TED</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; display:block;">Banco Emissor</label>
+            <input type="text" id="modalBanco" placeholder="Ex: BTG Pactual, XP..." style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:12px; font-family:inherit;">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; display:block;">CNPJ/CPF do Pagador</label>
+          <input type="text" id="modalCnpjRemetente" placeholder="**.XXX.XXX/0001-** ou completo" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:12px; font-family:monospace;">
+          <div id="modalCnpjCorrelacao" style="font-size:11px; margin-top:4px; font-weight:600;"></div>
         </div>
         <div>
           <label style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; display:block;">ID da Transação (PIX/TED)</label>
@@ -931,6 +952,32 @@
         if (me) { dados.emitente = me[1].trim().replace(/\s+/g, ' '); break; }
       }
 
+      // ── CNPJ/CPF DO REMETENTE (mascarado ou parcial) ──
+      // XP:  "CPF/CNPS do Pagador **#46.343/0001-**"
+      // BTG: "CNP: **.946.343/0001-*"  ou  "CNPJ **.946.343/0001-**"
+      // Regex captura a string mascarada completa, ex: "**.946.343/0001-**"
+      const cnpjPatterns = [
+        // Label explícito: CPF/CNPJ do Pagador ou CNP: + mascarado
+        /(?:CPF[\/\s]CNPJ|CPF[\/\s]CNPS|CNPJ|CNP)[^:]*[:\s]+(\*{1,2}[#.]?[\d*#.]+\/[\d]+-\*+)/i,
+        // Sem label: qualquer token no formato mascarado de CNPJ
+        /(\*{1,2}[#.]?[\d.]+\/[\d]{4}-\*+)/,
+        // OCR às vezes lê ** como ##
+        /(?:CPF[\/\s]CNPJ|CPF[\/\s]CNPS|CNPJ|CNP)[^:]*[:\s]+([#*]{1,2}[.#]?[\d.#*]+\/[\d]+-[#*]+)/i,
+      ];
+      for (const pat of cnpjPatterns) {
+        const mc = t.match(pat);
+        if (mc) {
+          // Normaliza: substitui # por * para padronizar exibição
+          dados.cnpjRemetente = mc[1].replace(/#/g, '*').trim();
+          break;
+        }
+      }
+      // Se não achou mascarado, tenta CNPJ completo (quando comprovante mostra tudo)
+      if (!dados.cnpjRemetente) {
+        const mcFull = t.match(/(?:CPF[\/\s]CNPJ|CNPJ)[^:]*[:\s]+(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})/i);
+        if (mcFull) { dados.cnpjRemetente = mcFull[1]; dados.cnpjRemetenteCompleto = true; }
+      }
+
       return dados;
     } catch(e) {
       console.warn('OCR recognition error:', e);
@@ -992,8 +1039,75 @@
       if (clienteInput && !clienteInput.value.trim()) clienteInput.value = dados.emitente;
     }
 
+    // ── CNPJ do Remetente + Correlação com cliente cadastrado ──
+    if (dados.cnpjRemetente) {
+      entry.cnpjRemetente = dados.cnpjRemetente;
+      entry.cnpjRemetenteCompleto = !!dados.cnpjRemetenteCompleto;
+      const cnpjCliente = document.getElementById('pixReceiver').value.trim();
+      entry.cnpjCorrelacao = correlacionarCNPJ(dados.cnpjRemetente, cnpjCliente);
+    }
+
+    // ── Badge IA: marca extração e salva snapshot dos valores originais ──
+    const temDados = dados.id || dados.valor || dados.emitente || dados.data || dados.banco || dados.tipo || dados.cnpjRemetente;
+    if (temDados) {
+      entry.ocrExtracted = true;
+      entry.ocrEditado   = false;
+      // Snapshot para detectar edição posterior
+      entry._ocrSnapshot = {
+        datetime:      dados.data ? entry.datetime : null,
+        emitente:      dados.emitente || null,
+        valor:         dados.valor ? entry.valor : null,
+        idValidacao:   dados.id   || null,
+        banco:         dados.banco || null,
+        tipoTransacao: dados.tipo  || null,
+        cnpjRemetente: dados.cnpjRemetente || null
+      };
+    }
+
     renderizarPixEntries();
     verificarDiferenca();
+  }
+
+  // ── CORRELAÇÃO CNPJ REMETENTE vs CLIENTE CADASTRADO ──
+  // Compara os dígitos visíveis do CNPJ mascarado do comprovante
+  // com o CNPJ completo informado no campo "Número" do formulário.
+  // Retorna: { status:'completo'|'parcial'|'diverge'|'sem_dados', label, cor }
+  function correlacionarCNPJ(cnpjMascarado, cnpjClienteCompleto) {
+    if (!cnpjMascarado || !cnpjClienteCompleto) return { status:'sem_dados', label:'—', cor:'var(--text-3)' };
+
+    // Extrai apenas os dígitos visíveis do CNPJ mascarado (remove * # . / - espaço)
+    const digVisiveis = cnpjMascarado.replace(/[*#.\-\/\s]/g, '').replace(/\D/g,'');
+    // Extrai apenas os dígitos do CNPJ do cliente
+    const digCliente  = cnpjClienteCompleto.replace(/\D/g,'');
+
+    if (!digVisiveis || digVisiveis.length < 6) return { status:'sem_dados', label:'—', cor:'var(--text-3)' };
+    if (!digCliente  || digCliente.length  < 8) return { status:'sem_dados', label:'—', cor:'var(--text-3)' };
+
+    // Verifica se os dígitos visíveis estão contidos nos dígitos do cliente
+    const bate = digCliente.includes(digVisiveis);
+
+    if (!bate) return {
+      status: 'diverge',
+      label:  '⚠ CNPJ não confere',
+      cor:    'var(--red)'
+    };
+
+    // Bate — verifica se é match completo (CNPJ sem máscara, todas as posições conferem)
+    // Um CNPJ mascarado "**.946.343/0001-**" tem 10 dígitos visíveis de 14.
+    // Se tivermos ≥ 12 dígitos visíveis, consideramos match completo.
+    if (digVisiveis.length >= 12 || cnpjMascarado.replace(/[*#]/g,'').replace(/\D/g,'').length === digCliente.length) {
+      return { status:'completo', label:'✅ CNPJ confere (completo)', cor:'var(--green)' };
+    }
+    return { status:'parcial', label:'🟡 CNPJ confere parcialmente', cor:'#f59e0b' };
+  }
+
+  // Roda correlação em todas as entries e re-renderiza (chamado ao mudar o CNPJ do cliente)
+  function atualizarCorrelacaoTodosEntries() {
+    const cnpjCliente = document.getElementById('pixReceiver').value.trim();
+    pixEntries.forEach(e => {
+      if (e.cnpjRemetente) e.cnpjCorrelacao = correlacionarCNPJ(e.cnpjRemetente, cnpjCliente);
+    });
+    renderizarPixEntries();
   }
 
   // ── MÁSCARA DE MOEDA (aplicada nos inputs de valor dos PIX entries via JS dinâmico) ──
@@ -1024,6 +1138,8 @@
   document.getElementById('pixReceiver').addEventListener('input', function(e) {
     const tipo = document.getElementById('documentType').value;
     e.target.value = tipo === 'cpf' ? formatarCPF(e.target.value) : formatarCNPJ(e.target.value);
+    // Atualiza correlação CNPJ em todos os entries sempre que o CNPJ do cliente mudar
+    atualizarCorrelacaoTodosEntries();
   });
 
   // ── PIX ENTRIES ──
@@ -1074,10 +1190,41 @@
           placeholder="${ph}"
           style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:11px;font-family:monospace;"></td>`;
       }
+      // Badge IA
+      let iaBadge = '';
+      if (p.ocrExtracted && !p.ocrEditado) {
+        iaBadge = `<span title="Dados extraídos automaticamente pela IA" style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(6,182,212,0.15);color:#06b6d4;white-space:nowrap;margin-left:4px;">🤖 IA</span>`;
+      } else if (p.ocrExtracted && p.ocrEditado) {
+        iaBadge = `<span title="Extraído por IA e editado manualmente" style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(245,158,11,0.15);color:#f59e0b;white-space:nowrap;margin-left:4px;">🤖✏ IA · Editado</span>`;
+      }
+
+      // Célula Tipo (PIX / TED)
+      const tipoCor   = p.tipoTransacao === 'TED' ? '#f97316' : 'var(--cyan)';
+      const tipoCell  = p.tipoTransacao
+        ? `<td style="padding:8px; text-align:center;"><span style="display:inline-block; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:700; background:${tipoCor}22; color:${tipoCor}; white-space:nowrap;">${escapeHTML(p.tipoTransacao)}</span></td>`
+        : `<td style="padding:8px; text-align:center; color:var(--text-3); font-size:11px;">—</td>`;
+
+      // Célula CNPJ Pag. + badge de correlação
+      let cnpjCell;
+      if (p.cnpjRemetente) {
+        const corr = p.cnpjCorrelacao || {};
+        const badge = corr.status
+          ? `<div style="margin-top:3px; font-size:10px; color:${corr.cor}; font-weight:600;">${escapeHTML(corr.label)}</div>`
+          : '';
+        cnpjCell = `<td style="padding:8px;">
+          <div style="font-size:11px; font-family:monospace; color:var(--text);">${escapeHTML(p.cnpjRemetente)}</div>
+          ${badge}
+        </td>`;
+      } else {
+        cnpjCell = `<td style="padding:8px; color:var(--text-3); font-size:11px;">—</td>`;
+      }
+
       return `
       <tr data-pix-id="${escapeHTML(p.id)}" style="border-bottom:1px solid var(--border);">
-        <td style="padding:8px;"><input type="datetime-local" value="${escapeHTML(p.datetime)}" data-campo="datetime" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px;"></td>
+        <td style="padding:8px;"><input type="datetime-local" value="${escapeHTML(p.datetime)}" data-campo="datetime" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px;">${iaBadge}</td>
+        ${tipoCell}
         <td style="padding:8px;"><input type="text" value="${escapeHTML(p.emitente)}" data-campo="emitente" placeholder="Nome do remetente" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px;"></td>
+        ${cnpjCell}
         <td style="padding:8px; text-align:right;"><input type="text" value="${escapeHTML(p.valor)}" data-campo="valor" placeholder="0,00" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px; text-align:right;"></td>
         ${idCell}
         <td style="padding:8px; text-align:center;"><button onclick="removerPixEntry('${escapeHTML(p.id)}')" style="background:var(--red); color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:600;">Remover</button></td>
@@ -1103,6 +1250,13 @@
     const entry = pixEntries.find(p => p.id === id);
     if (!entry) return;
     entry[campo] = valor;
+    // Se havia snapshot de OCR e o valor do campo mudou → marcar como editado
+    if (entry.ocrExtracted && !entry.ocrEditado && entry._ocrSnapshot) {
+      const snap = entry._ocrSnapshot[campo];
+      if (snap !== null && snap !== undefined && String(snap) !== String(valor)) {
+        entry.ocrEditado = true;
+      }
+    }
     atualizarPixEntriesTotais();
     verificarDiferenca();
   }
@@ -1279,17 +1433,37 @@
     // Usa exatamente a entry do índice deste arquivo (sem fallback para outros)
     const entry = pixEntries[index] || null;
     if (entry) {
-      document.getElementById('modalDatetime').value = entry.datetime || '';
-      document.getElementById('modalEmitente').value = entry.emitente || '';
-      document.getElementById('modalValor').value = entry.valor || '';
-      document.getElementById('modalIdValidacao').value = entry.idValidacao || '';
+      document.getElementById('modalDatetime').value       = entry.datetime       || '';
+      document.getElementById('modalEmitente').value       = entry.emitente       || '';
+      document.getElementById('modalValor').value          = entry.valor          || '';
+      document.getElementById('modalIdValidacao').value    = entry.idValidacao    || '';
+      document.getElementById('modalTipo').value           = entry.tipoTransacao  || '';
+      document.getElementById('modalBanco').value          = entry.banco          || '';
+      document.getElementById('modalCnpjRemetente').value  = entry.cnpjRemetente  || '';
+
+      // Badge correlação CNPJ no modal
+      const corrEl = document.getElementById('modalCnpjCorrelacao');
+      const corr = entry.cnpjCorrelacao;
+      corrEl.textContent = corr && corr.status !== 'sem_dados' ? corr.label : '';
+      corrEl.style.color = corr ? corr.cor : 'var(--text-3)';
+
+      // Hint do ID
       const bancoInfo = [entry.banco, entry.tipoTransacao].filter(Boolean).join(' · ');
       document.getElementById('modalIdHint').textContent = entry.idAutoCapturado
         ? `🔒 Capturado via OCR${bancoInfo ? ' (' + bancoInfo + ')' : ''} — edite para corrigir`
         : bancoInfo ? `Banco detectado: ${bancoInfo} — ID não encontrado, preencha` : 'Preencha se o OCR não encontrou';
+
+      // Listener ao editar CNPJ no modal → atualiza badge de correlação em tempo real
+      document.getElementById('modalCnpjRemetente').oninput = function() {
+        const cnpjCliente = document.getElementById('pixReceiver').value.trim();
+        const corr2 = correlacionarCNPJ(this.value, cnpjCliente);
+        corrEl.textContent = corr2 && corr2.status !== 'sem_dados' ? corr2.label : '';
+        corrEl.style.color = corr2 ? corr2.cor : 'var(--text-3)';
+      };
     } else {
-      ['modalDatetime','modalEmitente','modalValor','modalIdValidacao'].forEach(id => { document.getElementById(id).value = ''; });
+      ['modalDatetime','modalEmitente','modalValor','modalIdValidacao','modalTipo','modalBanco','modalCnpjRemetente'].forEach(id => { document.getElementById(id).value = ''; });
       document.getElementById('modalIdHint').textContent = 'Preencha os dados desta transferência';
+      document.getElementById('modalCnpjCorrelacao').textContent = '';
     }
     document.getElementById('comprovanteModal').style.display = 'flex';
   }
@@ -1328,11 +1502,22 @@
       adicionarPixEntry();
       entry = pixEntries[pixEntries.length - 1];
     }
+    const tipo = document.getElementById('modalTipo') ? document.getElementById('modalTipo').value : '';
+    const banco = document.getElementById('modalBanco') ? document.getElementById('modalBanco').value.trim() : '';
+    const cnpjRemetente = document.getElementById('modalCnpjRemetente') ? document.getElementById('modalCnpjRemetente').value.trim() : '';
+
     if (entry) {
       if (datetime) entry.datetime = datetime;
       if (emitente) entry.emitente = emitente;
       if (valor) entry.valor = valor;
       if (idValidacao) { entry.idValidacao = idValidacao; entry.idAutoCapturado = false; }
+      if (tipo) entry.tipoTransacao = tipo;
+      if (banco) entry.banco = banco;
+      if (cnpjRemetente) {
+        entry.cnpjRemetente = cnpjRemetente;
+        const cnpjCliente = document.getElementById('pixReceiver').value.trim();
+        entry.cnpjCorrelacao = correlacionarCNPJ(cnpjRemetente, cnpjCliente);
+      }
     }
     if (emitente && !document.getElementById('clienteName').value.trim()) {
       document.getElementById('clienteName').value = emitente;
@@ -1634,7 +1819,10 @@
       const pixEntriesNorm = pixEntries.map(p => ({
         id: p.id, datetime: new Date(p.datetime).toISOString(),
         valor: parseReal(p.valor ? p.valor.toString() : '0'), emitente: p.emitente,
-        idValidacao: p.idValidacao || '', idAutoCapturado: p.idAutoCapturado || false
+        idValidacao: p.idValidacao || '', idAutoCapturado: p.idAutoCapturado || false,
+        tipoTransacao: p.tipoTransacao || '', banco: p.banco || '',
+        cnpjRemetente: p.cnpjRemetente || '',
+        ocrExtracted: p.ocrExtracted || false, ocrEditado: p.ocrEditado || false
       }));
       const proofFilesData = processedFiles.filter(f => f.sizeKB > 0).map(f => ({ name: f.name, base64: f.base64, sizeKB: f.sizeKB }));
       const datetimeISO = pixEntriesNorm.length > 0 ? pixEntriesNorm[0].datetime : new Date().toISOString();
@@ -1676,4 +1864,69 @@
   function renderHistory(envios) {
     const tbody = document.getElementById('historyTable');
     if (!envios || envios.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" cl
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-state" style="padding:20px; text-align:center; color:var(--text-3);">Nenhum envio encontrado</td></tr>';
+      return;
+    }
+    tbody.innerHTML = [...envios].reverse().map(e => {
+      const dt       = e.datetime    ? new Date(e.datetime).toLocaleString('pt-BR')    : '—';
+      const valor    = e.amount != null ? 'R$ ' + formatarReal(e.amount)               : '—';
+      const loja     = escapeHTML(e.store || '—');
+      const status   = statusLabel(e.status);
+      const enviado  = e.submittedAt ? new Date(e.submittedAt).toLocaleString('pt-BR') : '—';
+      const corStatus = e.status === 'conciled' ? 'var(--green)'
+                      : e.status === 'analysis' ? 'var(--cyan)'
+                      : 'var(--amber)';
+      return `<tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px 12px; font-size:13px;">${dt}</td>
+        <td style="padding:10px 12px; font-size:13px; text-align:right;">${valor}</td>
+        <td style="padding:10px 12px; font-size:13px;">${loja}</td>
+        <td style="padding:10px 12px;">
+          <span style="padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; background:${corStatus}22; color:${corStatus};">${status}</span>
+        </td>
+        <td style="padding:10px 12px; font-size:12px; color:var(--text-3);">${enviado}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function loadHistory() {
+    if (!currentUser) return;
+    if (historyRef) historyRef.off();
+    historyRef = db.ref('pix-envios').orderByChild('vendorUid').equalTo(currentUser.uid);
+    historyRef.on('value', snap => {
+      const envios = [];
+      snap.forEach(child => envios.push(child.val()));
+      renderHistory(envios);
+    });
+  }
+
+  function clearFormSemConfirmar() {
+    document.getElementById('storeSelect').value = '';
+    document.getElementById('pixKey').value = '';
+    document.getElementById('clienteName').value = '';
+    document.getElementById('codigoCliente').value = '';
+    document.getElementById('documentType').value = 'cnpj';
+    document.getElementById('pixReceiver').value = '';
+    document.getElementById('pixReceiver').maxLength = 18;
+    document.getElementById('pixReceiver').placeholder = '00.000.000/0000-00';
+    document.getElementById('pixNotes').value = '';
+    document.getElementById('notaInformativa').value = '';
+    document.getElementById('vendorName').value = currentUser ? (currentUser.displayName || currentUser.email) : '';
+    pixEntries = [];
+    processedFiles = [];
+    pedidosData = [];
+    renderizarPixEntries();
+    renderizarPedidos();
+    document.getElementById('fileList').innerHTML = '';
+    document.getElementById('formAlert').innerHTML = '';
+    verificarDiferenca();
+  }
+
+  function clearForm() {
+    if (confirm('Tem certeza que deseja limpar todos os dados do formulário?')) {
+      clearFormSemConfirmar();
+    }
+  }
+
+</script>
+</body>
+</html>

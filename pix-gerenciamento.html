@@ -1000,8 +1000,15 @@
         } catch(e) {}
       }
       const idAutoLabel = entry.idAutoCapturado ? ' <span style="color:var(--amber);font-size:10px;font-weight:400;">🔒 OCR</span>' : '';
+      // Badge IA
+      let iaBadgeGer = '';
+      if (entry.ocrExtracted && !entry.ocrEditado) {
+        iaBadgeGer = `<span title="Dados extraídos automaticamente pela IA" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(6,182,212,0.15);color:#06b6d4;">🤖 IA</span>`;
+      } else if (entry.ocrExtracted && entry.ocrEditado) {
+        iaBadgeGer = `<span title="Extraído por IA e editado manualmente pelo vendedor" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(245,158,11,0.15);color:#f59e0b;">🤖✏ IA · Editado</span>`;
+      }
       rightCol += `<div class="audit-pix-entry">
-        <div class="audit-pix-entry-header">PIX ${i+1} — R$ ${formatarReal(entry.valor||0)}</div>
+        <div class="audit-pix-entry-header" style="display:flex;align-items:center;gap:8px;">PIX ${i+1} — R$ ${formatarReal(entry.valor||0)} ${iaBadgeGer}</div>
         <div class="audit-pix-grid">
           <div class="audit-field">
             <label>Data de Emiss&#227;o</label>
