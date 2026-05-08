@@ -462,6 +462,17 @@
           <div id="modalIdHint" style="font-size:10px; color:var(--text-3); margin-top:3px;"></div>
         </div>
       </div>
+      <!-- Colar texto do comprovante (fallback manual) -->
+      <div style="padding:8px 16px; border-top:1px dashed var(--border);">
+        <button onclick="toggleColarTexto()" id="btnColarTexto" style="width:100%; padding:7px; background:transparent; color:var(--text-2); border:1px dashed var(--border); border-radius:8px; font-size:12px; cursor:pointer; font-family:inherit; text-align:left;">
+          📋 Colar texto do comprovante
+        </button>
+        <div id="colarTextoArea" style="display:none; margin-top:8px;">
+          <textarea id="textoColado" placeholder="Abra o PDF em outro visualizador, selecione tudo (Ctrl+A), copie (Ctrl+C) e cole aqui (Ctrl+V)..." style="width:100%; height:100px; padding:8px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:11px; font-family:inherit; resize:vertical; box-sizing:border-box;"></textarea>
+          <button onclick="extrairDoTextoColado()" style="width:100%; margin-top:6px; padding:8px; background:rgba(6,182,212,0.15); color:var(--cyan); border:1px solid var(--cyan); border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit;">⚡ Extrair dados do texto</button>
+          <div id="colarTextoStatus" style="font-size:10px; color:var(--text-3); margin-top:4px; text-align:center;"></div>
+        </div>
+      </div>
       <div style="padding:14px 16px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:8px;">
         <button onclick="salvarModalComprovante()" style="width:100%; padding:10px; background:var(--cyan); color:white; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; transition:background 0.2s;">✓ Salvar</button>
         <button onclick="fecharModalComprovante()" style="width:100%; padding:8px; background:var(--surface); color:var(--text-2); border:1px solid var(--border); border-radius:8px; font-size:13px; cursor:pointer; font-family:inherit;">Fechar sem salvar</button>
@@ -680,8 +691,29 @@
         placeholder.base64 = result.base64;
         placeholder.sizeKB = result.sizeKB;
         updateFileList();
-        if (typeof Tesseract !== 'undefined') {
-          const fileIndex = processedFiles.indexOf(placeholder);
+        const fileIndex = processedFiles.indexOf(placeholder);
+
+        if (isPDF) {
+          // PDF: tenta extração de texto via PDF.js primeiro (mais precisa que OCR)
+          const texto = await extrairTextoDoPDF(file);
+          if (texto.length > 80) {
+            const dadosPDF = _parsearTextoComprovante(texto);
+            const temDados = dadosPDF.valor || dadosPDF.id || dadosPDF.emitente || dadosPDF.banco || dadosPDF.data;
+            if (temDados) {
+              // PDF tem camada de texto — usa os dados diretamente sem OCR
+              while (pixEntries.length <= fileIndex) pixEntries.push(_criarPixEntryVazia());
+              pixEntries[fileIndex].idOcrStatus = '';
+              _aplicarDadosParaEntry(dadosPDF, fileIndex);
+            } else if (typeof Tesseract !== 'undefined') {
+              // PDF sem camada de texto útil — cai no OCR de imagem
+              _tentarOCRParaEntry(result.base64, fileIndex);
+            }
+          } else if (typeof Tesseract !== 'undefined') {
+            // Texto vazio — cai no OCR
+            _tentarOCRParaEntry(result.base64, fileIndex);
+          }
+        } else if (typeof Tesseract !== 'undefined') {
+          // Imagem: usa OCR diretamente
           _tentarOCRParaEntry(result.base64, fileIndex);
         }
       } catch(err) {
@@ -821,14 +853,11 @@
   // ── PADRÕES APRENDIDOS DOS COMPROVANTES REAIS ──
   // BANCO XP (PIX):  "Comprovante de envio Pix RS 31.248,00  06/05/26 as 16h31  Enviado de MEGA DISTRIBUICAO LTDA  ID da transação E332646682026050619312649f044c60"
   // BTG PACTUAL(TED):"btg pactual empresas  Comprovante de transferência  Feito em 05/05/2026  Valor R$ 183.456,00  De MEGA DISTRIBUICAO LTDA  Identificador da transação ff29a4b1-9741-4cee-9791-cb800e8ad010  Transação via TED"
-  async function extrairDadosDoComprovante(base64DataUrl) {
-    if (typeof Tesseract === 'undefined') return {};
-    const worker = await _getOCRWorker();
-    if (!worker) return {};
-    try {
-      const { data: { text } } = await worker.recognize(base64DataUrl);
-      const t = text.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
-      const dados = {};
+  // ── PARSER DE TEXTO: aplica todos os padrões ao texto bruto ──
+  // Usado pelo OCR (Tesseract) e pela extração PDF.js e pelo campo "Colar texto" do modal
+  function _parsearTextoComprovante(rawText) {
+    const t = rawText.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
+    const dados = {};
 
       // ── BANCO / TIPO ──
       if (/btg\s*pactual/i.test(t))            dados.banco = 'BTG Pactual';
@@ -847,6 +876,9 @@
       else if (/c6\s*bank/i.test(t))           dados.banco = 'C6 Bank';
       else if (/picpay/i.test(t))              dados.banco = 'PicPay';
       else if (/pagbank|pagseguro/i.test(t))   dados.banco = 'PagBank';
+      else if (/mercado\s*pago/i.test(t))      dados.banco = 'Mercado Pago';
+      else if (/inter\s*&\s*co|bancointer/i.test(t)) dados.banco = 'Banco Inter';
+      else if (/stone\s*(?:institui[cç][aã]o|pagamento)?/i.test(t)) dados.banco = 'Stone';
 
       if (/\bTED\b/i.test(t))       dados.tipo = 'TED';
       else if (/\bPix\b|\bPIX\b/i.test(t)) dados.tipo = 'PIX';
@@ -874,12 +906,16 @@
       // BTG: "Valor R$ 183.456,00"   XP: "Pix RS 31.248,00" (OCR lê "RS" por R$)
       const valPatterns = [
         // Contexto explícito: "Valor" ou "Total" + R$ ou RS
-        /(?:Valor|Total|Quantia)[^\d]{0,25}(?:R\$|RS)\s*([\d]{1,3}(?:[.\s]\d{3})*[,]\d{2})/i,
-        // R$ ou RS (OCR) direto: número com separador milhar e centavos
-        /(?:R\$|RS)\s*([\d]{1,3}(?:\.\d{3})*[,]\d{2})/,
+        /(?:Valor|Total|Quantia)[^\d]{0,25}(?:R\$|RS|R5)\s*([\d]{1,3}(?:[.\s]\d{3})*[,]\d{2})/i,
+        // Stone: valor em verde logo após label "Valor" (sem símbolo às vezes)
+        /\bValor\b\s+(?:R\$|RS|R5)?\s*([\d]{1,3}(?:\.\d{3})+[,]\d{2})\b/i,
+        // R$ ou RS ou R5 (OCR) direto: número com separador milhar e centavos
+        /(?:R\$|RS|R5)\s*([\d]{1,3}(?:\.\d{3})*[,]\d{2})/,
         // XP específico: valor logo após "Pix RS" ou "Pix R$"
-        /Pix\s+(?:R\$|RS)\s*([\d.,\s]+?)(?=\s*©|\s*\d{2}\/)/i,
-        // Fallback: valor em formato BRL com milhar
+        /Pix\s+(?:R\$|RS|R5)\s*([\d.,\s]+?)(?=\s*©|\s*\d{2}\/)/i,
+        // Fallback: valor em formato BRL com milhar (≥ 3 dígitos + milhar)
+        /\b([\d]{1,3}(?:\.\d{3})+[,]\d{2})\b/,
+        // Fallback: valor em formato BRL referenciado por reais/BRL
         /([\d]{1,3}(?:\.\d{3})*,\d{2})\s*(?:reais|BRL)/i,
       ];
       for (const pat of valPatterns) {
@@ -896,6 +932,18 @@
       // XP:  "06/05/26 as 16h31"  |  "06/05/26 as 16:31"  |  "06/05/26 as 1631"
       // BTG: "Feito em 05/05/2026" (sem hora na mesma frase)
       // Outros: "05/05/2026 16:31"  |  "05/05/2026 às 16h31"
+
+      // ── DATA: Stone usa "07 mai 2026 às 13:49:49" com nome do mês em PT ──
+      const mesesPT = { jan:'01', fev:'02', mar:'03', abr:'04', mai:'05', jun:'06',
+                        jul:'07', ago:'08', set:'09', out:'10', nov:'11', dez:'12' };
+      const mStoneData = t.match(/(\d{1,2})\s+(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\s+(\d{4})\s+[àa]s\s+(\d{2}):(\d{2})(?::(\d{2}))?/i);
+      if (mStoneData) {
+        const dia = String(mStoneData[1]).padStart(2,'0');
+        const mes = mesesPT[mStoneData[2].toLowerCase()];
+        const ano = mStoneData[3];
+        dados.data = `${dia}/${mes}/${ano}`;
+        dados.hora = `${mStoneData[4]}:${mStoneData[5]}`;
+      }
 
       const dataHoraPatterns = [
         // Data + "as/às" + hora no formato HHhMM
@@ -940,6 +988,10 @@
 
       // ── EMITENTE / REMETENTE ──
       const emPatterns = [
+        // Stone: "DADOS DE ORIGEM Nome 7 DISTRIBUIDORA COMERCIO..." até "CNPJ"
+        /DADOS\s+DE\s+ORIGEM\s+Nome\s+([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇÑ0-9][A-Za-záéíóúàâêîôûãõçñ0-9\s,\.\-&]{4,100}?)(?=\s*CNPJ)/i,
+        // Stone alternativo (sem "DADOS DE ORIGEM" no início, mas com "Origem" + "Nome")
+        /Origem\s+Nome\s+([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇÑ0-9][A-Za-záéíóúàâêîôûãõçñ0-9\s,\.\-&]{4,100}?)(?=\s*CNPJ)/i,
         // XP: "Enviado de MEGA DISTRIBUICAO LTDA" (antes de CPF/CNPJ ou **)
         /Enviado\s+de\s+([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇÑ][A-Za-záéíóúàâêîôûãõçñ\s&\.]{4,60}?)(?=\s*(?:CPF|CNPJ|Inst|Banco|\*\*|$))/i,
         // BTG: "De MEGA DISTRIBUICAO LTDA M CNP:" (para antes de M CN ou CNP ou CNPJ)
@@ -974,15 +1026,115 @@
       }
       // Se não achou mascarado, tenta CNPJ completo (quando comprovante mostra tudo)
       if (!dados.cnpjRemetente) {
-        const mcFull = t.match(/(?:CPF[\/\s]CNPJ|CNPJ)[^:]*[:\s]+(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})/i);
-        if (mcFull) { dados.cnpjRemetente = mcFull[1]; dados.cnpjRemetenteCompleto = true; }
+        // Stone: mostra 2 CNPJs — destino (SUPER MUFFATO) e origem (remetente).
+        // Pega especificamente o CNPJ na seção "DADOS DE ORIGEM"
+        const mcStoneOrigem = t.match(/DADOS\s+DE\s+ORIGEM[^]*?CNPJ\s+(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})/i);
+        if (mcStoneOrigem) {
+          dados.cnpjRemetente = mcStoneOrigem[1];
+          dados.cnpjRemetenteCompleto = true;
+        }
+      }
+      if (!dados.cnpjRemetente) {
+        // Fallback: pega todos os CNPJs completos e usa o último (origin costuma vir depois do destino)
+        const todosMatches = [...t.matchAll(/(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})/g)];
+        if (todosMatches.length >= 2) {
+          // Último CNPJ é o da origem (remetente) em layouts Stone/padrão
+          dados.cnpjRemetente = todosMatches[todosMatches.length - 1][1];
+          dados.cnpjRemetenteCompleto = true;
+        } else if (todosMatches.length === 1) {
+          dados.cnpjRemetente = todosMatches[0][1];
+          dados.cnpjRemetenteCompleto = true;
+        }
       }
 
-      return dados;
+    return dados;
+  }
+
+  async function extrairDadosDoComprovante(base64DataUrl) {
+    if (typeof Tesseract === 'undefined') return {};
+    const worker = await _getOCRWorker();
+    if (!worker) return {};
+    try {
+      const { data: { text } } = await worker.recognize(base64DataUrl);
+      return _parsearTextoComprovante(text);
     } catch(e) {
       console.warn('OCR recognition error:', e);
       return {};
     }
+  }
+
+  // ── EXTRAÇÃO DE TEXTO VIA PDF.js (sem OCR, para PDFs com camada de texto) ──
+  async function extrairTextoDoPDF(file) {
+    if (typeof pdfjsLib === 'undefined') return '';
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let textoCompleto = '';
+      for (let p = 1; p <= pdf.numPages; p++) {
+        const page = await pdf.getPage(p);
+        const tc = await page.getTextContent();
+        // Reconstrói o texto mantendo quebras de linha entre itens distantes
+        let lastY = null;
+        for (const item of tc.items) {
+          if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) textoCompleto += '\n';
+          textoCompleto += item.str + ' ';
+          lastY = item.transform[5];
+        }
+        textoCompleto += '\n';
+      }
+      return textoCompleto.trim();
+    } catch(e) {
+      console.warn('PDF text extraction failed:', e);
+      return '';
+    }
+  }
+
+  // ── APLICA DADOS EXTRAÍDOS A UMA ENTRY (compartilhado por OCR e PDF.js) ──
+  function _aplicarDadosParaEntry(dados, fileIndex) {
+    while (pixEntries.length <= fileIndex) pixEntries.push(_criarPixEntryVazia());
+    const entry = pixEntries[fileIndex];
+    if (!entry) return;
+
+    if (dados.id) { entry.idValidacao = dados.id; entry.idAutoCapturado = true; entry.idOcrStatus = 'found'; }
+    else { entry.idOcrStatus = entry.idOcrStatus || 'not_found'; }
+
+    if (dados.valor && !entry.valor)
+      entry.valor = dados.valor.toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+
+    if (dados.data) {
+      const [dia, mes, ano] = dados.data.split('/');
+      const hora = dados.hora || entry.datetime.slice(11) || '00:00';
+      entry.datetime = `${ano}-${mes}-${dia}T${hora}`;
+    }
+
+    if (dados.banco) entry.banco = dados.banco;
+    if (dados.tipo)  entry.tipoTransacao = dados.tipo;
+
+    if (dados.emitente) {
+      if (!entry.emitente) entry.emitente = dados.emitente;
+      const clienteInput = document.getElementById('clienteName');
+      if (clienteInput && !clienteInput.value.trim()) clienteInput.value = dados.emitente;
+    }
+
+    if (dados.cnpjRemetente) {
+      entry.cnpjRemetente = dados.cnpjRemetente;
+      entry.cnpjRemetenteCompleto = !!dados.cnpjRemetenteCompleto;
+      const cnpjCliente = document.getElementById('pixReceiver').value.trim();
+      entry.cnpjCorrelacao = correlacionarCNPJ(dados.cnpjRemetente, cnpjCliente);
+    }
+
+    const temDados = dados.id || dados.valor || dados.emitente || dados.data || dados.banco || dados.tipo || dados.cnpjRemetente;
+    if (temDados) {
+      entry.ocrExtracted = true;
+      entry.ocrEditado   = false;
+      entry._ocrSnapshot = {
+        datetime: dados.data ? entry.datetime : null, emitente: dados.emitente || null,
+        valor: dados.valor ? entry.valor : null, idValidacao: dados.id || null,
+        banco: dados.banco || null, tipoTransacao: dados.tipo || null, cnpjRemetente: dados.cnpjRemetente || null
+      };
+    }
+    renderizarPixEntries();
+    verificarDiferenca();
   }
 
   function _criarPixEntryVazia() {
@@ -995,77 +1147,13 @@
   }
 
   async function _tentarOCRParaEntry(base64DataUrl, fileIndex) {
-    // Garante que existe uma entry para este arquivo (por índice de arquivo)
-    while (pixEntries.length <= fileIndex) {
-      pixEntries.push(_criarPixEntryVazia());
-    }
+    while (pixEntries.length <= fileIndex) pixEntries.push(_criarPixEntryVazia());
     const entry = pixEntries[fileIndex];
     if (!entry) return;
-
     entry.idOcrStatus = 'loading';
     renderizarPixEntries();
-
     const dados = await extrairDadosDoComprovante(base64DataUrl);
-
-    // ── ID ──
-    if (dados.id) {
-      entry.idValidacao = dados.id;
-      entry.idAutoCapturado = true;
-      entry.idOcrStatus = 'found';
-    } else {
-      entry.idOcrStatus = 'not_found';
-    }
-
-    // ── Valor (preenche só se a entry ainda não tiver) ──
-    if (dados.valor && !entry.valor) {
-      entry.valor = dados.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
-    // ── Data e Hora (atualiza datetime se OCR encontrou) ──
-    if (dados.data) {
-      const [dia, mes, ano] = dados.data.split('/');
-      const hora = dados.hora || entry.datetime.slice(11) || '00:00';
-      entry.datetime = `${ano}-${mes}-${dia}T${hora}`;
-    }
-
-    // ── Banco / Tipo (armazena para exibição e hint no modal) ──
-    if (dados.banco) entry.banco = dados.banco;
-    if (dados.tipo)  entry.tipoTransacao = dados.tipo;
-
-    // ── Emitente (preenche entry e o campo Nome do Cliente se estiverem vazios) ──
-    if (dados.emitente) {
-      if (!entry.emitente) entry.emitente = dados.emitente;
-      const clienteInput = document.getElementById('clienteName');
-      if (clienteInput && !clienteInput.value.trim()) clienteInput.value = dados.emitente;
-    }
-
-    // ── CNPJ do Remetente + Correlação com cliente cadastrado ──
-    if (dados.cnpjRemetente) {
-      entry.cnpjRemetente = dados.cnpjRemetente;
-      entry.cnpjRemetenteCompleto = !!dados.cnpjRemetenteCompleto;
-      const cnpjCliente = document.getElementById('pixReceiver').value.trim();
-      entry.cnpjCorrelacao = correlacionarCNPJ(dados.cnpjRemetente, cnpjCliente);
-    }
-
-    // ── Badge IA: marca extração e salva snapshot dos valores originais ──
-    const temDados = dados.id || dados.valor || dados.emitente || dados.data || dados.banco || dados.tipo || dados.cnpjRemetente;
-    if (temDados) {
-      entry.ocrExtracted = true;
-      entry.ocrEditado   = false;
-      // Snapshot para detectar edição posterior
-      entry._ocrSnapshot = {
-        datetime:      dados.data ? entry.datetime : null,
-        emitente:      dados.emitente || null,
-        valor:         dados.valor ? entry.valor : null,
-        idValidacao:   dados.id   || null,
-        banco:         dados.banco || null,
-        tipoTransacao: dados.tipo  || null,
-        cnpjRemetente: dados.cnpjRemetente || null
-      };
-    }
-
-    renderizarPixEntries();
-    verificarDiferenca();
+    _aplicarDadosParaEntry(dados, fileIndex);
   }
 
   // ── CORRELAÇÃO CNPJ REMETENTE vs CLIENTE CADASTRADO ──
@@ -1472,6 +1560,62 @@
     document.getElementById('comprovanteModal').style.display = 'none';
     _modalFileIndex = -1;
     _isZoomed = false;
+    // Fecha área de colar texto ao fechar modal
+    document.getElementById('colarTextoArea').style.display = 'none';
+    document.getElementById('textoColado').value = '';
+    document.getElementById('colarTextoStatus').textContent = '';
+  }
+
+  function toggleColarTexto() {
+    const area = document.getElementById('colarTextoArea');
+    const btn  = document.getElementById('btnColarTexto');
+    const aberto = area.style.display !== 'none';
+    area.style.display = aberto ? 'none' : 'block';
+    btn.textContent = aberto ? '📋 Colar texto do comprovante' : '📋 Fechar área de texto';
+    if (!aberto) document.getElementById('textoColado').focus();
+  }
+
+  function extrairDoTextoColado() {
+    const texto = document.getElementById('textoColado').value.trim();
+    const statusEl = document.getElementById('colarTextoStatus');
+    if (!texto) { statusEl.textContent = '⚠️ Cole o texto antes de extrair.'; return; }
+
+    const dados = _parsearTextoComprovante(texto);
+    const campos = [];
+
+    if (dados.data) {
+      const [dia, mes, ano] = dados.data.split('/');
+      const hora = dados.hora || '00:00';
+      document.getElementById('modalDatetime').value = `${ano}-${mes}-${dia}T${hora}`;
+      campos.push('Data');
+    }
+    if (dados.emitente) { document.getElementById('modalEmitente').value = dados.emitente; campos.push('Emitente'); }
+    if (dados.valor) {
+      const fmt = dados.valor.toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+      document.getElementById('modalValor').value = fmt;
+      campos.push('Valor');
+    }
+    if (dados.tipo)  { document.getElementById('modalTipo').value  = dados.tipo;  campos.push('Tipo'); }
+    if (dados.banco) { document.getElementById('modalBanco').value = dados.banco; campos.push('Banco'); }
+    if (dados.cnpjRemetente) {
+      document.getElementById('modalCnpjRemetente').value = dados.cnpjRemetente;
+      // Recalcula correlação
+      const cnpjCliente = document.getElementById('pixReceiver').value.trim();
+      const corr = correlacionarCNPJ(dados.cnpjRemetente, cnpjCliente);
+      const corrEl = document.getElementById('modalCnpjCorrelacao');
+      corrEl.textContent = corr && corr.status !== 'sem_dados' ? corr.label : '';
+      corrEl.style.color = corr ? corr.cor : 'var(--text-3)';
+      campos.push('CNPJ');
+    }
+    if (dados.id) { document.getElementById('modalIdValidacao').value = dados.id; campos.push('ID'); }
+
+    if (campos.length > 0) {
+      statusEl.style.color = 'var(--cyan)';
+      statusEl.textContent = `✓ Preenchido: ${campos.join(', ')}`;
+    } else {
+      statusEl.style.color = 'var(--text-3)';
+      statusEl.textContent = '⚠️ Nenhum campo reconhecido. Verifique se o texto foi copiado corretamente.';
+    }
   }
 
   function toggleZoom() {
