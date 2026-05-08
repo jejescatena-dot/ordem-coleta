@@ -894,14 +894,29 @@
       const mE = t.match(/\bE[0-9A-Za-z]{30,45}\b/);
       if (mE) { dados.id = mE[0]; dados.idTipo = 'PIX-Ecode'; }
 
-      // 2) UUID (BTG Pactual TED e outros): xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-      //    Exemplo: ff29a4b1-9741-4cee-9791-cb800e8ad010
+      // 2) UUID com label explícito (prioridade — evita pegar código de autenticação)
+      //    BTG: "Identificador da transação ff29a4b1-..." ou "ID da transação ff29a4b1-..."
       if (!dados.id) {
-        const mUUID = t.match(/\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b/);
-        if (mUUID) { dados.id = mUUID[0]; dados.idTipo = 'UUID-TED'; }
+        const mUUIDLabel = t.match(/(?:Identificador|ID)\s+da\s+transa[cç][aã]o\s*[:\-]?\s*([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/i);
+        if (mUUIDLabel) { dados.id = mUUIDLabel[1]; dados.idTipo = 'UUID-TED'; }
       }
 
-      // 3) Fallback: qualquer coisa após "Identificador" ou "ID da transação"
+      // 3) UUID sem label — pega o ÚLTIMO (BTG coloca autenticação antes do ID da transação)
+      if (!dados.id) {
+        const todosUUIDs = [...t.matchAll(/\b([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\b/g)];
+        if (todosUUIDs.length > 0) {
+          // Ignora UUIDs próximos a palavras como "autenticação" / "autenticacao"
+          const uuidsFiltrados = todosUUIDs.filter(m => {
+            const pos = m.index;
+            const contexto = t.slice(Math.max(0, pos - 60), pos).toLowerCase();
+            return !/autenti|comprov|c[oó]d[^\s]*\s+de\b/.test(contexto);
+          });
+          const melhor = uuidsFiltrados.length > 0 ? uuidsFiltrados[uuidsFiltrados.length - 1] : todosUUIDs[todosUUIDs.length - 1];
+          dados.id = melhor[1]; dados.idTipo = 'UUID-TED';
+        }
+      }
+
+      // 4) Fallback: qualquer coisa após "Identificador" ou "ID da transação" (E-code sem "E" ou outro)
       if (!dados.id) {
         const mLabel = t.match(/(?:Identificador|ID)\s+da\s+transa[cç][aã]o\s+([A-Za-z0-9\-]{10,})/i);
         if (mLabel) { dados.id = mLabel[1]; dados.idTipo = 'label'; }
@@ -910,17 +925,19 @@
       // ── VALOR ──
       // BTG: "Valor R$ 183.456,00"   XP: "Pix RS 31.248,00" (OCR lê "RS" por R$)
       const valPatterns = [
-        // Contexto explícito: "Valor" ou "Total" + R$ ou RS
-        /(?:Valor|Total|Quantia)[^\d]{0,25}(?:R\$|RS|R5)\s*([\d]{1,3}(?:[.\s]\d{3})*[,]\d{2})/i,
-        // Stone: valor em verde logo após label "Valor" (sem símbolo às vezes)
-        /\bValor\b\s+(?:R\$|RS|R5)?\s*([\d]{1,3}(?:\.\d{3})+[,]\d{2})\b/i,
-        // R$ ou RS ou R5 (OCR) direto: número com separador milhar e centavos
-        /(?:R\$|RS|R5)\s*([\d]{1,3}(?:\.\d{3})*[,]\d{2})/,
-        // XP específico: valor logo após "Pix RS" ou "Pix R$"
+        // BTG/Stone: "Valor R$ 77.616,00" ou "Valor\nR$ 77.616,00" (após normalização)
+        /\bValor\b[^0-9]{0,30}(?:R\$|RS|R5)\s*([\d]{1,3}(?:[.\s]\d{3})*[,]\d{2})/i,
+        // BTG: "Valor" seguido diretamente pelo número sem símbolo (raro mas possível)
+        /\bValor\b\s+([\d]{1,3}(?:\.\d{3})+[,]\d{2})\b/i,
+        // XP: "Pix RS 31.248,00"
         /Pix\s+(?:R\$|RS|R5)\s*([\d.,\s]+?)(?=\s*©|\s*\d{2}\/)/i,
-        // Fallback: valor em formato BRL com milhar (≥ 3 dígitos + milhar)
+        // Genérico com contexto: "Total/Quantia R$ X"
+        /(?:Total|Quantia)[^\d]{0,25}(?:R\$|RS|R5)\s*([\d]{1,3}(?:[.\s]\d{3})*[,]\d{2})/i,
+        // R$ direto (sem contexto): captura qualquer valor precedido de R$
+        /(?:R\$|RS|R5)\s*([\d]{1,3}(?:\.\d{3})*[,]\d{2})/,
+        // Fallback: qualquer número BRL com separador de milhar
         /\b([\d]{1,3}(?:\.\d{3})+[,]\d{2})\b/,
-        // Fallback: valor em formato BRL referenciado por reais/BRL
+        // Fallback final: X,XX reais/BRL
         /([\d]{1,3}(?:\.\d{3})*,\d{2})\s*(?:reais|BRL)/i,
       ];
       for (const pat of valPatterns) {
@@ -1117,8 +1134,13 @@
 
     if (dados.emitente) {
       if (!entry.emitente) entry.emitente = dados.emitente;
+      // Só preenche clienteName se não foi digitado manualmente pelo usuário
+      // (detectado pela flag _clienteNameSetByOcr)
       const clienteInput = document.getElementById('clienteName');
-      if (clienteInput && !clienteInput.value.trim()) clienteInput.value = dados.emitente;
+      if (clienteInput && !clienteInput.value.trim()) {
+        clienteInput.value = dados.emitente;
+        clienteInput._clienteNameSetByOcr = true;
+      }
     }
 
     if (dados.cnpjRemetente) {
@@ -1147,8 +1169,9 @@
     const pad = n => String(n).padStart(2,'0');
     const d = new Date();
     const datetimeDefault = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    const emitente = document.getElementById('clienteName').value.trim();
-    return { id, datetime: datetimeDefault, valor: '', emitente, idValidacao: '', idAutoCapturado: false, idOcrStatus: '' };
+    // Não herda emitente do campo clienteName — cada comprovante parte limpo.
+    // O emitente só é preenchido pela extração (OCR/PDF.js) ou digitação manual.
+    return { id, datetime: datetimeDefault, valor: '', emitente: '', idValidacao: '', idAutoCapturado: false, idOcrStatus: '' };
   }
 
   async function _tentarOCRParaEntry(base64DataUrl, fileIndex) {
