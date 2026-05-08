@@ -812,13 +812,18 @@
     const fileList = document.getElementById('fileList');
     if (processedFiles.length === 0) { fileList.innerHTML = ''; return; }
     fileList.innerHTML = processedFiles.map((f, i) => {
+      const btnRemover = f.sizeKB > 0
+        ? `<button onclick="removeFile(${i})" title="Remover comprovante" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,0.88);color:white;border:none;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,0.3);transition:background 0.15s;" onmouseover="this.style.background='rgba(220,38,38,1)'" onmouseout="this.style.background='rgba(239,68,68,0.88)'">🗑</button>` : '';
       const thumb = f.base64
-        ? `<img src="${f.base64}" alt="Preview" onclick="abrirModalComprovante(${i})" title="Clique para ver e editar" style="display:block; width:110px; height:110px; object-fit:cover; border-radius:8px; border:2px solid var(--border); margin-bottom:6px; cursor:pointer; transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--border)'">`
-        : `<div style="width:110px; height:110px; border-radius:8px; border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:6px;">⏳</div>`;
-      const badge = f.isPDF ? `<span style="font-size:9px; background:rgba(8,145,178,0.15); color:var(--cyan); border-radius:4px; padding:1px 4px; margin-left:3px;">PDF→img</span>` : '';
-      return `<div style="display:inline-block; margin-right:8px; margin-bottom:8px; vertical-align:top; text-align:center;">
+        ? `<div style="position:relative;display:inline-block;margin-bottom:6px;">
+             <img src="${f.base64}" alt="Preview" onclick="abrirModalComprovante(${i})" title="Clique para ver e editar" style="display:block;width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid var(--border);cursor:pointer;transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--border)'">
+             ${btnRemover}
+           </div>`
+        : `<div style="position:relative;display:inline-block;margin-bottom:6px;"><div style="width:110px;height:110px;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;">⏳</div></div>`;
+      const badge = f.isPDF ? `<span style="font-size:9px;background:rgba(8,145,178,0.15);color:var(--cyan);border-radius:4px;padding:1px 4px;margin-left:3px;">PDF→img</span>` : '';
+      return `<div style="display:inline-block;margin-right:8px;margin-bottom:8px;vertical-align:top;text-align:center;">
         ${thumb}
-        <div class="file-chip" style="display:block; width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; padding:4px 6px;">${escapeHTML(f.name.length>14?f.name.slice(0,12)+'..':f.name)}${badge} ${f.sizeKB > 0 ? `<button onclick="removeFile(${i})" style="margin-left:2px;">✕</button>` : ''}</div>
+        <div class="file-chip" style="display:block;width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;padding:4px 6px;">${escapeHTML(f.name.length>14?f.name.slice(0,12)+'..':f.name)}${badge}</div>
       </div>`;
     }).join('');
   }
@@ -1315,7 +1320,7 @@
         ${cnpjCell}
         <td style="padding:8px; text-align:right;"><input type="text" value="${escapeHTML(p.valor)}" data-campo="valor" placeholder="0,00" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px; text-align:right;"></td>
         ${idCell}
-        <td style="padding:8px; text-align:center;"><button onclick="removerPixEntry('${escapeHTML(p.id)}')" style="background:var(--red); color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:600;">Remover</button></td>
+        <td style="padding:8px; text-align:center;"><button onclick="removerPixEntry('${escapeHTML(p.id)}')" title="Remover este PIX" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.35);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:15px;display:inline-flex;align-items:center;justify-content:center;transition:background 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.22)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">🗑</button></td>
       </tr>`;
     }).join('');
     tbody.querySelectorAll('tr[data-pix-id]').forEach(tr => {
@@ -1403,7 +1408,7 @@
           <td style="padding:12px 8px; text-align:right;"><input type="text" value="${escapeHTML(p.valorPix)}" data-campo="valorPix" placeholder="0,00" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px; text-align:right;"></td>
           <td style="padding:12px 8px; text-align:right;"><input type="text" value="${escapeHTML(p.desconto)}" data-campo="desconto" placeholder="0,00" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px; text-align:right;"></td>
           <td class="col-total" style="padding:12px 8px; text-align:right; font-weight:600; color:var(--cyan);">R$ ${formatarReal(total)}</td>
-          <td style="padding:12px 8px; text-align:center;"><button onclick="removerPedido('${escapeHTML(p.id)}')" style="background:var(--red); color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:600;">Remover</button></td>
+          <td style="padding:12px 8px; text-align:center;"><button onclick="removerPedido('${escapeHTML(p.id)}')" title="Remover este pedido" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.35);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:15px;display:inline-flex;align-items:center;justify-content:center;transition:background 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.22)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">🗑</button></td>
         </tr>
       `;
     }).join('');
