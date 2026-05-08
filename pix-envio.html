@@ -281,14 +281,16 @@
           <thead>
             <tr>
               <th style="text-align:left; padding:10px 8px; border-bottom:2px solid var(--border);">Data/Hora</th>
+              <th style="text-align:center; padding:10px 8px; border-bottom:2px solid var(--border); white-space:nowrap;">Tipo</th>
               <th style="text-align:left; padding:10px 8px; border-bottom:2px solid var(--border);">Emitente (Remetente)</th>
+              <th style="text-align:left; padding:10px 8px; border-bottom:2px solid var(--border); min-width:140px;">CNPJ Pag.</th>
               <th style="text-align:right; padding:10px 8px; border-bottom:2px solid var(--border);">Valor (R$)</th>
               <th style="text-align:left; padding:10px 8px; border-bottom:2px solid var(--border); min-width:170px;">ID Validação</th>
               <th style="text-align:center; padding:10px 8px; border-bottom:2px solid var(--border);">Ação</th>
             </tr>
           </thead>
           <tbody id="pixEntriesTable">
-            <tr style="opacity:0.5;"><td colspan="5" style="padding:20px; text-align:center; color:var(--text-3);">Anexe os comprovantes acima para preenchimento automático</td></tr>
+            <tr style="opacity:0.5;"><td colspan="7" style="padding:20px; text-align:center; color:var(--text-3);">Anexe os comprovantes acima para preenchimento automático</td></tr>
           </tbody>
         </table>
       </div>
@@ -398,11 +400,8 @@
   </div>
 
 <!-- ── MODAL COMPROVANTE ── -->
-<div id="comprovanteModal" style="display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.88); align-items:center; justify-content:center; padding:16px;">
-  <div style="background:var(--bg2); border:1px solid var(--border); border-radius:20px; width:100%; max-width:980px; max-height:92vh; display:flex; overflow:hidden; position:relative; box-shadow:0 24px 60px rgba(0,0,0,0.6);">
-
-    <!-- Botão fechar -->
-    <button onclick="fecharModalComprovante()" style="position:absolute; top:12px; right:12px; background:var(--surface); border:1px solid var(--border); color:var(--text); border-radius:50%; width:34px; height:34px; font-size:18px; cursor:pointer; z-index:10; display:flex; align-items:center; justify-content:center; line-height:1;">✕</button>
+<div id="comprovanteModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.88); align-items:center; justify-content:center; padding:80px 16px 16px;">
+  <div style="background:var(--bg2); border:1px solid var(--border); border-radius:20px; width:100%; max-width:980px; max-height:88vh; display:flex; overflow:hidden; position:relative; box-shadow:0 24px 60px rgba(0,0,0,0.6);">
 
     <!-- ESQUERDA: Imagem -->
     <div style="flex:1; min-width:0; display:flex; flex-direction:column; background:var(--bg);">
@@ -420,7 +419,11 @@
 
     <!-- DIREITA: Formulário PIX -->
     <div style="width:300px; flex-shrink:0; border-left:1px solid var(--border); display:flex; flex-direction:column; overflow:auto;">
-      <div style="padding:16px; font-size:14px; font-weight:700; color:var(--text); border-bottom:1px solid var(--border);">✏️ Dados do PIX</div>
+      <!-- Cabeçalho com botão X integrado -->
+      <div style="padding:12px 16px; font-size:14px; font-weight:700; color:var(--text); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+        <span>✏️ Dados do PIX</span>
+        <button onclick="fecharModalComprovante()" title="Fechar" style="background:var(--surface); border:1px solid var(--border); color:var(--text); border-radius:50%; width:30px; height:30px; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">✕</button>
+      </div>
       <div style="padding:16px; display:flex; flex-direction:column; gap:14px; flex:1;">
         <div>
           <label style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; display:block;">Data / Hora</label>
@@ -433,6 +436,25 @@
         <div>
           <label style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; display:block;">Valor (R$)</label>
           <input type="text" id="modalValor" placeholder="0,00" oninput="let v=this.value.replace(/\D/g,''); this.value=v?(parseInt(v,10)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):''" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:13px; font-family:inherit; text-align:right;">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div>
+            <label style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; display:block;">Tipo</label>
+            <select id="modalTipo" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:13px; font-family:inherit;">
+              <option value="">—</option>
+              <option value="PIX">PIX</option>
+              <option value="TED">TED</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; display:block;">Banco Emissor</label>
+            <input type="text" id="modalBanco" placeholder="Ex: BTG Pactual, XP..." style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:12px; font-family:inherit;">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; display:block;">CNPJ/CPF do Pagador</label>
+          <input type="text" id="modalCnpjRemetente" placeholder="**.XXX.XXX/0001-** ou completo" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:12px; font-family:monospace;">
+          <div id="modalCnpjCorrelacao" style="font-size:11px; margin-top:4px; font-weight:600;"></div>
         </div>
         <div>
           <label style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; display:block;">ID da Transação (PIX/TED)</label>
@@ -796,7 +818,9 @@
     return _ocrInitPromise;
   }
 
-  // Extrai ID, valor e emitente do comprovante via OCR
+  // ── PADRÕES APRENDIDOS DOS COMPROVANTES REAIS ──
+  // BANCO XP (PIX):  "Comprovante de envio Pix RS 31.248,00  06/05/26 as 16h31  Enviado de MEGA DISTRIBUICAO LTDA  ID da transação E332646682026050619312649f044c60"
+  // BTG PACTUAL(TED):"btg pactual empresas  Comprovante de transferência  Feito em 05/05/2026  Valor R$ 183.456,00  De MEGA DISTRIBUICAO LTDA  Identificador da transação ff29a4b1-9741-4cee-9791-cb800e8ad010  Transação via TED"
   async function extrairDadosDoComprovante(base64DataUrl) {
     if (typeof Tesseract === 'undefined') return {};
     const worker = await _getOCRWorker();
@@ -806,38 +830,152 @@
       const t = text.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
       const dados = {};
 
-      // ── ID da transação ──
-      const m1 = t.match(/\bE[0-9A-Fa-f]{32,}\b/);
-      if (m1) dados.id = m1[0];
-      else {
-        const m2 = t.match(/\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b/);
-        if (m2) dados.id = m2[0];
+      // ── BANCO / TIPO ──
+      if (/btg\s*pactual/i.test(t))            dados.banco = 'BTG Pactual';
+      else if (/banco\s*xp/i.test(t))          dados.banco = 'Banco XP';
+      else if (/bradesco/i.test(t))            dados.banco = 'Bradesco';
+      else if (/ita[uú]\s*unibanco/i.test(t))  dados.banco = 'Itaú Unibanco';
+      else if (/ita[uú]/i.test(t))             dados.banco = 'Itaú';
+      else if (/santander/i.test(t))           dados.banco = 'Santander';
+      else if (/nubank/i.test(t))              dados.banco = 'Nubank';
+      else if (/banco\s+inter/i.test(t))       dados.banco = 'Banco Inter';
+      else if (/sicredi/i.test(t))             dados.banco = 'Sicredi';
+      else if (/sicoob/i.test(t))              dados.banco = 'Sicoob';
+      else if (/caixa\s+econ/i.test(t))        dados.banco = 'Caixa Econômica';
+      else if (/banco\s+do\s+brasil/i.test(t)) dados.banco = 'Banco do Brasil';
+      else if (/safra/i.test(t))               dados.banco = 'Safra';
+      else if (/c6\s*bank/i.test(t))           dados.banco = 'C6 Bank';
+      else if (/picpay/i.test(t))              dados.banco = 'PicPay';
+      else if (/pagbank|pagseguro/i.test(t))   dados.banco = 'PagBank';
+
+      if (/\bTED\b/i.test(t))       dados.tipo = 'TED';
+      else if (/\bPix\b|\bPIX\b/i.test(t)) dados.tipo = 'PIX';
+
+      // ── ID DA TRANSAÇÃO ──
+      // 1) E-code PIX (Banco XP e outros): E + 30 a 45 chars alfanuméricos
+      //    Exemplo: E332646682026050619312649f044c60
+      const mE = t.match(/\bE[0-9A-Za-z]{30,45}\b/);
+      if (mE) { dados.id = mE[0]; dados.idTipo = 'PIX-Ecode'; }
+
+      // 2) UUID (BTG Pactual TED e outros): xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+      //    Exemplo: ff29a4b1-9741-4cee-9791-cb800e8ad010
+      if (!dados.id) {
+        const mUUID = t.match(/\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b/);
+        if (mUUID) { dados.id = mUUID[0]; dados.idTipo = 'UUID-TED'; }
       }
 
-      // ── Valor ──
+      // 3) Fallback: qualquer coisa após "Identificador" ou "ID da transação"
+      if (!dados.id) {
+        const mLabel = t.match(/(?:Identificador|ID)\s+da\s+transa[cç][aã]o\s+([A-Za-z0-9\-]{10,})/i);
+        if (mLabel) { dados.id = mLabel[1]; dados.idTipo = 'label'; }
+      }
+
+      // ── VALOR ──
+      // BTG: "Valor R$ 183.456,00"   XP: "Pix RS 31.248,00" (OCR lê "RS" por R$)
       const valPatterns = [
-        /(?:Valor|Total|Quantia)[^R$]{0,20}R\$\s*([\d]+[.,][\d]{3}[.,][\d]{2}|[\d]+[.,][\d]{2})/i,
-        /R\$\s*([\d]{1,3}(?:[.,]\d{3})*[.,]\d{2})/,
-        /([\d]{1,3}(?:\.\d{3})*,\d{2})\s*(?:reais|BRL)/i
+        // Contexto explícito: "Valor" ou "Total" + R$ ou RS
+        /(?:Valor|Total|Quantia)[^\d]{0,25}(?:R\$|RS)\s*([\d]{1,3}(?:[.\s]\d{3})*[,]\d{2})/i,
+        // R$ ou RS (OCR) direto: número com separador milhar e centavos
+        /(?:R\$|RS)\s*([\d]{1,3}(?:\.\d{3})*[,]\d{2})/,
+        // XP específico: valor logo após "Pix RS" ou "Pix R$"
+        /Pix\s+(?:R\$|RS)\s*([\d.,\s]+?)(?=\s*©|\s*\d{2}\/)/i,
+        // Fallback: valor em formato BRL com milhar
+        /([\d]{1,3}(?:\.\d{3})*,\d{2})\s*(?:reais|BRL)/i,
       ];
       for (const pat of valPatterns) {
         const mv = t.match(pat);
         if (mv) {
-          // Normaliza: remove separador de milhar, troca vírgula por ponto
-          const raw = mv[1].replace(/\./g, '').replace(',', '.');
+          const raw = (mv[1] || '').replace(/\s/g,'').replace(/\./g, '').replace(',', '.');
           const n = parseFloat(raw);
-          if (!isNaN(n) && n > 0) { dados.valor = n; break; }
+          if (!isNaN(n) && n > 0 && n < 100000000) { dados.valor = n; break; }
         }
       }
 
-      // ── Emitente / Remetente ──
+      // ── DATA E HORA ──
+      // Tenta primeiro capturar data+hora juntos (padrão mais confiável)
+      // XP:  "06/05/26 as 16h31"  |  "06/05/26 as 16:31"  |  "06/05/26 as 1631"
+      // BTG: "Feito em 05/05/2026" (sem hora na mesma frase)
+      // Outros: "05/05/2026 16:31"  |  "05/05/2026 às 16h31"
+
+      const dataHoraPatterns = [
+        // Data + "as/às" + hora no formato HHhMM
+        /(\d{2}\/\d{2}\/(?:\d{4}|\d{2}))\s+(?:as|às)\s+(\d{1,2})h(\d{2})/i,
+        // Data + "as/às" + hora HH:MM
+        /(\d{2}\/\d{2}\/(?:\d{4}|\d{2}))\s+(?:as|às)\s+(\d{2}):(\d{2})/i,
+        // Data + "as/às" + hora HHMM colado (ex: "as 1631")
+        /(\d{2}\/\d{2}\/(?:\d{4}|\d{2}))\s+(?:as|às)\s+(\d{2})(\d{2})\b/i,
+        // Data seguida diretamente de HH:MM (sem "as")
+        /(\d{2}\/\d{2}\/(?:\d{4}|\d{2}))\s+(\d{2}):(\d{2})/,
+        // Data + hora separados por espaço no formato HHhMM
+        /(\d{2}\/\d{2}\/(?:\d{4}|\d{2}))\s+(\d{1,2})h(\d{2})/i,
+      ];
+
+      let dataHoraAchada = false;
+      for (const pat of dataHoraPatterns) {
+        const m = t.match(pat);
+        if (m) {
+          let dp = m[1];
+          if (/\d{2}\/\d{2}\/\d{2}$/.test(dp)) dp = dp.slice(0,6) + '20' + dp.slice(6);
+          dados.data = dp;
+          dados.hora = `${String(m[2]).padStart(2,'0')}:${m[3]}`;
+          dataHoraAchada = true;
+          break;
+        }
+      }
+
+      // Se não achou data+hora juntos, tenta data sozinha
+      if (!dataHoraAchada) {
+        const mData = t.match(/(?:Feito\s+em\s+|em\s+)?(\d{2}\/\d{2}\/(?:\d{4}|\d{2}))/i);
+        if (mData) {
+          let dp = mData[1];
+          if (/\d{2}\/\d{2}\/\d{2}$/.test(dp)) dp = dp.slice(0,6) + '20' + dp.slice(6);
+          dados.data = dp;
+        }
+        // Hora isolada: "as 16h31" em qualquer lugar do texto
+        const mHora = t.match(/(?:as|às)\s+(\d{1,2})h(\d{2})/i)
+                   || t.match(/(?:as|às)\s+(\d{2}):(\d{2})/i)
+                   || t.match(/(?:as|às)\s+(\d{2})(\d{2})\b/i);
+        if (mHora) dados.hora = `${String(mHora[1]).padStart(2,'0')}:${mHora[2]}`;
+      }
+
+      // ── EMITENTE / REMETENTE ──
       const emPatterns = [
-        /(?:Pagador|Remetente|Enviado\s+por|Nome\s+do\s+pagador|De)\s*[:\-]?\s*([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇÑ][A-Za-záéíóúàâêîôûãõçñ\s]{4,50})(?=\s{2,}|\s*(?:CPF|CNPJ|Banco|Ag[eê]n|Conta|\d{3}\.\d{3}))/i,
-        /(?:Pagador|Remetente|De)\s*[:\-]?\s*([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇÑ][A-Za-záéíóúàâêîôûãõçñ\s\.]{4,60}?)(?=\s*\n|\s{3,}|$)/im
+        // XP: "Enviado de MEGA DISTRIBUICAO LTDA" (antes de CPF/CNPJ ou **)
+        /Enviado\s+de\s+([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇÑ][A-Za-záéíóúàâêîôûãõçñ\s&\.]{4,60}?)(?=\s*(?:CPF|CNPJ|Inst|Banco|\*\*|$))/i,
+        // BTG: "De MEGA DISTRIBUICAO LTDA M CNP:" (para antes de M CN ou CNP ou CNPJ)
+        /\bDe\s+([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇÑ][A-Za-záéíóúàâêîôûãõçñ\s&\.]{4,60}?)(?=\s*(?:M\s*CN|CNP|CNPJ|\*\*|Banco|Ag[eê]|$))/i,
+        // Genérico: Pagador / Remetente / Nome do pagador
+        /(?:Pagador|Remetente|Nome\s+do\s+pagador)\s*[:\-]?\s*([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇÑ][A-Za-záéíóúàâêîôûãõçñ\s\.]{4,60}?)(?=\s{2,}|\s*(?:CPF|CNPJ|Banco|\d{3}\.))/i,
       ];
       for (const pat of emPatterns) {
         const me = t.match(pat);
         if (me) { dados.emitente = me[1].trim().replace(/\s+/g, ' '); break; }
+      }
+
+      // ── CNPJ/CPF DO REMETENTE (mascarado ou parcial) ──
+      // XP:  "CPF/CNPS do Pagador **#46.343/0001-**"
+      // BTG: "CNP: **.946.343/0001-*"  ou  "CNPJ **.946.343/0001-**"
+      // Regex captura a string mascarada completa, ex: "**.946.343/0001-**"
+      const cnpjPatterns = [
+        // Label explícito: CPF/CNPJ do Pagador ou CNP: + mascarado
+        /(?:CPF[\/\s]CNPJ|CPF[\/\s]CNPS|CNPJ|CNP)[^:]*[:\s]+(\*{1,2}[#.]?[\d*#.]+\/[\d]+-\*+)/i,
+        // Sem label: qualquer token no formato mascarado de CNPJ
+        /(\*{1,2}[#.]?[\d.]+\/[\d]{4}-\*+)/,
+        // OCR às vezes lê ** como ##
+        /(?:CPF[\/\s]CNPJ|CPF[\/\s]CNPS|CNPJ|CNP)[^:]*[:\s]+([#*]{1,2}[.#]?[\d.#*]+\/[\d]+-[#*]+)/i,
+      ];
+      for (const pat of cnpjPatterns) {
+        const mc = t.match(pat);
+        if (mc) {
+          // Normaliza: substitui # por * para padronizar exibição
+          dados.cnpjRemetente = mc[1].replace(/#/g, '*').trim();
+          break;
+        }
+      }
+      // Se não achou mascarado, tenta CNPJ completo (quando comprovante mostra tudo)
+      if (!dados.cnpjRemetente) {
+        const mcFull = t.match(/(?:CPF[\/\s]CNPJ|CNPJ)[^:]*[:\s]+(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})/i);
+        if (mcFull) { dados.cnpjRemetente = mcFull[1]; dados.cnpjRemetenteCompleto = true; }
       }
 
       return dados;
@@ -883,6 +1021,17 @@
       entry.valor = dados.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
+    // ── Data e Hora (atualiza datetime se OCR encontrou) ──
+    if (dados.data) {
+      const [dia, mes, ano] = dados.data.split('/');
+      const hora = dados.hora || entry.datetime.slice(11) || '00:00';
+      entry.datetime = `${ano}-${mes}-${dia}T${hora}`;
+    }
+
+    // ── Banco / Tipo (armazena para exibição e hint no modal) ──
+    if (dados.banco) entry.banco = dados.banco;
+    if (dados.tipo)  entry.tipoTransacao = dados.tipo;
+
     // ── Emitente (preenche entry e o campo Nome do Cliente se estiverem vazios) ──
     if (dados.emitente) {
       if (!entry.emitente) entry.emitente = dados.emitente;
@@ -890,8 +1039,58 @@
       if (clienteInput && !clienteInput.value.trim()) clienteInput.value = dados.emitente;
     }
 
+    // ── CNPJ do Remetente + Correlação com cliente cadastrado ──
+    if (dados.cnpjRemetente) {
+      entry.cnpjRemetente = dados.cnpjRemetente;
+      entry.cnpjRemetenteCompleto = !!dados.cnpjRemetenteCompleto;
+      const cnpjCliente = document.getElementById('pixReceiver').value.trim();
+      entry.cnpjCorrelacao = correlacionarCNPJ(dados.cnpjRemetente, cnpjCliente);
+    }
+
     renderizarPixEntries();
     verificarDiferenca();
+  }
+
+  // ── CORRELAÇÃO CNPJ REMETENTE vs CLIENTE CADASTRADO ──
+  // Compara os dígitos visíveis do CNPJ mascarado do comprovante
+  // com o CNPJ completo informado no campo "Número" do formulário.
+  // Retorna: { status:'completo'|'parcial'|'diverge'|'sem_dados', label, cor }
+  function correlacionarCNPJ(cnpjMascarado, cnpjClienteCompleto) {
+    if (!cnpjMascarado || !cnpjClienteCompleto) return { status:'sem_dados', label:'—', cor:'var(--text-3)' };
+
+    // Extrai apenas os dígitos visíveis do CNPJ mascarado (remove * # . / - espaço)
+    const digVisiveis = cnpjMascarado.replace(/[*#.\-\/\s]/g, '').replace(/\D/g,'');
+    // Extrai apenas os dígitos do CNPJ do cliente
+    const digCliente  = cnpjClienteCompleto.replace(/\D/g,'');
+
+    if (!digVisiveis || digVisiveis.length < 6) return { status:'sem_dados', label:'—', cor:'var(--text-3)' };
+    if (!digCliente  || digCliente.length  < 8) return { status:'sem_dados', label:'—', cor:'var(--text-3)' };
+
+    // Verifica se os dígitos visíveis estão contidos nos dígitos do cliente
+    const bate = digCliente.includes(digVisiveis);
+
+    if (!bate) return {
+      status: 'diverge',
+      label:  '⚠ CNPJ não confere',
+      cor:    'var(--red)'
+    };
+
+    // Bate — verifica se é match completo (CNPJ sem máscara, todas as posições conferem)
+    // Um CNPJ mascarado "**.946.343/0001-**" tem 10 dígitos visíveis de 14.
+    // Se tivermos ≥ 12 dígitos visíveis, consideramos match completo.
+    if (digVisiveis.length >= 12 || cnpjMascarado.replace(/[*#]/g,'').replace(/\D/g,'').length === digCliente.length) {
+      return { status:'completo', label:'✅ CNPJ confere (completo)', cor:'var(--green)' };
+    }
+    return { status:'parcial', label:'🟡 CNPJ confere parcialmente', cor:'#f59e0b' };
+  }
+
+  // Roda correlação em todas as entries e re-renderiza (chamado ao mudar o CNPJ do cliente)
+  function atualizarCorrelacaoTodosEntries() {
+    const cnpjCliente = document.getElementById('pixReceiver').value.trim();
+    pixEntries.forEach(e => {
+      if (e.cnpjRemetente) e.cnpjCorrelacao = correlacionarCNPJ(e.cnpjRemetente, cnpjCliente);
+    });
+    renderizarPixEntries();
   }
 
   // ── MÁSCARA DE MOEDA (aplicada nos inputs de valor dos PIX entries via JS dinâmico) ──
@@ -922,6 +1121,8 @@
   document.getElementById('pixReceiver').addEventListener('input', function(e) {
     const tipo = document.getElementById('documentType').value;
     e.target.value = tipo === 'cpf' ? formatarCPF(e.target.value) : formatarCNPJ(e.target.value);
+    // Atualiza correlação CNPJ em todos os entries sempre que o CNPJ do cliente mudar
+    atualizarCorrelacaoTodosEntries();
   });
 
   // ── PIX ENTRIES ──
@@ -972,10 +1173,33 @@
           placeholder="${ph}"
           style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:11px;font-family:monospace;"></td>`;
       }
+      // Célula Tipo (PIX / TED)
+      const tipoCor   = p.tipoTransacao === 'TED' ? '#f97316' : 'var(--cyan)';
+      const tipoCell  = p.tipoTransacao
+        ? `<td style="padding:8px; text-align:center;"><span style="display:inline-block; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:700; background:${tipoCor}22; color:${tipoCor}; white-space:nowrap;">${escapeHTML(p.tipoTransacao)}</span></td>`
+        : `<td style="padding:8px; text-align:center; color:var(--text-3); font-size:11px;">—</td>`;
+
+      // Célula CNPJ Pag. + badge de correlação
+      let cnpjCell;
+      if (p.cnpjRemetente) {
+        const corr = p.cnpjCorrelacao || {};
+        const badge = corr.status
+          ? `<div style="margin-top:3px; font-size:10px; color:${corr.cor}; font-weight:600;">${escapeHTML(corr.label)}</div>`
+          : '';
+        cnpjCell = `<td style="padding:8px;">
+          <div style="font-size:11px; font-family:monospace; color:var(--text);">${escapeHTML(p.cnpjRemetente)}</div>
+          ${badge}
+        </td>`;
+      } else {
+        cnpjCell = `<td style="padding:8px; color:var(--text-3); font-size:11px;">—</td>`;
+      }
+
       return `
       <tr data-pix-id="${escapeHTML(p.id)}" style="border-bottom:1px solid var(--border);">
         <td style="padding:8px;"><input type="datetime-local" value="${escapeHTML(p.datetime)}" data-campo="datetime" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px;"></td>
+        ${tipoCell}
         <td style="padding:8px;"><input type="text" value="${escapeHTML(p.emitente)}" data-campo="emitente" placeholder="Nome do remetente" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px;"></td>
+        ${cnpjCell}
         <td style="padding:8px; text-align:right;"><input type="text" value="${escapeHTML(p.valor)}" data-campo="valor" placeholder="0,00" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text); font-size:12px; text-align:right;"></td>
         ${idCell}
         <td style="padding:8px; text-align:center;"><button onclick="removerPixEntry('${escapeHTML(p.id)}')" style="background:var(--red); color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:600;">Remover</button></td>
@@ -1177,15 +1401,37 @@
     // Usa exatamente a entry do índice deste arquivo (sem fallback para outros)
     const entry = pixEntries[index] || null;
     if (entry) {
-      document.getElementById('modalDatetime').value = entry.datetime || '';
-      document.getElementById('modalEmitente').value = entry.emitente || '';
-      document.getElementById('modalValor').value = entry.valor || '';
-      document.getElementById('modalIdValidacao').value = entry.idValidacao || '';
+      document.getElementById('modalDatetime').value       = entry.datetime       || '';
+      document.getElementById('modalEmitente').value       = entry.emitente       || '';
+      document.getElementById('modalValor').value          = entry.valor          || '';
+      document.getElementById('modalIdValidacao').value    = entry.idValidacao    || '';
+      document.getElementById('modalTipo').value           = entry.tipoTransacao  || '';
+      document.getElementById('modalBanco').value          = entry.banco          || '';
+      document.getElementById('modalCnpjRemetente').value  = entry.cnpjRemetente  || '';
+
+      // Badge correlação CNPJ no modal
+      const corrEl = document.getElementById('modalCnpjCorrelacao');
+      const corr = entry.cnpjCorrelacao;
+      corrEl.textContent = corr && corr.status !== 'sem_dados' ? corr.label : '';
+      corrEl.style.color = corr ? corr.cor : 'var(--text-3)';
+
+      // Hint do ID
+      const bancoInfo = [entry.banco, entry.tipoTransacao].filter(Boolean).join(' · ');
       document.getElementById('modalIdHint').textContent = entry.idAutoCapturado
-        ? '🔒 Capturado via OCR — edite aqui para corrigir' : 'Preencha se o OCR não encontrou';
+        ? `🔒 Capturado via OCR${bancoInfo ? ' (' + bancoInfo + ')' : ''} — edite para corrigir`
+        : bancoInfo ? `Banco detectado: ${bancoInfo} — ID não encontrado, preencha` : 'Preencha se o OCR não encontrou';
+
+      // Listener ao editar CNPJ no modal → atualiza badge de correlação em tempo real
+      document.getElementById('modalCnpjRemetente').oninput = function() {
+        const cnpjCliente = document.getElementById('pixReceiver').value.trim();
+        const corr2 = correlacionarCNPJ(this.value, cnpjCliente);
+        corrEl.textContent = corr2 && corr2.status !== 'sem_dados' ? corr2.label : '';
+        corrEl.style.color = corr2 ? corr2.cor : 'var(--text-3)';
+      };
     } else {
-      ['modalDatetime','modalEmitente','modalValor','modalIdValidacao'].forEach(id => { document.getElementById(id).value = ''; });
+      ['modalDatetime','modalEmitente','modalValor','modalIdValidacao','modalTipo','modalBanco','modalCnpjRemetente'].forEach(id => { document.getElementById(id).value = ''; });
       document.getElementById('modalIdHint').textContent = 'Preencha os dados desta transferência';
+      document.getElementById('modalCnpjCorrelacao').textContent = '';
     }
     document.getElementById('comprovanteModal').style.display = 'flex';
   }
@@ -1224,11 +1470,22 @@
       adicionarPixEntry();
       entry = pixEntries[pixEntries.length - 1];
     }
+    const tipo = document.getElementById('modalTipo') ? document.getElementById('modalTipo').value : '';
+    const banco = document.getElementById('modalBanco') ? document.getElementById('modalBanco').value.trim() : '';
+    const cnpjRemetente = document.getElementById('modalCnpjRemetente') ? document.getElementById('modalCnpjRemetente').value.trim() : '';
+
     if (entry) {
       if (datetime) entry.datetime = datetime;
       if (emitente) entry.emitente = emitente;
       if (valor) entry.valor = valor;
       if (idValidacao) { entry.idValidacao = idValidacao; entry.idAutoCapturado = false; }
+      if (tipo) entry.tipoTransacao = tipo;
+      if (banco) entry.banco = banco;
+      if (cnpjRemetente) {
+        entry.cnpjRemetente = cnpjRemetente;
+        const cnpjCliente = document.getElementById('pixReceiver').value.trim();
+        entry.cnpjCorrelacao = correlacionarCNPJ(cnpjRemetente, cnpjCliente);
+      }
     }
     if (emitente && !document.getElementById('clienteName').value.trim()) {
       document.getElementById('clienteName').value = emitente;
@@ -1572,64 +1829,4 @@
   function renderHistory(envios) {
     const tbody = document.getElementById('historyTable');
     if (!envios || envios.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Nenhum PIX enviado ainda</td></tr>';
-      return;
-    }
-    tbody.innerHTML = envios.map(pix => `
-      <tr>
-        <td>${escapeHTML(new Date(pix.datetime).toLocaleString('pt-BR'))}</td>
-        <td>R$ ${formatarReal(pix.amount)}</td>
-        <td>${escapeHTML(pix.store)}</td>
-        <td><span class="badge ${escapeHTML(pix.status)}">${escapeHTML(statusLabel(pix.status))}</span></td>
-        <td>${escapeHTML(new Date(pix.submittedAt).toLocaleString('pt-BR'))}</td>
-      </tr>
-    `).join('');
-  }
-  function loadHistory() {
-    if (!currentUser) return;
-    if (historyRef) { historyRef.off(); historyRef = null; }
-    historyRef = db.ref('pix-envios').orderByChild('vendorUid').equalTo(currentUser.uid);
-    historyRef.on('value', (snapshot) => {
-      const data = snapshot.val();
-      let envios = [];
-      if (data) envios = Object.values(data).sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-      renderHistory(envios);
-    }, (error) => {
-      console.error('Erro histórico:', error);
-      document.getElementById('historyTable').innerHTML = '<tr><td colspan="5" class="empty-state">Erro ao carregar histórico</td></tr>';
-    });
-  }
-
-  // ── CLEAR ──
-  function clearForm() {
-    if (pedidosData.length > 0 || pixEntries.length > 0 || processedFiles.length > 0 || document.getElementById('clienteName').value) {
-      if (!confirm('Limpar todos os campos? Isso não pode ser desfeito.')) return;
-    }
-    clearFormSemConfirmar();
-  }
-  function clearFormSemConfirmar() {
-    document.getElementById('storeSelect').value = '';
-    document.getElementById('clienteName').value = '';
-    document.getElementById('codigoCliente').value = '';
-    document.getElementById('documentType').value = 'cnpj';
-    document.getElementById('pixReceiver').value = '';
-    document.getElementById('pixReceiver').maxLength = 18;
-    document.getElementById('pixReceiver').placeholder = '00.000.000/0000-00';
-    document.getElementById('pixNotes').value = '';
-    document.getElementById('notaInformativa').value = '';
-    pedidosData = [];
-    renderizarPedidos();
-    pixEntries = [];
-    renderizarPixEntries();
-    processedFiles = [];
-    document.getElementById('fileInput').value = '';
-    updateFileList();
-    document.getElementById('formAlert').innerHTML = '';
-  }
-
-  window.addEventListener('beforeunload', () => {
-    if (historyRef) historyRef.off();
-  });
-</script>
-</body>
-</html>
+      tbody.innerHTML = '<tr><td colspan="5" cl
