@@ -533,7 +533,9 @@ const PortalAuth = (function () {
       denied: `<div class="pa-card">
         <div class="pa-icon-box" style="background:rgba(227,30,36,.15);">🚫</div>
         <div class="pa-title">Acesso Negado</div>
-        <div class="pa-desc">Você não tem permissão para acessar esta área. Se acredita que é um erro, entre em contato com o administrador.</div>
+        <div class="pa-desc">Seu acesso foi removido ou negado. Se for um engano, você pode solicitar novamente — um administrador irá revisar.</div>
+        ${avatarRow}
+        <button class="pa-btn" onclick="PortalAuth._reRequest()" style="margin-bottom:8px;">Solicitar acesso novamente</button>
         <button class="pa-link-btn" onclick="PortalAuth.logout()">Sair da conta</button>
       </div>`,
     };
@@ -613,6 +615,27 @@ const PortalAuth = (function () {
     input.value = v;
   }
 
+  async function _reRequest() {
+    if (!_user) return;
+    try {
+      // Lê o CPF salvo para limpar o índice
+      const snap = await _db.ref('users/' + _user.uid).once('value');
+      if (snap.exists()) {
+        const data = snap.val();
+        if (data.cpf) {
+          await _db.ref('cpf-index/' + data.cpf).remove();
+        }
+      }
+      // Remove o registro do usuário para liberar nova solicitação
+      await _db.ref('users/' + _user.uid).remove();
+      await _db.ref('notifications/pending/' + _user.uid).remove();
+      _selectedGrp = null;
+      _showState('group-select');
+    } catch (e) {
+      alert('Erro ao limpar cadastro: ' + e.message);
+    }
+  }
+
   function _validateForm() {
     const nome   = (document.getElementById('pa-nome')     || {}).value || '';
     const cpfRaw = (document.getElementById('pa-cpf')      || {}).value || '';
@@ -664,5 +687,6 @@ const PortalAuth = (function () {
     _maskCpf,
     _maskTel,
     _validateForm,
+    _reRequest,
   };
 })();

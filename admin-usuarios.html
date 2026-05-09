@@ -99,10 +99,12 @@
   .badge-pending  { background: var(--amber-soft);  color: var(--amber); }
   .badge-approved { background: var(--green-soft);  color: var(--green); }
   .badge-denied   { background: var(--red-soft);    color: var(--red); }
-  .badge-admin    { background: var(--cyan-soft);   color: var(--cyan); }
-  .badge-financeiro { background: var(--green-soft); color: var(--green); }
-  .badge-vendedor   { background: var(--amber-soft); color: var(--amber); }
-  .badge-prevencao  { background: var(--purple-soft);color: var(--purple); }
+  .badge-admin             { background: var(--cyan-soft);   color: var(--cyan); }
+  .badge-financeiro        { background: var(--green-soft);  color: var(--green); }
+  .badge-financeiro-sede   { background: var(--green-soft);  color: var(--green); }
+  .badge-financeiro-loja   { background: rgba(16,185,129,.12); color: #10b981; }
+  .badge-vendedor          { background: var(--amber-soft);  color: var(--amber); }
+  .badge-prevencao         { background: var(--purple-soft); color: var(--purple); }
 
   /* BUTTONS */
   .btn { background: var(--cyan); color: #fff; border: none; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .2s; font-family: inherit; white-space: nowrap; }
@@ -237,6 +239,7 @@
     <div class="stat-card">
       <div class="stat-label">Financeiro</div>
       <div class="stat-value" id="st-financeiro">0</div>
+      <div style="font-size:10px;color:var(--text-3);margin-top:4px;" id="st-financeiro-detalhe"></div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Vendedores</div>
@@ -282,11 +285,12 @@
   <div id="tab-usuarios" style="display:none;">
     <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
       <span style="font-size:13px; color:var(--text-2);">Filtrar por grupo:</span>
-      <button class="btn btn-ghost" id="filter-all"        onclick="filtrarUsuarios('all')"       style="font-size:12px;">Todos</button>
-      <button class="btn btn-ghost" id="filter-admin"      onclick="filtrarUsuarios('admin')"     style="font-size:12px;">⚙️ Admin</button>
-      <button class="btn btn-ghost" id="filter-financeiro" onclick="filtrarUsuarios('financeiro')" style="font-size:12px;">💰 Financeiro</button>
-      <button class="btn btn-ghost" id="filter-vendedor"   onclick="filtrarUsuarios('vendedor')"  style="font-size:12px;">🛍️ Vendedor</button>
-      <button class="btn btn-ghost" id="filter-prevencao"  onclick="filtrarUsuarios('prevencao')" style="font-size:12px;">🔒 Prev. Perdas</button>
+      <button class="btn btn-ghost" id="filter-all"              onclick="filtrarUsuarios('all')"              style="font-size:12px;">Todos</button>
+      <button class="btn btn-ghost" id="filter-admin"            onclick="filtrarUsuarios('admin')"            style="font-size:12px;">⚙️ Admin</button>
+      <button class="btn btn-ghost" id="filter-financeiro-sede"  onclick="filtrarUsuarios('financeiro-sede')"  style="font-size:12px;">💰 Fin. Sede</button>
+      <button class="btn btn-ghost" id="filter-financeiro-loja"  onclick="filtrarUsuarios('financeiro-loja')"  style="font-size:12px;">🏪 Fin. Loja</button>
+      <button class="btn btn-ghost" id="filter-vendedor"         onclick="filtrarUsuarios('vendedor')"         style="font-size:12px;">🛍️ Vendedor</button>
+      <button class="btn btn-ghost" id="filter-prevencao"        onclick="filtrarUsuarios('prevencao')"        style="font-size:12px;">🔒 Prev. Perdas</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -323,7 +327,8 @@
             <tr>
               <th>Página</th>
               <th>⚙️ Admin</th>
-              <th>💰 Financeiro</th>
+              <th>💰 Fin. Sede</th>
+              <th>🏪 Fin. Loja</th>
               <th>🛍️ Vendedor</th>
               <th>🔒 Prev. Perdas</th>
             </tr>
@@ -436,7 +441,10 @@
 
     document.getElementById('st-pendentes').textContent  = pends;
     document.getElementById('st-aprovados').textContent  = aprovados.length;
-    document.getElementById('st-financeiro').textContent = aprovados.filter(u => u.grupo === 'financeiro').length;
+    const fSede = aprovados.filter(u => u.grupo === 'financeiro-sede').length;
+    const fLoja = aprovados.filter(u => u.grupo === 'financeiro-loja').length;
+    document.getElementById('st-financeiro').textContent = fSede + fLoja;
+    document.getElementById('st-financeiro-detalhe').textContent = fSede + ' sede · ' + fLoja + ' loja';
     document.getElementById('st-vendedor').textContent   = aprovados.filter(u => u.grupo === 'vendedor').length;
     document.getElementById('st-prevencao').textContent  = aprovados.filter(u => u.grupo === 'prevencao').length;
 
@@ -483,7 +491,11 @@
   // ─── TAB TODOS USUÁRIOS ────────────────────────────────────────────────────
   function filtrarUsuarios(grupo) {
     filtroAtivo = grupo;
-    document.querySelectorAll('[id^="filter-"]').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('[id^="filter-"]').forEach(b => {
+      b.classList.remove('active');
+      b.style.borderColor = '';
+      b.style.color = '';
+    });
     const el = document.getElementById('filter-' + grupo);
     if (el) { el.classList.add('active'); el.style.borderColor = 'var(--cyan)'; el.style.color = 'var(--cyan)'; }
     renderUsuarios();
@@ -526,7 +538,7 @@
   // ─── TAB GRUPOS ────────────────────────────────────────────────────────────
   function renderGrupos() {
     const container = document.getElementById('grupos-grid');
-    const grupos    = ['admin','financeiro','vendedor','prevencao'];
+    const grupos    = ['admin','financeiro-sede','financeiro-loja','vendedor','prevencao'];
     const adminsUID = []; // Admins vêm de allUsers com grupo=admin OU do nó admins/
 
     container.innerHTML = grupos.map(g => {
@@ -557,7 +569,7 @@
   // ─── TAB MATRIZ ────────────────────────────────────────────────────────────
   function renderMatriz() {
     const tbody  = document.getElementById('tbody-matriz');
-    const grupos = ['admin','financeiro','vendedor','prevencao'];
+    const grupos = ['admin','financeiro-sede','financeiro-loja','vendedor','prevencao'];
 
     const PAGE_LABELS = {
       'index.html':               '🏠 Portal Principal',
@@ -602,7 +614,7 @@
     `;
 
     // Lista de grupos (exceto admin — admin só pode ser definido diretamente no Firebase)
-    const grupos = ['financeiro','vendedor','prevencao'];
+    const grupos = ['financeiro-sede','financeiro-loja','vendedor','prevencao'];
     document.getElementById('modal-group-list').innerHTML = grupos.map(g => `
       <div class="group-select-opt${grupoSelecionadoModal === g ? ' selected' : ''}"
            onclick="selecionarGrupoModal('${g}', this, 'modal-group-list', 'btn-confirmar-aprovacao')">
@@ -704,7 +716,7 @@
       <div class="modal-user-badge">${badgeGrupo(u.grupo)}</div>
     `;
 
-    const grupos = ['financeiro','vendedor','prevencao'];
+    const grupos = ['financeiro-sede','financeiro-loja','vendedor','prevencao'];
     document.getElementById('modal-alterar-group-list').innerHTML = grupos.map(g => `
       <div class="group-select-opt${grupoAlterarModal === g ? ' selected' : ''}"
            onclick="selecionarGrupoAlterar('${g}', this)">
@@ -761,11 +773,19 @@
 
   // ─── REVOGAR ACESSO ────────────────────────────────────────────────────────
   async function revogarAcesso(uid, nome) {
-    if (!confirm(`Revogar acesso de ${nome}? O usuário perderá o acesso imediatamente.`)) return;
+    if (!confirm(`Revogar acesso de ${nome}? O usuário perderá o acesso imediatamente e poderá solicitar novamente.`)) return;
     try {
-      await db.ref('users/' + uid).update({ status: 'denied', revokedAt: new Date().toISOString() });
+      // Lê o CPF salvo para limpar o índice
+      const snap = await db.ref('users/' + uid).once('value');
+      if (snap.exists()) {
+        const data = snap.val();
+        if (data.cpf) await db.ref('cpf-index/' + data.cpf).remove();
+      }
+      // Remove o registro completamente — permite nova solicitação
+      await db.ref('users/' + uid).remove();
       await db.ref('vendedores/' + uid).remove();
-      showToast('Acesso de ' + nome + ' revogado.', 'info');
+      await db.ref('notifications/pending/' + uid).remove();
+      showToast('Acesso de ' + nome + ' revogado. Usuário poderá solicitar novamente.', 'info');
     } catch (e) {
       showToast('Erro: ' + e.message, 'error');
     }
