@@ -187,6 +187,10 @@
   .group-select-label { font-size: 13px; font-weight: 600; }
   .modal-footer { display: flex; gap: 10px; }
   .modal-footer .btn { flex: 1; padding: 10px 16px; font-size: 13px; }
+  .modal-details { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:20px; }
+  .modal-detail-item { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 12px; }
+  .modal-detail-label { font-size:10px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.5px; font-weight:700; margin-bottom:3px; }
+  .modal-detail-value { font-size:13px; color:var(--text); font-weight:500; }
 
   /* TOAST */
   #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
@@ -382,6 +386,7 @@
     <div class="modal-title">Aprovar Acesso</div>
     <div class="modal-sub">Selecione o grupo que este usuário irá receber.</div>
     <div class="modal-user-row" id="modal-user-info"></div>
+    <div id="modal-user-details" style="display:none;"></div>
     <div class="group-select-list" id="modal-group-list"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="fecharModal('modal-aprovar')">Cancelar</button>
@@ -664,6 +669,26 @@
       <div class="modal-user-badge">${badgeGrupo(u.requestedGrupo||'')}</div>
     `;
 
+    // Detalhes de cadastro (CPF mascarado, crachá, loja, celular)
+    const detailsEl = document.getElementById('modal-user-details');
+    const cpfMasked = u.cpf ? String(u.cpf).replace(/^(\d{3})\d{3}\d{3}(\d{2})$/, '$1.***.***-$2') : null;
+    const detailItems = [
+      u.cpf      ? { label: 'CPF',     value: cpfMasked || esc(String(u.cpf)) } : null,
+      u.cracha   ? { label: 'Crachá',  value: esc(String(u.cracha)) }           : null,
+      u.loja     ? { label: 'Loja Nº', value: esc(String(u.loja)) }             : null,
+      u.telefone ? { label: 'Celular', value: esc(String(u.telefone)) }         : null,
+    ].filter(Boolean);
+    if (detailItems.length > 0 && detailsEl) {
+      detailsEl.style.display = 'block';
+      detailsEl.innerHTML = '<div class="modal-details">' +
+        detailItems.map(d =>
+          `<div class="modal-detail-item"><div class="modal-detail-label">${d.label}</div><div class="modal-detail-value">${d.value}</div></div>`
+        ).join('') +
+        '</div>';
+    } else if (detailsEl) {
+      detailsEl.style.display = 'none';
+    }
+
     // Lista de grupos (exceto admin — admin só pode ser definido diretamente no Firebase)
     const grupos = ['financeiro-sede','financeiro-loja','vendedor','prevencao'];
     document.getElementById('modal-group-list').innerHTML = grupos.map(g => `
@@ -695,17 +720,21 @@
       const admin = PortalAuth.getUser();
       const u     = pendentes[pendingUID] || allUsers[pendingUID] || {};
 
-      // Escreve no novo sistema
+      // Escreve no novo sistema (preserva dados de cadastro)
       await db.ref('users/' + pendingUID).set({
-        email:        u.email || '',
-        name:         u.name || u.displayName || u.email || '',
-        photo:        u.photo || u.photoURL || '',
-        grupo:        grupoSelecionadoModal,
-        status:       'approved',
+        email:          u.email || '',
+        name:           u.name || u.displayName || u.email || '',
+        photo:          u.photo || u.photoURL || '',
+        grupo:          grupoSelecionadoModal,
+        status:         'approved',
         requestedGrupo: u.requestedGrupo || grupoSelecionadoModal,
-        requestedAt:  u.requestedAt || now,
-        approvedAt:   now,
-        approvedBy:   admin ? admin.uid : 'admin',
+        requestedAt:    u.requestedAt || now,
+        approvedAt:     now,
+        approvedBy:     admin ? admin.uid : 'admin',
+        cpf:            u.cpf      || null,
+        cracha:         u.cracha   || null,
+        loja:           u.loja     || null,
+        telefone:       u.telefone || null,
       });
 
       // Backward compat: mantém nó vendedores se for vendedor

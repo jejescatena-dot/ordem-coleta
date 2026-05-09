@@ -150,6 +150,7 @@ const PortalAuth = (function () {
   let _pageId      = null;
   let _onReady     = null;
   let _notifRef    = null;
+  let _pendingRef  = null;
   let _selectedGrp = null;
   const OVERLAY_ID = 'portal-auth-root';
 
@@ -549,6 +550,9 @@ const PortalAuth = (function () {
     const root = document.getElementById(OVERLAY_ID);
     if (!root) return;
 
+    // Limpa listener de pending ao sair do estado
+    if (_pendingRef) { _pendingRef.off(); _pendingRef = null; }
+
     if (!state) {
       // Esconde overlay e mostra seções do app
       root.className = 'pa-hidden';
@@ -635,7 +639,8 @@ const PortalAuth = (function () {
         <div class="pa-title">Aguardando Aprovação</div>
         <div class="pa-desc">Sua solicitação foi enviada! Um administrador irá revisar e liberar seu acesso em breve.</div>
         ${avatarRow}
-        <div class="pa-desc-sm">Você pode fechar esta janela e tentar acessar novamente após a aprovação.</div>
+        <div class="pa-desc-sm">Esta tela atualiza automaticamente quando seu acesso for liberado.</div>
+        <button class="pa-btn" onclick="PortalAuth._checkApproval()" style="margin-top:16px;margin-bottom:8px;">🔄 Verificar aprovação</button>
         <button class="pa-link-btn" onclick="PortalAuth.logout()">Sair da conta</button>
       </div>`,
 
@@ -662,6 +667,18 @@ const PortalAuth = (function () {
 
     // Pós-renderização
     if (state === 'group-select') _initStorePicker();
+
+    // Listener em tempo real: transição automática pending → approved
+    if (state === 'pending' && _user && _db) {
+      _pendingRef = _db.ref('users/' + _user.uid);
+      _pendingRef.on('value', (snap) => {
+        if (!snap.exists()) return;
+        if (snap.val().status === 'approved') {
+          if (_pendingRef) { _pendingRef.off(); _pendingRef = null; }
+          _onAuthChange(_user);
+        }
+      });
+    }
   }
 
   // ── SELETOR DE GRUPO (chamado pelo onclick inline) ─────────────────────────
@@ -734,6 +751,12 @@ const PortalAuth = (function () {
     if (v.length > 6)      v = v.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
     else if (v.length > 2) v = v.replace(/(\d{2})(\d{0,5})/, '($1) $2');
     input.value = v;
+  }
+
+  async function _checkApproval() {
+    if (!_user) return;
+    _showState('loading');
+    await _onAuthChange(_user);
   }
 
   async function _reRequest() {
@@ -874,6 +897,7 @@ const PortalAuth = (function () {
     _maskTel,
     _validateForm,
     _reRequest,
+    _checkApproval,
     _filterStores,
     _openStoreDrop,
     _closeStoreDrop,
