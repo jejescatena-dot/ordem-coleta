@@ -909,6 +909,30 @@
       var grupos = card.dataset.grupos.split(',');
       if (!grupos.includes(grupo)) card.style.display = 'none';
     });
+    // Overlay de manutenção para apps desabilitados (não afeta admins)
+    if (grupo !== 'admin') {
+      PortalAuth.getAppConfig().then(function(cfg) {
+        document.querySelectorAll('.app-card[data-grupos]').forEach(function(card) {
+          if (card.style.display === 'none') return;
+          var href  = (card.getAttribute('href') || '').split('/').pop();
+          var appId = href.replace('.html', '');
+          if (!appId || !cfg[appId]) return;
+          if (cfg[appId].enabled === false) {
+            card.style.pointerEvents = 'none';
+            card.style.cursor        = 'default';
+            var ov = document.createElement('div');
+            ov.style.cssText = [
+              'position:absolute', 'inset:0', 'z-index:3',
+              'display:flex', 'align-items:center', 'justify-content:center',
+              'background:rgba(8,8,16,0.72)', 'border-radius:inherit',
+              'backdrop-filter:blur(2px)',
+            ].join(';');
+            ov.innerHTML = '<span style="font-size:11px;font-weight:700;color:var(--amber,#f59e0b);background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.35);padding:5px 13px;border-radius:20px;letter-spacing:0.6px;white-space:nowrap;">🔧 EM MANUTENÇÃO</span>';
+            card.appendChild(ov);
+          }
+        });
+      });
+    }
     // Reveal on scroll
     const reveals = document.querySelectorAll('.reveal');
     const obs = new IntersectionObserver((entries) => {

@@ -1,0 +1,41 @@
+{
+  "rules": {
+    "admins": {
+      ".read":  "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".write": false
+    },
+    "vendedores": {
+      ".read":  "auth != null",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+    },
+    "vendedoresPendentes": {
+      ".read":  "auth != null",
+      ".write": "auth != null"
+    },
+    "pix-envios": {
+      ".read":  "auth != null",
+      ".write": "auth != null"
+    },
+    "users": {
+      ".read":  "auth != null && root.child('admins').child(auth.uid).exists()",
+      "$uid": {
+        ".read":  "auth != null && ($uid === auth.uid || root.child('admins').child(auth.uid).exists())",
+        ".write": "auth != null && ($uid === auth.uid || root.child('admins').child(auth.uid).exists())"
+      }
+    },
+    "notifications": {
+      ".read":  "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".write": "auth != null"
+    },
+    "cpf-index": {
+      ".read": "auth != null",
+      "$cpf": {
+        ".write": "auth != null && (!data.exists() && newData.val() === auth.uid) || root.child('admins').child(auth.uid).exists()"
+      }
+    },
+    "app-config": {
+      ".read":  "auth != null",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+    }
+  }
+}

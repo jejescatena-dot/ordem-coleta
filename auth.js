@@ -69,6 +69,80 @@ const PortalAuth = (function () {
     prevencao:         'Gestão de ordens de coleta e controles de segurança',
   };
 
+  // ── LOJAS ──────────────────────────────────────────────────────────────────
+  const LOJAS_PA = {
+    1025:'Max Debret (Foz do Iguaçu/PR)',
+    1037:'Max Tiradentes (Londrina/PR)',
+    1050:'Max Eldorado Prudente (Pres. Prudente/SP)',
+    1057:'Max Floresta (Cascavel/PR)',
+    1060:'Max Apucarana (Cascavel/PR)',
+    1065:'Max Colombo (Maringá/PR)',
+    1066:'Max São Cristóvão (Cascavel/PR)',
+    1067:'Max Paranaguá (Paranaguá/PR)',
+    1070:'Max Linha Verde (Curitiba/PR)',
+    1073:'Max Potirendaba (SJRP/SP)',
+    1075:'Max Bairro Alto (Curitiba/PR)',
+    1076:'Max Campo Comprido (Curitiba/PR)',
+    1079:'Max São José (São José dos Pinhais/PR)',
+    1084:'Max Zona Norte SJRP (SJRP/SP)',
+    1085:'Max Arapongas (Arapongas/PR)',
+    1086:'Max Foz BR 277 (Foz do Iguaçu/PR)',
+    1089:'Max Pinhais (Pinhais/PR)',
+    1090:'Max FRG (Fazenda Rio Grande/PR)',
+    1091:'Max Araucária (Araucária/PR)',
+    1092:'Max Chapada (Ponta Grossa/PR)',
+    1093:'Max Rolândia (Rolândia/PR)',
+    1094:'Max Tito Muffato (Cascavel/PR)',
+    1097:'Max Catanduva (Catanduva/SP)',
+    1102:'Max Toledo (Toledo/PR)',
+    1104:'Max Bela Vista (Apucarana/PR)',
+    1105:'Max Guanabara (Pres. Prudente/SP)',
+    1106:'Max Ourinhos (Ourinhos/SP)',
+    1107:'Max Fernandópolis (Fernandópolis/SP)',
+    1109:'Max Beltão (Francisco Beltrão/PR)',
+    1110:'Max Cambé (Cambé/PR)',
+    1111:'Max Colombo RMC (Colombo/PR)',
+    1112:'Max Medianeira (Medianeira/PR)',
+    1113:'Max Campo Largo (Campo Largo/PR)',
+    1114:'Max Cianorte (Cianorte/PR)',
+    1116:'Max Jardim Carvalho (Ponta Grossa/PR)',
+    1118:'Max Sorocaba Ipanema (Sorocaba/SP)',
+    1120:'Max Marechal (Marechal C. Rondon/PR)',
+    1122:'Max Hauer (Curitiba/PR)',
+    1123:'Max Pioneiros (Londrina/PR)',
+    1126:'Max Taubaté (Taubaté/SP)',
+    1127:'Max Sorocaba Norte (Sorocaba/SP)',
+    1128:'Max São José dos Campos (SJC/SP)',
+    1129:'Max Lapa (São Paulo/SP)',
+    1130:'Max Eldorado Rio Preto (SJRP/SP)',
+    1131:'Max Santo André (Santo André/SP)',
+    1132:'Max Votorantim (Votorantim/SP)',
+    1133:'Max Guarulhos (Guarulhos/SP)',
+    1134:'Max Piracicaba (Piracicaba/SP)',
+    1135:'Max Cedral (Pres. Prudente/SP)',
+    1136:'Max Interlagos (São Paulo/SP)',
+    1137:'Max Butantã (São Paulo/SP)',
+    1138:'Max Marília (Marília/SP)',
+    1139:'Max Mogi (Mogi das Cruzes/SP)',
+    1140:'Max São Bernardo (São Bernardo/SP)',
+    1141:'Max Campinas (Campinas/SP)',
+    1142:'Max Assis (Assis/SP)',
+    1144:'Max JK Foz (Foz do Iguaçu/PR)',
+    1145:'Max João Bettega (Curitiba/PR)',
+    1146:'Max Oficinas (Ponta Grossa/PR)',
+    1148:'Max Jaçanã (São Paulo/SP)',
+    1149:'Max Morumbi (São Paulo/SP)',
+    1150:'Max Safira (Foz do Iguaçu/PR)',
+    1151:'Max Olímpia (Olímpia/SP)',
+    1152:'Max Castro (Castro/PR)',
+    1153:'Max Torres (Cambé/PR)',
+    1154:'Max Votuporanga (Votuporanga/SP)',
+    1155:'Max Guaíra (Guaíra/PR)',
+    1156:'Max Sarandi (Sarandi/PR)',
+    1157:'Max Umuarama (Umuarama/PR)',
+    1158:'Max Marília Norte (Marília/SP)',
+  };
+
   // ── STATE INTERNO ──────────────────────────────────────────────────────────
   let _db, _auth;
   let _user        = null;
@@ -221,7 +295,19 @@ const PortalAuth = (function () {
   }
 
   // ── BOOTSTRAP DO APP ──────────────────────────────────────────────────────
-  function _bootstrapUser() {
+  async function _bootstrapUser() {
+    // Verifica se o app está habilitado (apenas não-admins, exceto portal e painel admin)
+    if (_grupo !== 'admin' && _pageId && _pageId !== 'index.html' && _pageId !== 'admin-usuarios.html') {
+      try {
+        const appId   = _pageId.replace('.html', '');
+        const cfgSnap = await _db.ref('app-config/' + appId + '/enabled').once('value');
+        if (cfgSnap.exists() && cfgSnap.val() === false) {
+          _showState('maintenance');
+          return;
+        }
+      } catch(e) { /* Se não conseguir ler, deixa acessar */ }
+    }
+
     _showState(null); // Esconde overlay, mostra app
 
     // Preenche avatar e nome no nav (se existirem)
@@ -332,16 +418,18 @@ const PortalAuth = (function () {
       #${OVERLAY_ID} {
         position:fixed; inset:0; z-index:9000;
         background:var(--bg,#080810);
-        display:flex; align-items:center; justify-content:center;
-        padding:20px; font-family:var(--font,'Inter',sans-serif);
+        display:flex; align-items:flex-start; justify-content:center;
+        padding:16px; font-family:var(--font,'Inter',sans-serif);
+        overflow-y:auto;
       }
       #${OVERLAY_ID}.pa-hidden { display:none !important; }
       .pa-card {
         background:var(--surface,rgba(255,255,255,.04));
         border:1px solid var(--border,rgba(255,255,255,.08));
-        border-radius:20px; padding:48px 40px;
+        border-radius:20px; padding:28px 28px;
         max-width:460px; width:100%; text-align:center;
         backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+        margin:auto;
       }
       .pa-logo {
         width:64px; height:64px; border-radius:16px;
@@ -398,8 +486,8 @@ const PortalAuth = (function () {
         display:flex; align-items:center; gap:12px;
         background:rgba(255,255,255,.03);
         border:1px solid var(--border,rgba(255,255,255,.08));
-        border-radius:12px; padding:10px 14px;
-        margin-bottom:20px; text-align:left;
+        border-radius:12px; padding:8px 12px;
+        margin-bottom:12px; text-align:left;
       }
       .pa-avatar-row img {
         width:36px; height:36px; border-radius:50%;
@@ -407,20 +495,36 @@ const PortalAuth = (function () {
       }
       .pa-avatar-name  { font-size:13px; font-weight:600; color:var(--text,#f0f0f5); }
       .pa-avatar-email { font-size:11px; color:var(--text-2,rgba(240,240,245,.55)); }
-      .pa-group-list   { display:flex; flex-direction:column; gap:10px; margin-bottom:24px; text-align:left; }
+      .pa-group-list   { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; text-align:left; }
       .pa-group-opt {
-        display:flex; align-items:center; gap:14px;
+        display:flex; align-items:center; gap:10px;
         background:var(--surface,rgba(255,255,255,.04));
         border:2px solid var(--border,rgba(255,255,255,.08));
-        border-radius:12px; padding:14px 16px; cursor:pointer;
+        border-radius:10px; padding:8px 12px; cursor:pointer;
         transition:all .2s; font-family:inherit; width:100%;
         color:var(--text,#f0f0f5);
       }
       .pa-group-opt:hover  { border-color:var(--cyan,#0891b2); background:rgba(8,145,178,.06); }
       .pa-group-opt.pa-sel { border-color:var(--cyan,#0891b2); background:rgba(8,145,178,.1); }
-      .pa-group-icon { font-size:24px; }
-      .pa-group-name { font-size:14px; font-weight:700; }
-      .pa-group-desc { font-size:12px; color:var(--text-2,rgba(240,240,245,.55)); margin-top:2px; }
+      .pa-group-icon { font-size:18px; }
+      .pa-group-name { font-size:13px; font-weight:700; }
+      .pa-group-desc { font-size:11px; color:var(--text-2,rgba(240,240,245,.55)); margin-top:1px; }
+      .pa-store-wrap { position:relative; }
+      .pa-store-drop {
+        display:none; position:absolute; top:calc(100% + 2px); left:0; right:0;
+        background:#0e0e1e; border:1px solid rgba(255,255,255,.14);
+        border-radius:8px; max-height:160px; overflow-y:auto; z-index:9100;
+        box-shadow:0 12px 40px rgba(0,0,0,.6);
+      }
+      .pa-store-drop.open { display:block; }
+      .pa-store-opt {
+        padding:7px 12px; cursor:pointer; font-size:12px;
+        color:rgba(240,240,245,.6); border-bottom:1px solid rgba(255,255,255,.06);
+        transition:background .12s; text-align:left;
+      }
+      .pa-store-opt:last-child { border-bottom:none; }
+      .pa-store-opt:hover { background:rgba(255,255,255,.07); color:var(--text,#f0f0f5); }
+      .pa-store-more { cursor:default; color:rgba(240,240,245,.3); font-size:11px; }
       .pa-btn {
         background:var(--cyan,#0891b2); color:#fff; border:none;
         padding:12px 24px; border-radius:10px; font-size:14px;
@@ -493,19 +597,24 @@ const PortalAuth = (function () {
       </div>`,
 
       'group-select': `<div class="pa-card" style="max-width:520px">
-        <div class="pa-logo">M</div>
-        <div class="pa-title">Solicitar Acesso</div>
-        <div class="pa-desc">Preencha seus dados e selecione seu perfil. Um administrador irá aprovar em breve.</div>
+        <div class="pa-logo" style="width:48px;height:48px;font-size:22px;margin-bottom:14px">M</div>
+        <div class="pa-title" style="font-size:20px;margin-bottom:4px">Solicitar Acesso</div>
+        <div class="pa-desc" style="margin-bottom:12px">Preencha seus dados e selecione seu perfil.</div>
         ${avatarRow}
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;text-align:left">
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;text-align:left">
           <input id="pa-nome"     class="pa-input" type="text" placeholder="Nome completo *" maxlength="80" oninput="PortalAuth._validateForm()">
           <input id="pa-cpf"      class="pa-input" type="text" placeholder="CPF (000.000.000-00) *" maxlength="14" oninput="PortalAuth._maskCpf(this);PortalAuth._validateForm()">
-          <div id="pa-cpf-err" style="font-size:11px;color:#e31e24;margin-top:-6px;display:none"></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <input id="pa-cracha"   class="pa-input" type="text" placeholder="Nº Crachá *"  maxlength="20" oninput="PortalAuth._validateForm()">
-            <input id="pa-loja"     class="pa-input" type="text" placeholder="Nº Loja *"    maxlength="10" oninput="PortalAuth._validateForm()">
+          <div id="pa-cpf-err" style="font-size:11px;color:#e31e24;margin-top:-4px;display:none"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <input id="pa-cracha" class="pa-input" type="text" placeholder="Nº Crachá *" maxlength="20" oninput="PortalAuth._validateForm()">
+            <div class="pa-store-wrap">
+              <input id="pa-loja-search" class="pa-input" type="text" placeholder="Nº Loja *" autocomplete="off"
+                oninput="PortalAuth._filterStores()" onfocus="PortalAuth._openStoreDrop()" onblur="setTimeout(()=>PortalAuth._closeStoreDrop(),200)">
+              <div class="pa-store-drop" id="pa-store-drop"></div>
+              <input id="pa-loja" type="hidden">
+            </div>
           </div>
-          <input id="pa-telefone" class="pa-input" type="tel"  placeholder="Celular (00) 00000-0000 *" maxlength="15" oninput="PortalAuth._maskTel(this);PortalAuth._validateForm()">
+          <input id="pa-telefone" class="pa-input" type="tel" placeholder="Celular (00) 00000-0000 *" maxlength="15" oninput="PortalAuth._maskTel(this);PortalAuth._validateForm()">
         </div>
         <div class="pa-group-list">
           ${Object.entries(GRUPO_LABELS).filter(([k]) => k !== 'admin').map(([key, label]) => `
@@ -530,6 +639,15 @@ const PortalAuth = (function () {
         <button class="pa-link-btn" onclick="PortalAuth.logout()">Sair da conta</button>
       </div>`,
 
+      maintenance: `<div class="pa-card">
+        <div class="pa-icon-box" style="background:rgba(245,158,11,.15);">🔧</div>
+        <div class="pa-title">Em Manutenção</div>
+        <div class="pa-desc">Esta funcionalidade está temporariamente indisponível. A equipe já está trabalhando nisso — tente novamente em breve.</div>
+        ${avatarRow}
+        <a href="index.html" class="pa-btn" style="text-decoration:none;display:block;text-align:center;margin-bottom:8px;">← Voltar ao Portal</a>
+        <button class="pa-link-btn" onclick="PortalAuth.logout()">Sair da conta</button>
+      </div>`,
+
       denied: `<div class="pa-card">
         <div class="pa-icon-box" style="background:rgba(227,30,36,.15);">🚫</div>
         <div class="pa-title">Acesso Negado</div>
@@ -541,6 +659,9 @@ const PortalAuth = (function () {
     };
 
     root.innerHTML = templates[state] || templates.loading;
+
+    // Pós-renderização
+    if (state === 'group-select') _initStorePicker();
   }
 
   // ── SELETOR DE GRUPO (chamado pelo onclick inline) ─────────────────────────
@@ -636,11 +757,68 @@ const PortalAuth = (function () {
     }
   }
 
+  // ── STORE PICKER ──────────────────────────────────────────────────────────
+  function _initStorePicker() {
+    _buildStoreDrop('');
+    try {
+      const last = localStorage.getItem('pa-lastloja');
+      if (last && LOJAS_PA[+last]) _selectLoja(+last);
+    } catch(e) {}
+  }
+
+  function _buildStoreDrop(q) {
+    const drop = document.getElementById('pa-store-drop');
+    if (!drop) return;
+    const list = Object.entries(LOJAS_PA).sort((a, b) => +a[0] - +b[0]);
+    const filtered = q
+      ? list.filter(([c, nm]) => String(c).includes(q) || nm.toLowerCase().includes(q.toLowerCase()))
+      : list;
+    const shown = filtered.slice(0, 25);
+    drop.innerHTML = shown.map(([c, nm]) =>
+      `<div class="pa-store-opt" onmousedown="PortalAuth._selectLoja(${c})">${c} — ${nm}</div>`
+    ).join('') + (filtered.length > 25
+      ? `<div class="pa-store-opt pa-store-more">+${filtered.length - 25} lojas…</div>`
+      : '');
+  }
+
+  function _filterStores() {
+    const q = (document.getElementById('pa-loja-search') || {}).value || '';
+    // Limpa seleção se usuário digitou algo diferente
+    const hid = document.getElementById('pa-loja');
+    if (hid) { hid.value = ''; }
+    _buildStoreDrop(q);
+    _openStoreDrop();
+    _validateForm();
+  }
+
+  function _openStoreDrop() {
+    _buildStoreDrop((document.getElementById('pa-loja-search') || {}).value || '');
+    const drop = document.getElementById('pa-store-drop');
+    if (drop) drop.classList.add('open');
+  }
+
+  function _closeStoreDrop() {
+    const drop = document.getElementById('pa-store-drop');
+    if (drop) drop.classList.remove('open');
+  }
+
+  function _selectLoja(cod) {
+    const nm = LOJAS_PA[+cod];
+    if (!nm) return;
+    const search = document.getElementById('pa-loja-search');
+    const hid    = document.getElementById('pa-loja');
+    if (search) search.value = cod + ' — ' + nm;
+    if (hid)    hid.value    = String(cod);
+    try { localStorage.setItem('pa-lastloja', String(cod)); } catch(e) {}
+    _closeStoreDrop();
+    _validateForm();
+  }
+
   function _validateForm() {
     const nome   = (document.getElementById('pa-nome')     || {}).value || '';
     const cpfRaw = (document.getElementById('pa-cpf')      || {}).value || '';
     const cracha = (document.getElementById('pa-cracha')   || {}).value || '';
-    const loja   = (document.getElementById('pa-loja')     || {}).value || '';
+    const loja   = (document.getElementById('pa-loja')     || {}).value || ''; // hidden, preenchido via _selectLoja
     const tel    = (document.getElementById('pa-telefone') || {}).value || '';
     const cpfOk  = _validateCpfDigits(cpfRaw);
     const telOk  = tel.replace(/\D/g, '').length >= 10;
@@ -677,6 +855,14 @@ const PortalAuth = (function () {
     getDb:    () => _db,
     getAuth:  () => _auth,
 
+    async getAppConfig() {
+      if (!_db) return {};
+      try {
+        const snap = await _db.ref('app-config').once('value');
+        return snap.val() || {};
+      } catch(e) { return {}; }
+    },
+
     LABELS: GRUPO_LABELS,
     ICONS:  GRUPO_ICONS,
     PAGES,
@@ -688,5 +874,9 @@ const PortalAuth = (function () {
     _maskTel,
     _validateForm,
     _reRequest,
+    _filterStores,
+    _openStoreDrop,
+    _closeStoreDrop,
+    _selectLoja,
   };
 })();

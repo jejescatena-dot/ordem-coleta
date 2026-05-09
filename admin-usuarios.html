@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestão de Usuários — Max Atacadista</title>
+<title>Gestão de Usuários e Aplicativos — Max Atacadista</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -146,6 +146,28 @@
   .check-yes { color: var(--green); font-size: 16px; }
   .check-no  { color: var(--text-3); font-size: 16px; }
 
+  /* TOGGLE SWITCH */
+  .toggle-switch { position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; }
+  .toggle-switch input { opacity:0; width:0; height:0; position:absolute; }
+  .toggle-slider { position:absolute; cursor:pointer; inset:0; background:rgba(255,255,255,.12); border-radius:24px; transition:.25s; border:1px solid var(--border); }
+  .toggle-slider::before { content:''; position:absolute; width:18px; height:18px; left:2px; top:2px; border-radius:50%; background:#fff; transition:.25s; box-shadow:0 1px 4px rgba(0,0,0,.3); }
+  .toggle-switch input:checked + .toggle-slider { background:var(--green); border-color:var(--green); }
+  .toggle-switch input:checked + .toggle-slider::before { transform:translateX(20px); }
+
+  /* GESTÃO DE APLICATIVOS */
+  .app-mgmt-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:14px; }
+  .app-mgmt-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 18px; display:flex; align-items:center; gap:14px; transition:border-color .2s, opacity .2s; }
+  .app-mgmt-card.app-disabled { opacity:.55; }
+  .app-mgmt-card:not(.app-disabled) { border-color:rgba(34,197,94,.15); }
+  .app-mgmt-icon { font-size:20px; width:42px; height:42px; border-radius:10px; background:var(--surface-hover); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .app-mgmt-info { flex:1; min-width:0; }
+  .app-mgmt-name { font-size:13px; font-weight:700; color:var(--text); }
+  .app-mgmt-desc { font-size:11px; color:var(--text-3); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .app-mgmt-status { font-size:11px; font-weight:600; margin-top:4px; }
+  .status-enabled  { color:var(--green); }
+  .status-disabled { color:var(--amber); }
+  .app-section-note { font-size:13px; color:var(--text-2); margin-bottom:20px; padding:12px 16px; background:var(--surface); border:1px solid var(--border); border-radius:10px; }
+
   /* MODAL */
   .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; padding: 20px; }
   .modal-overlay.show { display: flex; }
@@ -197,7 +219,7 @@
     <div class="nav-logo-mark">M</div>
     <div class="nav-logo-text">
       <div class="nav-logo-name">Max Atacadista</div>
-      <div class="nav-logo-sub">Gestão de Usuários</div>
+      <div class="nav-logo-sub">Usuários e Aplicativos</div>
     </div>
   </a>
   <div class="nav-right">
@@ -219,8 +241,8 @@
 
 <!-- PAGE HEADER -->
 <section class="page-header" id="appHeader" style="display:none;">
-  <h1 class="header-title">⚙️ Gestão de Usuários</h1>
-  <p class="header-desc">Aprove acessos, gerencie grupos e controle as permissões do portal.</p>
+  <h1 class="header-title">⚙️ Gestão de Usuários e Aplicativos</h1>
+  <p class="header-desc">Aprove acessos, gerencie grupos, permissões e disponibilidade dos aplicativos do portal.</p>
 </section>
 
 <!-- CONTENT -->
@@ -259,6 +281,7 @@
     <button class="tab-btn" data-tab="usuarios">👥 Todos os Usuários</button>
     <button class="tab-btn" data-tab="grupos">🗂️ Por Grupo</button>
     <button class="tab-btn" data-tab="matriz">🔐 Permissões</button>
+    <button class="tab-btn" data-tab="aplicativos">📱 Aplicativos</button>
   </div>
 
   <!-- TAB: PENDENTES -->
@@ -314,6 +337,16 @@
   <div id="tab-grupos" style="display:none;">
     <div class="grupos-grid" id="grupos-grid">
       <!-- Gerado dinamicamente -->
+    </div>
+  </div>
+
+  <!-- TAB: APLICATIVOS -->
+  <div id="tab-aplicativos" style="display:none;">
+    <p class="app-section-note">
+      ⚡ Ative ou desative aplicativos do portal em tempo real. Usuários com acesso ao app desativado verão a tela de <strong>manutenção</strong> ao tentar acessar — mesmo pelo link direto. Admins sempre têm acesso.
+    </p>
+    <div class="app-mgmt-grid" id="app-mgmt-grid">
+      <div style="color:var(--text-3);font-size:13px;padding:24px;">Carregando...</div>
     </div>
   </div>
 
@@ -381,6 +414,18 @@
   let alterUID    = null;  // usuário com grupo sendo alterado
   let grupoSelecionadoModal  = null;
   let grupoAlterarModal      = null;
+  let appConfigState = {};  // estado dos aplicativos
+
+  // ─── LISTA DE APLICATIVOS GERENCIÁVEIS ────────────────────────────────────
+  const APP_CONFIG_LIST = [
+    { id:'pix-envio',           icon:'💸', name:'Envio de PIX',         desc:'Solicitação e envio de PIX — televendas e financeiro' },
+    { id:'pix-gerenciamento',   icon:'📊', name:'Gerenciamento PIX',     desc:'Painel de controle de PIX recebidos' },
+    { id:'conciliacao-pix',     icon:'✅', name:'Conciliação PIX',       desc:'Conciliação de pagamentos via PIX — financeiro sede' },
+    { id:'cadastro-com-prazo',  icon:'📋', name:'Cadastro com Prazo',    desc:'Crediffato — cadastro de clientes com prazo' },
+    { id:'ordem-de-coleta',     icon:'📦', name:'Ordem de Coleta',       desc:'Gestão de ordens de coleta e logística' },
+    { id:'atualizacoes',        icon:'📰', name:'Atualizações',          desc:'Mural de atualizações e comunicados' },
+    { id:'sugestoes-melhorias', icon:'💡', name:'Sugestões e Melhorias', desc:'Canal de sugestões da equipe' },
+  ];
 
   const LABELS  = PortalAuth.LABELS;
   const ICONS   = PortalAuth.ICONS;
@@ -400,6 +445,12 @@
       allUsers = {};
       snap.forEach((c) => { allUsers[c.key] = { uid: c.key, ...c.val() }; });
       renderTudo();
+    });
+
+    // App-config: listener em tempo real
+    db.ref('app-config').on('value', (snap) => {
+      appConfigState = snap.val() || {};
+      renderAplicativos();
     });
 
     // Legados: vendedoresPendentes não migrados
@@ -788,6 +839,44 @@
       showToast('Acesso de ' + nome + ' revogado. Usuário poderá solicitar novamente.', 'info');
     } catch (e) {
       showToast('Erro: ' + e.message, 'error');
+    }
+  }
+
+  // ─── ABA: APLICATIVOS ─────────────────────────────────────────────────────
+  function renderAplicativos() {
+    const container = document.getElementById('app-mgmt-grid');
+    if (!container) return;
+    container.innerHTML = APP_CONFIG_LIST.map(app => {
+      const cfg     = appConfigState[app.id];
+      const enabled = !cfg || cfg.enabled !== false; // padrão: habilitado
+      return `
+        <div class="app-mgmt-card ${enabled ? '' : 'app-disabled'}" id="appc-${app.id}">
+          <div class="app-mgmt-icon">${app.icon}</div>
+          <div class="app-mgmt-info">
+            <div class="app-mgmt-name">${app.name}</div>
+            <div class="app-mgmt-desc">${app.desc}</div>
+            <div class="app-mgmt-status ${enabled ? 'status-enabled' : 'status-disabled'}">
+              ${enabled ? '● Ativo' : '⚠ Em manutenção'}
+            </div>
+          </div>
+          <label class="toggle-switch" title="${enabled ? 'Clique para desativar' : 'Clique para ativar'}">
+            <input type="checkbox" ${enabled ? 'checked' : ''} onchange="toggleApp('${app.id}', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>`;
+    }).join('');
+  }
+
+  async function toggleApp(appId, enabled) {
+    const app = APP_CONFIG_LIST.find(a => a.id === appId);
+    try {
+      await db.ref('app-config/' + appId).set({ enabled: enabled });
+      showToast(
+        (enabled ? '✅ ' : '🔧 ') + (app ? app.name : appId) + (enabled ? ' ativado' : ' colocado em manutenção'),
+        enabled ? 'success' : 'info'
+      );
+    } catch(e) {
+      showToast('Erro ao alterar app: ' + e.message, 'error');
     }
   }
 
