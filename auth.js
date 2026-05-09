@@ -717,15 +717,14 @@ const PortalAuth = (function () {
       if (cpfSnap.exists()) {
         const existingUid  = cpfSnap.val();
         const existingSnap = await _db.ref('users/' + existingUid).once('value');
-        if (!existingSnap.exists()) {
-          // Entrada órfã: usuário foi deletado manualmente pelo console → limpa e permite novo cadastro
-          await _db.ref('cpf-index/' + cpf).remove();
-        } else {
+        if (existingSnap.exists()) {
+          // CPF em uso por usuário ativo/pendente → bloqueia
           const err = document.getElementById('pa-cpf-err');
           if (err) { err.textContent = 'Já existe um cadastro com este CPF. Entre em contato com o suporte.'; err.style.display = 'block'; }
           if (btn) { btn.disabled = false; btn.textContent = 'Solicitar Acesso'; }
           return;
         }
+        // Entrada órfã (usuário deletado manualmente) → a regra do banco permite sobrescrever; segue o fluxo normal.
       }
       await _submitGroupRequest(_selectedGrp, { nome, cpf, cracha, loja, tel });
     } catch (e) {
