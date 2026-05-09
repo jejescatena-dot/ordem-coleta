@@ -12,6 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://unpkg.com/tesseract.js@4/dist/tesseract.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="auth.js"></script>
 <style>
   :root, html[data-theme="dark"] {
     --bg: #080810; --bg2: #0d0d1a; --nav-bg: rgba(8,8,16,0.7);
@@ -128,43 +129,7 @@
 
 <div class="bg-canvas"><div class="bg-grid"></div></div>
 
-<!-- AUTH OVERLAY -->
-<div class="auth-overlay" id="authOverlay">
-  <div class="auth-card">
-    <div class="auth-logo">M</div>
-    <div class="auth-title">Portal de Vendedores</div>
-    <div class="auth-desc">Faça login com sua conta Google para registrar transferências PIX. Apenas vendedores autorizados podem enviar.</div>
-    <button class="google-btn" onclick="loginWithGoogle()">
-      <svg viewBox="0 0 24 24"><path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A10.99 10.99 0 0 0 12 23z"/><path fill="#fbbc04" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.99 10.99 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z"/><path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A10.99 10.99 0 0 0 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      Entrar com Google
-    </button>
-    <div class="auth-footer">Suas informações são usadas apenas para identificá-lo no sistema.</div>
-  </div>
-</div>
-
-<!-- PENDING APPROVAL OVERLAY -->
-<div class="auth-overlay" id="pendingOverlay" style="display:none;">
-  <div class="auth-card">
-    <div class="auth-logo" style="background:#f59e0b;">⏳</div>
-    <div class="auth-title">Aguardando aprovação</div>
-    <div class="auth-desc">
-      Olá, <strong id="pendingName"></strong>!<br><br>
-      Seu cadastro foi enviado e está aguardando aprovação do financeiro.<br>
-      Você receberá acesso assim que for aprovado.
-    </div>
-    <button class="btn" onclick="logout()" style="background:var(--surface); color:var(--text); border:1px solid var(--border); width:100%;">Sair</button>
-  </div>
-</div>
-
-<!-- ACCESS DENIED OVERLAY -->
-<div class="auth-overlay" id="deniedOverlay" style="display:none;">
-  <div class="auth-card">
-    <div class="auth-logo" style="background:var(--red);">✕</div>
-    <div class="auth-title">Acesso negado</div>
-    <div class="auth-desc" id="deniedDesc">Sua solicitação foi recusada ou seu acesso foi removido.</div>
-    <button class="btn" onclick="logout()" style="background:var(--surface); color:var(--text); border:1px solid var(--border); width:100%;">Sair</button>
-  </div>
-</div>
+<!-- Auth gerenciado pelo auth.js -->
 
 <nav class="nav" id="appNav" style="display:none;">
   <a class="nav-logo" href="index.html">
@@ -484,24 +449,9 @@
 </section>
 
 <script>
-  // ── FIREBASE CONFIG ──
-  const firebaseConfig = {
-    apiKey: "AIzaSyCJ5Wbw9OvcFidj1vRC6nkOpVS-AVIIwMk",
-    authDomain: "max-atacadista-pix.firebaseapp.com",
-    databaseURL: "https://max-atacadista-pix-default-rtdb.firebaseio.com",
-    projectId: "max-atacadista-pix",
-    storageBucket: "max-atacadista-pix.firebasestorage.app",
-    messagingSenderId: "351864711547",
-    appId: "1:351864711547:web:2436c483b3c6c513f8b5de",
-    measurementId: "G-K36P51TK4M"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.database();
-
+  // ── AUTH (gerenciado pelo auth.js) ──
+  let auth, db;
   let currentUser = null;
-  let userRole = null; // 'admin' | 'vendor' | 'pending' | 'denied' | null
   let historyRef = null;
 
   // ── HELPERS ──
@@ -530,122 +480,24 @@
   }
 
   // ── AUTH FLOW ──
-  function loginWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    auth.signInWithPopup(provider).catch(err => {
-      console.error('Login error:', err);
-      alert('Erro ao fazer login: ' + err.message);
-    });
-  }
-
   function logout() {
     if (historyRef) { historyRef.off(); historyRef = null; }
-    auth.signOut();
+    PortalAuth.logout();
   }
-
-  function showOverlay(id) {
-    ['authOverlay','pendingOverlay','deniedOverlay'].forEach(o => {
-      document.getElementById(o).style.display = (o === id) ? 'flex' : 'none';
-    });
-    const showApp = !id;
-    document.getElementById('appNav').style.display = showApp ? 'flex' : 'none';
-    document.getElementById('appHeader').style.display = showApp ? 'block' : 'none';
-    document.getElementById('appContent').style.display = showApp ? 'block' : 'none';
-  }
-
-  auth.onAuthStateChanged(async (user) => {
-    if (!user) {
-      currentUser = null;
-      userRole = null;
-      showOverlay('authOverlay');
-      return;
-    }
-    currentUser = user;
-    try {
-      // Checa se é admin
-      const adminSnap = await db.ref('admins/' + user.uid).once('value');
-      if (adminSnap.exists()) {
-        userRole = 'admin';
-        bootstrapApp();
-        return;
-      }
-      // Checa se é vendedor aprovado
-      const vendorSnap = await db.ref('vendedores/' + user.uid).once('value');
-      if (vendorSnap.exists()) {
-        userRole = 'vendor';
-        bootstrapApp();
-        return;
-      }
-      // Não é nenhum dos dois → criar/atualizar pendência
-      const pendingRef = db.ref('vendedoresPendentes/' + user.uid);
-      const pendingSnap = await pendingRef.once('value');
-      if (!pendingSnap.exists()) {
-        await pendingRef.set({
-          email: user.email,
-          name: user.displayName || user.email,
-          requestedAt: new Date().toISOString()
-        });
-      }
-      userRole = 'pending';
-      document.getElementById('pendingName').textContent = user.displayName || user.email;
-      showOverlay('pendingOverlay');
-    } catch(err) {
-      console.error('Erro ao verificar papel:', err);
-      userRole = 'denied';
-      document.getElementById('deniedDesc').textContent = 'Erro ao verificar suas permissões: ' + err.message;
-      showOverlay('deniedOverlay');
-    }
-  });
 
   function bootstrapApp() {
-    showOverlay(null);
     document.getElementById('userAvatar').src = currentUser.photoURL || '';
     document.getElementById('userName').textContent = currentUser.displayName || currentUser.email;
     document.getElementById('vendorName').value = currentUser.displayName || currentUser.email;
     loadHistory();
   }
 
-  // ── THEME TOGGLE ──
-  (function(){
-    const root = document.documentElement;
-    function bind() {
-      const btnL = document.getElementById('themeLight');
-      const btnD = document.getElementById('themeDark');
-      if (!btnL || !btnD) return;
-      function apply(theme){
-        root.setAttribute('data-theme', theme);
-        try { localStorage.setItem('mx-theme', theme); } catch(e){}
-        btnL.classList.toggle('active', theme==='light');
-        btnD.classList.toggle('active', theme==='dark');
-      }
-      let saved = 'dark';
-      try {
-        const stored = localStorage.getItem('mx-theme');
-        if (stored) saved = stored;
-        else saved = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-      } catch(e){}
-      apply(saved);
-      btnL.addEventListener('click', ()=>apply('light'));
-      btnD.addEventListener('click', ()=>apply('dark'));
-    }
-    // O nav só aparece após login, então precisamos esperar
-    const observer = new MutationObserver(() => {
-      if (document.getElementById('themeLight') && document.getElementById('appNav').style.display !== 'none') {
-        bind();
-        observer.disconnect();
-      }
-    });
-    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['style'] });
-    // Aplica tema imediatamente também
-    let saved = 'dark';
-    try {
-      const stored = localStorage.getItem('mx-theme');
-      if (stored) saved = stored;
-      else saved = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    } catch(e){}
-    root.setAttribute('data-theme', saved);
-  })();
+  PortalAuth.init('pix-envio.html', function(user, grupo) {
+    auth = PortalAuth.getAuth();
+    db   = PortalAuth.getDb();
+    currentUser = user;
+    bootstrapApp();
+  });
 
   // ── FILE UPLOAD (múltiplos arquivos) ──
   let processedFiles = []; // [{name, base64, sizeKB}]
@@ -1926,8 +1778,8 @@
 
   // ── SUBMIT ──
   async function submitPIX() {
-    if (!currentUser || (userRole !== 'vendor' && userRole !== 'admin')) {
-      showAlert('formAlert', '❌ Você precisa estar autenticado como vendedor.', 'error');
+    if (!currentUser) {
+      showAlert('formAlert', '❌ Você precisa estar autenticado.', 'error');
       return;
     }
     const store = document.getElementById('storeSelect').value;

@@ -11,6 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://unpkg.com/tesseract.js@5.0.5/dist/tesseract.min.js"></script>
+<script src="auth.js"></script>
 <style>
   :root, html[data-theme="dark"] {
     --bg: #080810; --bg2: #0d0d1a; --nav-bg: rgba(8,8,16,0.7);
@@ -163,28 +164,7 @@
 
 <div class="bg-canvas"><div class="bg-grid"></div></div>
 
-<!-- AUTH OVERLAY -->
-<div class="auth-overlay" id="authOverlay">
-  <div class="auth-card">
-    <div class="auth-logo">M</div>
-    <div class="auth-title">Painel Administrativo</div>
-    <div class="auth-desc">Acesso restrito ao financeiro do Grupo Muffato. Faça login com sua conta autorizada.</div>
-    <button class="google-btn" onclick="loginWithGoogle()">
-      <svg viewBox="0 0 24 24"><path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A10.99 10.99 0 0 0 12 23z"/><path fill="#fbbc04" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.99 10.99 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z"/><path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A10.99 10.99 0 0 0 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      Entrar com Google
-    </button>
-  </div>
-</div>
-
-<!-- ACCESS DENIED OVERLAY -->
-<div class="auth-overlay" id="deniedOverlay" style="display:none;">
-  <div class="auth-card">
-    <div class="auth-logo" style="background:var(--red);">✕</div>
-    <div class="auth-title">Acesso negado</div>
-    <div class="auth-desc">Esta área é restrita a administradores. Sua conta não tem permissão.</div>
-    <button class="btn" onclick="logout()" style="background:var(--surface); color:var(--text); border:1px solid var(--border); width:100%; padding:12px 24px; font-size:14px;">Sair</button>
-  </div>
-</div>
+<!-- Auth gerenciado pelo auth.js -->
 
 <nav class="nav" id="appNav" style="display:none;">
   <a class="nav-logo" href="index.html">
@@ -232,8 +212,8 @@
       <div class="stat-label">Conciliados</div>
       <div class="stat-value" id="statConciled">0</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Aprovações Pendentes</div>
+    <div class="stat-card" style="cursor:pointer;" onclick="window.location.href='admin-usuarios.html'">
+      <div class="stat-label">Usuários Pendentes</div>
       <div class="stat-value" id="statApprovals" style="color:var(--amber);">0</div>
     </div>
   </div>
@@ -242,7 +222,7 @@
     <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
     <button class="tab-btn" data-tab="fila">📋 Fila de PIX</button>
     <button class="tab-btn" data-tab="conciliacao">✓ Histórico</button>
-    <button class="tab-btn" data-tab="vendedores">👥 Vendedores <span class="badge-count" id="approvalsBadge" style="display:none;">0</span></button>
+    <button class="tab-btn" onclick="window.location.href='admin-usuarios.html'">👥 Usuários →</button>
   </div>
 
   <div id="tab-dashboard" class="tab-content">
@@ -281,28 +261,7 @@
     </div>
   </div>
 
-  <div id="tab-vendedores" class="tab-content" style="display:none;">
-    <h2 style="font-size:20px; margin-bottom:16px; color:var(--text); font-weight:700;">Aprovações Pendentes</h2>
-    <p style="color:var(--text-2); margin-bottom:24px; font-size:14px;">Vendedores que solicitaram acesso e aguardam sua liberação.</p>
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr><th>Nome</th><th>E-mail</th><th>Solicitado em</th><th>Ação</th></tr>
-        </thead>
-        <tbody id="pendentesTable"><tr><td colspan="4" class="empty-state">Nenhuma solicitação pendente</td></tr></tbody>
-      </table>
-    </div>
-
-    <h2 style="font-size:20px; margin: 40px 0 16px; color:var(--text); font-weight:700;">Vendedores Aprovados</h2>
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr><th>Nome</th><th>E-mail</th><th>Aprovado em</th><th>Ação</th></tr>
-        </thead>
-        <tbody id="vendedoresTable"><tr><td colspan="4" class="empty-state">Nenhum vendedor aprovado</td></tr></tbody>
-      </table>
-    </div>
-  </div>
+  <!-- Gestão de usuários movida para admin-usuarios.html -->
 
 </section>
 
@@ -342,29 +301,12 @@
 </div>
 
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCJ5Wbw9OvcFidj1vRC6nkOpVS-AVIIwMk",
-    authDomain: "max-atacadista-pix.firebaseapp.com",
-    databaseURL: "https://max-atacadista-pix-default-rtdb.firebaseio.com",
-    projectId: "max-atacadista-pix",
-    storageBucket: "max-atacadista-pix.firebasestorage.app",
-    messagingSenderId: "351864711547",
-    appId: "1:351864711547:web:2436c483b3c6c513f8b5de",
-    measurementId: "G-K36P51TK4M"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.database();
-
+  // Firebase e auth gerenciados pelo auth.js
+  let auth, db;
   let currentUser = null;
   let isAdmin = false;
   let pixes = [];
-  let pendentes = [];
-  let vendedores = [];
   let pixListener = null;
-  let pendentesListener = null;
-  let vendedoresListener = null;
   let firebaseConnected = false;
 
   // ── HELPERS ──
@@ -388,67 +330,38 @@
     return v;
   }
 
-  // ── AUTH ──
-  function loginWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    auth.signInWithPopup(provider).catch(err => alert('Erro ao fazer login: ' + err.message));
-  }
-
+  // ── AUTH via auth.js ──
   function logout() {
-    [pixListener, pendentesListener, vendedoresListener].forEach(r => { if (r) r.off(); });
-    pixListener = pendentesListener = vendedoresListener = null;
-    auth.signOut();
+    if (pixListener) { pixListener.off(); pixListener = null; }
+    PortalAuth.logout();
   }
 
-  function showOverlay(id) {
-    ['authOverlay','deniedOverlay'].forEach(o => {
-      document.getElementById(o).style.display = (o === id) ? 'flex' : 'none';
+  function updateFirebaseStatus(connected) {
+    const badge = document.getElementById('firebaseStatus');
+    const text  = document.getElementById('firebaseText');
+    if (connected) { badge.classList.remove('offline'); text.textContent = 'Conectado'; }
+    else           { badge.classList.add('offline');    text.textContent = 'Modo offline'; }
+  }
+
+  // Contador de pendentes no stat card (lê do Firebase ao vivo)
+  function iniciarContadorPendentes() {
+    db.ref('users').orderByChild('status').equalTo('pending').on('value', (snap) => {
+      let count = 0; snap.forEach(() => count++);
+      db.ref('vendedoresPendentes').once('value').then((ls) => {
+        ls.forEach(() => count++);
+        const el = document.getElementById('statApprovals');
+        if (el) el.textContent = count;
+      });
     });
-    const showApp = !id;
-    document.getElementById('appNav').style.display = showApp ? 'flex' : 'none';
-    document.getElementById('appHeader').style.display = showApp ? 'block' : 'none';
-    document.getElementById('appContent').style.display = showApp ? 'block' : 'none';
   }
 
-  auth.onAuthStateChanged(async (user) => {
-    if (!user) {
-      currentUser = null;
-      isAdmin = false;
-      showOverlay('authOverlay');
-      return;
-    }
+  PortalAuth.init('pix-gerenciamento.html', function(user, grupo) {
+    auth = PortalAuth.getAuth();
+    db   = PortalAuth.getDb();
     currentUser = user;
-    try {
-      const adminSnap = await db.ref('admins/' + user.uid).once('value');
-      if (adminSnap.exists()) {
-        isAdmin = true;
-        bootstrapAdmin();
-      } else if (user.email === 'jejescatena@gmail.com') {
-        // Bootstrap inicial: cria admin automaticamente
-        await db.ref('admins/' + user.uid).set({
-          email: user.email,
-          name: user.displayName || user.email,
-          addedAt: new Date().toISOString()
-        });
-        isAdmin = true;
-        bootstrapAdmin();
-      } else {
-        isAdmin = false;
-        showOverlay('deniedOverlay');
-      }
-    } catch(err) {
-      console.error('Erro ao checar permissões:', err);
-      showOverlay('deniedOverlay');
-    }
-  });
+    isAdmin     = (grupo === 'admin');
 
-  function bootstrapAdmin() {
-    showOverlay(null);
-    document.getElementById('userAvatar').src = currentUser.photoURL || '';
-    document.getElementById('userName').textContent = currentUser.displayName || currentUser.email;
-
-    // Detecta conexão real
+    // Status de conexão
     db.ref('.info/connected').on('value', (s) => {
       firebaseConnected = !!s.val();
       updateFirebaseStatus(firebaseConnected);
@@ -463,81 +376,9 @@
       renderAll();
     }, (err) => console.error('Erro pix:', err));
 
-    // Listener de pendentes
-    pendentesListener = db.ref('vendedoresPendentes');
-    pendentesListener.on('value', (snapshot) => {
-      pendentes = [];
-      snapshot.forEach((c) => {
-        const v = c.val();
-        if (v) pendentes.push({ uid: c.key, ...v });
-      });
-      pendentes.sort((a, b) => new Date(b.requestedAt || 0) - new Date(a.requestedAt || 0));
-      renderPendentes();
-      updateApprovalsBadge();
-    }, (err) => console.error('Erro pendentes:', err));
-
-    // Listener de vendedores aprovados
-    vendedoresListener = db.ref('vendedores');
-    vendedoresListener.on('value', (snapshot) => {
-      vendedores = [];
-      snapshot.forEach((c) => {
-        const v = c.val();
-        if (v) vendedores.push({ uid: c.key, ...v });
-      });
-      vendedores.sort((a, b) => (a.name||'').localeCompare(b.name||''));
-      renderVendedores();
-    }, (err) => console.error('Erro vendedores:', err));
-  }
-
-  function updateFirebaseStatus(connected) {
-    const badge = document.getElementById('firebaseStatus');
-    const text = document.getElementById('firebaseText');
-    if (connected) { badge.classList.remove('offline'); text.textContent = 'Conectado'; }
-    else { badge.classList.add('offline'); text.textContent = 'Modo offline'; }
-  }
-
-  function updateApprovalsBadge() {
-    const count = pendentes.length;
-    const stat = document.getElementById('statApprovals');
-    const badge = document.getElementById('approvalsBadge');
-    stat.textContent = count;
-    if (count > 0) {
-      badge.style.display = 'inline-block';
-      badge.textContent = count;
-    } else {
-      badge.style.display = 'none';
-    }
-  }
-
-  // ── THEME ──
-  (function(){
-    const root = document.documentElement;
-    let saved = 'dark';
-    try {
-      const stored = localStorage.getItem('mx-theme');
-      if (stored) saved = stored;
-      else saved = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    } catch(e){}
-    root.setAttribute('data-theme', saved);
-
-    const observer = new MutationObserver(() => {
-      const btnL = document.getElementById('themeLight');
-      const btnD = document.getElementById('themeDark');
-      if (btnL && btnD && document.getElementById('appNav').style.display !== 'none' && !btnL._bound) {
-        btnL._bound = true;
-        function apply(theme){
-          root.setAttribute('data-theme', theme);
-          try { localStorage.setItem('mx-theme', theme); } catch(e){}
-          btnL.classList.toggle('active', theme==='light');
-          btnD.classList.toggle('active', theme==='dark');
-        }
-        apply(root.getAttribute('data-theme') || 'dark');
-        btnL.addEventListener('click', ()=>apply('light'));
-        btnD.addEventListener('click', ()=>apply('dark'));
-      }
-    });
-    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['style'] });
-  })();
+    // Contador de pendentes no stat card
+    iniciarContadorPendentes();
+  });
 
   // ── RENDERS ──
   function renderStats() {
@@ -787,40 +628,7 @@
     `).join('');
   }
 
-  function renderPendentes() {
-    const tbody = document.getElementById('pendentesTable');
-    if (pendentes.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Nenhuma solicitação pendente</td></tr>';
-      return;
-    }
-    tbody.innerHTML = pendentes.map(p => `
-      <tr>
-        <td><strong>${escapeHTML(p.name)}</strong></td>
-        <td>${escapeHTML(p.email)}</td>
-        <td>${p.requestedAt ? escapeHTML(new Date(p.requestedAt).toLocaleString('pt-BR')) : '—'}</td>
-        <td>
-          <button class="btn success" onclick="aprovarVendedor('${escapeHTML(p.uid)}')">✓ Aprovar</button>
-          <button class="btn danger" onclick="rejeitarVendedor('${escapeHTML(p.uid)}')" style="margin-left:6px;">✕ Rejeitar</button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  function renderVendedores() {
-    const tbody = document.getElementById('vendedoresTable');
-    if (vendedores.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Nenhum vendedor aprovado ainda</td></tr>';
-      return;
-    }
-    tbody.innerHTML = vendedores.map(v => `
-      <tr>
-        <td><strong>${escapeHTML(v.name)}</strong></td>
-        <td>${escapeHTML(v.email)}</td>
-        <td>${v.approvedAt ? escapeHTML(new Date(v.approvedAt).toLocaleString('pt-BR')) : '—'}</td>
-        <td><button class="btn danger" onclick="removerVendedor('${escapeHTML(v.uid)}', '${escapeHTML(v.name)}')">Remover</button></td>
-      </tr>
-    `).join('');
-  }
+  // Gestão de vendedores/usuários migrada para admin-usuarios.html
 
   function renderAll() {
     renderStats();
@@ -831,52 +639,12 @@
 
   // ── AÇÕES ──
   async function updatePixStatus(pixId, newStatus) {
-    if (!isAdmin || !firebaseConnected) {
-      alert('Sem conexão ou permissão');
-      return;
-    }
+    if (!firebaseConnected) { alert('Sem conexão'); return; }
     const updates = { status: newStatus };
     if (newStatus === 'analysis') updates.analyzedAt = new Date().toISOString();
     if (newStatus === 'conciled') updates.conciliatedAt = new Date().toISOString();
     try {
       await db.ref(`pix-envios/${pixId}`).update(updates);
-    } catch(err) {
-      alert('Erro: ' + err.message);
-    }
-  }
-
-  async function aprovarVendedor(uid) {
-    const p = pendentes.find(x => x.uid === uid);
-    if (!p) return;
-    if (!confirm(`Aprovar ${p.name} (${p.email})?`)) return;
-    try {
-      await db.ref('vendedores/' + uid).set({
-        email: p.email,
-        name: p.name,
-        approvedAt: new Date().toISOString(),
-        approvedBy: currentUser.email
-      });
-      await db.ref('vendedoresPendentes/' + uid).remove();
-    } catch(err) {
-      alert('Erro ao aprovar: ' + err.message);
-    }
-  }
-
-  async function rejeitarVendedor(uid) {
-    const p = pendentes.find(x => x.uid === uid);
-    if (!p) return;
-    if (!confirm(`Rejeitar ${p.name} (${p.email})? Eles podem solicitar novamente depois.`)) return;
-    try {
-      await db.ref('vendedoresPendentes/' + uid).remove();
-    } catch(err) {
-      alert('Erro: ' + err.message);
-    }
-  }
-
-  async function removerVendedor(uid, name) {
-    if (!confirm(`Remover ${name} dos vendedores autorizados? Eles perderão acesso imediatamente.`)) return;
-    try {
-      await db.ref('vendedores/' + uid).remove();
     } catch(err) {
       alert('Erro: ' + err.message);
     }
@@ -1123,9 +891,10 @@
   }
 
   // ── TABS ──
-  document.querySelectorAll('.tab-btn').forEach(btn => {
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
     btn.addEventListener('click', function() {
       const tabName = this.dataset.tab;
+      if (!tabName) return;
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
       this.classList.add('active');
@@ -1148,7 +917,7 @@
 
   // Cleanup
   window.addEventListener('beforeunload', () => {
-    [pixListener, pendentesListener, vendedoresListener].forEach(r => { if (r) r.off(); });
+    if (pixListener) pixListener.off();
     if (db) db.ref('.info/connected').off();
   });
 </script>

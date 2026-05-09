@@ -156,6 +156,9 @@
     font-weight: 500;
   }
   .nav-right { display:flex; align-items:center; gap:14px; }
+  .user-pill { display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); padding:4px 12px 4px 4px; border-radius:20px; font-size:12px; color:var(--text); }
+  .user-pill img { width:24px; height:24px; border-radius:50%; }
+  .user-pill button { background:none; border:none; color:var(--text-2); font-size:12px; cursor:pointer; padding:0; font-family:inherit; }
   .nav-badge {
     font-size: 11px;
     color: var(--text-2);
@@ -361,8 +364,10 @@
   <div class="bg-grid"></div>
 </div>
 
+<!-- Auth gerenciado pelo auth.js -->
+
 <!-- NAV -->
-<nav class="nav">
+<nav class="nav" id="appNav" style="display:none;">
   <a class="nav-logo" href="index.html">
     <div class="nav-logo-mark">M</div>
     <div class="nav-logo-text">
@@ -371,6 +376,11 @@
     </div>
   </a>
   <div class="nav-right">
+    <div class="user-pill">
+      <img id="userAvatar" src="" alt="">
+      <span id="userName"></span>
+      <button onclick="PortalAuth.logout()" title="Sair">Sair</button>
+    </div>
     <div class="nav-badge">Irmãos Muffato S.A.</div>
     <div class="theme-toggle" role="group" aria-label="Alternar tema">
       <button id="themeLight" type="button" title="Tema claro" aria-label="Tema claro">
@@ -384,13 +394,13 @@
 </nav>
 
 <!-- PAGE HEADER -->
-<div class="page-header">
+<div class="page-header" id="appHeader" style="display:none;">
   <h1 class="page-title">Atualizações</h1>
   <p class="page-subtitle">Histórico de melhorias, ajustes e mudanças realizadas no portal.</p>
 </div>
 
 <!-- SECTION -->
-<section class="section">
+<section class="section" id="appContent" style="display:none;">
 
   <!-- FILTERS -->
   <div class="filters">
@@ -402,6 +412,45 @@
 
   <!-- TIMELINE -->
   <div class="timeline">
+
+    <!-- v3.0 SISTEMA DE ACESSO UNIVERSAL -->
+    <div class="timeline-item" data-type="feature improvement">
+      <div class="timeline-header">
+        <span class="version-badge">v3.0</span>
+        <span class="timeline-date">09 mai 2026</span>
+      </div>
+      <div class="timeline-title">🔐 Sistema Universal de Controle de Acesso (RBAC)</div>
+      <div class="timeline-items">
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Módulo auth.js centralizado:</strong> todas as páginas do portal compartilham um único módulo de autenticação — sem duplicação de código e comportamento consistente em todo o site</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Controle de acesso por grupos (RBAC):</strong> 4 grupos definidos — Admin, Financeiro, Vendedor e Prevenção de Perdas — cada um com acesso apenas às páginas autorizadas</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Página Admin — Gestão de Usuários:</strong> nova página exclusiva para aprovação, negação e gerenciamento de acessos, com estatísticas por grupo, filtros e matriz de permissões</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Notificação em tempo real no portal:</strong> ícone de sino no nav dos admins exibe contagem de usuários aguardando aprovação — atualizado automaticamente via Firebase</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon feature">✨</span>
+          <span><strong>Fluxo de solicitação de acesso:</strong> novo usuário entra com Google, seleciona o grupo desejado e fica pendente até aprovação do admin — sem necessidade de cadastro manual</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span><strong>Migração automática de usuários legados:</strong> usuários aprovados no sistema antigo (vendedores/) são reconhecidos e migrados automaticamente para o novo sistema no primeiro acesso</span>
+        </div>
+        <div class="timeline-change">
+          <span class="change-icon improvement">⚡</span>
+          <span>Gestão de vendedores migrada da aba "Vendedores" do Painel Gerencial para a página dedicada de Admin — interface mais completa e centralizada</span>
+        </div>
+      </div>
+    </div>
 
     <!-- v2.4 IA BADGE + OCR AVANÇADO PIX -->
     <div class="timeline-item" data-type="feature improvement">
@@ -758,33 +807,23 @@
   </div>
 </footer>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="auth.js"></script>
 <script>
-  // Theme toggle
-  (function(){
-    const root = document.documentElement;
-    const btnL = document.getElementById('themeLight');
-    const btnD = document.getElementById('themeDark');
-    function apply(theme){
-      root.setAttribute('data-theme', theme);
-      try { localStorage.setItem('mx-theme', theme); } catch(e){}
-      btnL.classList.toggle('active', theme==='light');
-      btnD.classList.toggle('active', theme==='dark');
-    }
-    let saved = 'dark';
-    try { saved = localStorage.getItem('mx-theme') || 'dark'; } catch(e){}
-    apply(saved);
-    btnL.addEventListener('click', ()=>apply('light'));
-    btnD.addEventListener('click', ()=>apply('dark'));
-  })();
+  // ── AUTH via auth.js ──
+  PortalAuth.init('atualizacoes.html', function(user) {
+    document.getElementById('userAvatar').src = user.photoURL || '';
+    document.getElementById('userName').textContent = user.displayName || user.email;
+  });
 
-  // Filter functionality
+  // ── FILTROS ──
   function filterType(type) {
     const items = document.querySelectorAll('.timeline-item');
     const buttons = document.querySelectorAll('.filter-btn');
-
     buttons.forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
-
     items.forEach(item => {
       if (type === 'all' || item.getAttribute('data-type').includes(type)) {
         item.style.display = 'block';

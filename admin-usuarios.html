@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Usuários — Max Atacadista</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="auth.js"></script>
+<style>
+  :root, html[data-theme="dark"] {
+    --bg: #080810; --bg2: #0d0d1a; --nav-bg: rgba(8,8,16,0.7);
+    --surface: rgba(255,255,255,0.04); --surface-hover: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08); --border-hover: rgba(255,255,255,0.16);
+    --red: #e31e24; --red-soft: rgba(227,30,36,0.15);
+    --text: #f0f0f5; --text-2: rgba(240,240,245,0.55); --text-3: rgba(240,240,245,0.3);
+    --green: #22c55e; --green-soft: rgba(34,197,94,0.12);
+    --amber: #f59e0b; --amber-soft: rgba(245,158,11,0.12);
+    --cyan: #0891b2; --cyan-soft: rgba(8,145,178,0.12);
+    --purple: #8b5cf6; --purple-soft: rgba(139,92,246,0.12);
+    --grid-line: rgba(255,255,255,0.025);
+    --bg-glow-1: rgba(8,145,178,0.08); --bg-glow-2: rgba(60,60,140,0.06);
+    --font: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  html[data-theme="light"] {
+    --bg: #f7f7fa; --bg2: #ffffff; --nav-bg: rgba(255,255,255,0.85);
+    --surface: rgba(0,0,0,0.025); --surface-hover: rgba(0,0,0,0.05);
+    --border: rgba(0,0,0,0.08); --border-hover: rgba(0,0,0,0.16);
+    --red: #e31e24; --text: #14141c; --text-2: rgba(20,20,28,0.6); --text-3: rgba(20,20,28,0.35);
+    --green: #22c55e; --green-soft: rgba(34,197,94,0.08);
+    --amber: #f59e0b; --amber-soft: rgba(245,158,11,0.08);
+    --cyan: #0891b2; --cyan-soft: rgba(8,145,178,0.08);
+    --purple: #8b5cf6; --purple-soft: rgba(139,92,246,0.08);
+    --grid-line: rgba(0,0,0,0.04);
+    --bg-glow-1: rgba(8,145,178,0.06); --bg-glow-2: rgba(60,60,140,0.04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+
+  .bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .bg-canvas::before { content: ''; position: absolute; top: -20%; left: 50%; transform: translateX(-50%); width: 900px; height: 600px; background: radial-gradient(ellipse at center, var(--bg-glow-1) 0%, transparent 70%); }
+  .bg-canvas::after  { content: ''; position: absolute; bottom: 10%; right: -10%; width: 600px; height: 600px; background: radial-gradient(ellipse at center, var(--bg-glow-2) 0%, transparent 70%); }
+  .bg-grid { position: absolute; inset: 0; background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 100%); }
+
+  /* NAV */
+  .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 40px; height: 64px; display: flex; align-items: center; justify-content: space-between; background: var(--nav-bg); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-logo-mark { width: 32px; height: 32px; background: var(--cyan); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; color: #fff; font-style: italic; letter-spacing: -1px; }
+  .nav-logo-text { display: flex; flex-direction: column; gap: 1px; }
+  .nav-logo-name { font-size: 13px; font-weight: 700; color: var(--text); }
+  .nav-logo-sub  { font-size: 10px; color: var(--text-2); letter-spacing: 1px; text-transform: uppercase; font-weight: 500; }
+  .nav-right { display: flex; align-items: center; gap: 14px; }
+  .user-pill { display:flex; align-items:center; gap:8px; background: var(--surface); border: 1px solid var(--border); padding: 4px 12px 4px 4px; border-radius: 20px; font-size: 12px; }
+  .user-pill img { width: 24px; height: 24px; border-radius: 50%; }
+  .user-pill button { background: transparent; border: none; color: var(--text-2); cursor: pointer; font-size: 11px; padding: 2px 6px; font-family: inherit; }
+  .user-pill button:hover { color: var(--red); }
+  .nav-badge { font-size: 11px; color: var(--text-2); font-weight: 500; background: var(--surface); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+  .theme-toggle { display:inline-flex; align-items:center; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 3px; gap: 2px; }
+  .theme-toggle button { background: transparent; border: none; cursor: pointer; width: 30px; height: 26px; border-radius: 999px; display:inline-flex; align-items:center; justify-content:center; color: var(--text-2); font-size: 13px; transition: color 0.2s; font-family: inherit; }
+  .theme-toggle button.active { background: var(--cyan); color: #fff; }
+  .theme-toggle button svg { width: 14px; height: 14px; }
+
+  /* LAYOUT */
+  .page-header { position: relative; z-index: 1; padding: 100px 40px 32px; max-width: 1280px; margin: 0 auto; }
+  .header-title { font-size: clamp(24px,4vw,40px); font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+  .header-desc  { font-size: 15px; color: var(--text-2); }
+  .content { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; padding: 0 40px 60px; }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 16px; margin-bottom: 32px; }
+  .stat-card  { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 24px; }
+  .stat-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 6px; }
+  .stat-value { font-size: 30px; font-weight: 800; line-height: 1; }
+
+  /* TABS */
+  .tab-nav { display: flex; gap: 4px; margin-bottom: 28px; border-bottom: 1px solid var(--border); padding-bottom: 0; overflow-x: auto; }
+  .tab-btn { background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--text-2); padding: 10px 18px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all .2s; white-space: nowrap; font-family: inherit; margin-bottom: -1px; }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+  .badge-count { background: var(--red); color: #fff; border-radius: 999px; font-size: 10px; padding: 1px 7px; margin-left: 6px; font-weight: 700; display: inline-block; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 24px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead { background: var(--surface-hover); border-bottom: 1px solid var(--border); }
+  th { padding: 14px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 13px; }
+  td { padding: 13px 16px; border-bottom: 1px solid var(--border); color: var(--text-2); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-hover); }
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--text-3); font-size: 14px; }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+  .badge-pending  { background: var(--amber-soft);  color: var(--amber); }
+  .badge-approved { background: var(--green-soft);  color: var(--green); }
+  .badge-denied   { background: var(--red-soft);    color: var(--red); }
+  .badge-admin    { background: var(--cyan-soft);   color: var(--cyan); }
+  .badge-financeiro { background: var(--green-soft); color: var(--green); }
+  .badge-vendedor   { background: var(--amber-soft); color: var(--amber); }
+  .badge-prevencao  { background: var(--purple-soft);color: var(--purple); }
+
+  /* BUTTONS */
+  .btn { background: var(--cyan); color: #fff; border: none; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .2s; font-family: inherit; white-space: nowrap; }
+  .btn:hover { background: #0a7ba8; transform: translateY(-1px); }
+  .btn-success { background: var(--green); }
+  .btn-success:hover { background: #1ea34f; }
+  .btn-danger  { background: var(--red); }
+  .btn-danger:hover  { background: #c41a1f; }
+  .btn-ghost   { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover   { background: var(--surface-hover); transform: none; }
+  .btn-group   { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* USER AVATAR CELL */
+  .user-cell { display: flex; align-items: center; gap: 10px; }
+  .user-cell img { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); flex-shrink: 0; }
+  .user-cell-name  { font-size: 13px; font-weight: 600; color: var(--text); }
+  .user-cell-email { font-size: 11px; color: var(--text-3); }
+
+  /* GRUPO CARDS (aba Grupos) */
+  .grupos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 20px; margin-bottom: 32px; }
+  .grupo-card  { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .grupo-card-header { padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .grupo-card-icon  { font-size: 22px; }
+  .grupo-card-name  { font-size: 15px; font-weight: 700; }
+  .grupo-card-count { margin-left: auto; font-size: 12px; color: var(--text-3); }
+  .grupo-card-body  { padding: 12px 0; }
+  .grupo-member     { display: flex; align-items: center; gap: 10px; padding: 8px 20px; }
+  .grupo-member:hover { background: var(--surface-hover); }
+  .grupo-member img { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); flex-shrink: 0; }
+  .grupo-member-name  { font-size: 13px; font-weight: 500; color: var(--text); }
+  .grupo-member-email { font-size: 11px; color: var(--text-3); }
+  .grupo-empty { padding: 20px; text-align: center; color: var(--text-3); font-size: 13px; }
+
+  /* MATRIZ DE PERMISSÕES */
+  .matrix-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-top: 28px; }
+  .matrix-header { padding: 16px 20px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 700; }
+  .matrix-table th, .matrix-table td { padding: 10px 14px; font-size: 12px; }
+  .matrix-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-3); }
+  .check-yes { color: var(--green); font-size: 16px; }
+  .check-no  { color: var(--text-3); font-size: 16px; }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.show { display: flex; }
+  .modal-panel { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; max-width: 480px; width: 100%; padding: 32px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
+  .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+  .modal-sub   { font-size: 13px; color: var(--text-2); margin-bottom: 24px; }
+  .modal-user-row { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; margin-bottom: 24px; }
+  .modal-user-row img { width: 40px; height: 40px; border-radius: 50%; }
+  .modal-user-name  { font-size: 14px; font-weight: 600; }
+  .modal-user-email { font-size: 12px; color: var(--text-2); }
+  .modal-user-badge { margin-left: auto; }
+  .group-select-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .group-select-opt  { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 2px solid var(--border); border-radius: 12px; padding: 12px 16px; cursor: pointer; transition: all .2s; }
+  .group-select-opt:hover { border-color: var(--cyan); }
+  .group-select-opt.selected { border-color: var(--cyan); background: var(--cyan-soft); }
+  .group-select-icon  { font-size: 20px; }
+  .group-select-label { font-size: 13px; font-weight: 600; }
+  .modal-footer { display: flex; gap: 10px; }
+  .modal-footer .btn { flex: 1; padding: 10px 16px; font-size: 13px; }
+
+  /* TOAST */
+  #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; font-size: 13px; color: var(--text); box-shadow: 0 8px 24px rgba(0,0,0,0.3); max-width: 320px; animation: toast-in .2s ease; display: flex; align-items: center; gap: 10px; }
+  .toast.toast-success { border-left: 3px solid var(--green); }
+  .toast.toast-error   { border-left: 3px solid var(--red); }
+  .toast.toast-info    { border-left: 3px solid var(--cyan); }
+  @keyframes toast-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .nav { padding: 0 20px; }
+    .page-header { padding: 84px 20px 24px; }
+    .content { padding: 0 20px 40px; }
+    .stats-grid { grid-template-columns: repeat(2,1fr); }
+    table { font-size: 12px; }
+    th, td { padding: 10px 12px; }
+    .grupos-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-canvas"><div class="bg-grid"></div></div>
+<div id="toast-container"></div>
+
+<!-- NAV -->
+<nav class="nav" id="appNav" style="display:none;">
+  <a class="nav-logo" href="index.html">
+    <div class="nav-logo-mark">M</div>
+    <div class="nav-logo-text">
+      <div class="nav-logo-name">Max Atacadista</div>
+      <div class="nav-logo-sub">Gestão de Usuários</div>
+    </div>
+  </a>
+  <div class="nav-right">
+    <div class="user-pill">
+      <img id="userAvatar" src="" alt="">
+      <span id="userName"></span>
+      <button onclick="PortalAuth.logout()">Sair</button>
+    </div>
+    <div class="theme-toggle">
+      <button id="themeLight" title="Claro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+      <button id="themeDark" title="Escuro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<section class="page-header" id="appHeader" style="display:none;">
+  <h1 class="header-title">⚙️ Gestão de Usuários</h1>
+  <p class="header-desc">Aprove acessos, gerencie grupos e controle as permissões do portal.</p>
+</section>
+
+<!-- CONTENT -->
+<section class="content" id="appContent" style="display:none;">
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Pendentes</div>
+      <div class="stat-value" id="st-pendentes" style="color:var(--amber);">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Aprovados</div>
+      <div class="stat-value" id="st-aprovados" style="color:var(--green);">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Financeiro</div>
+      <div class="stat-value" id="st-financeiro">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Vendedores</div>
+      <div class="stat-value" id="st-vendedor">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Prev. Perdas</div>
+      <div class="stat-value" id="st-prevencao">0</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="pendentes">
+      🔔 Pendentes <span class="badge-count" id="badge-pendentes" style="display:none;">0</span>
+    </button>
+    <button class="tab-btn" data-tab="usuarios">👥 Todos os Usuários</button>
+    <button class="tab-btn" data-tab="grupos">🗂️ Por Grupo</button>
+    <button class="tab-btn" data-tab="matriz">🔐 Permissões</button>
+  </div>
+
+  <!-- TAB: PENDENTES -->
+  <div id="tab-pendentes">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Usuário</th>
+            <th>Grupo Solicitado</th>
+            <th>Data da Solicitação</th>
+            <th>Origem</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-pendentes">
+          <tr><td colspan="5" class="empty-state">Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: TODOS USUÁRIOS -->
+  <div id="tab-usuarios" style="display:none;">
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+      <span style="font-size:13px; color:var(--text-2);">Filtrar por grupo:</span>
+      <button class="btn btn-ghost" id="filter-all"        onclick="filtrarUsuarios('all')"       style="font-size:12px;">Todos</button>
+      <button class="btn btn-ghost" id="filter-admin"      onclick="filtrarUsuarios('admin')"     style="font-size:12px;">⚙️ Admin</button>
+      <button class="btn btn-ghost" id="filter-financeiro" onclick="filtrarUsuarios('financeiro')" style="font-size:12px;">💰 Financeiro</button>
+      <button class="btn btn-ghost" id="filter-vendedor"   onclick="filtrarUsuarios('vendedor')"  style="font-size:12px;">🛍️ Vendedor</button>
+      <button class="btn btn-ghost" id="filter-prevencao"  onclick="filtrarUsuarios('prevencao')" style="font-size:12px;">🔒 Prev. Perdas</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Usuário</th>
+            <th>Grupo</th>
+            <th>Status</th>
+            <th>Aprovado em</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-usuarios">
+          <tr><td colspan="5" class="empty-state">Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: GRUPOS -->
+  <div id="tab-grupos" style="display:none;">
+    <div class="grupos-grid" id="grupos-grid">
+      <!-- Gerado dinamicamente -->
+    </div>
+  </div>
+
+  <!-- TAB: MATRIZ DE PERMISSÕES -->
+  <div id="tab-matriz" style="display:none;">
+    <div class="matrix-section">
+      <div class="matrix-header">🔐 Matriz de Permissões — Quem acessa o quê</div>
+      <div class="table-wrap" style="border:none; border-radius:0;">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>Página</th>
+              <th>⚙️ Admin</th>
+              <th>💰 Financeiro</th>
+              <th>🛍️ Vendedor</th>
+              <th>🔒 Prev. Perdas</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-matriz">
+            <!-- Gerado dinamicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- MODAL: APROVAR USUÁRIO -->
+<div class="modal-overlay" id="modal-aprovar">
+  <div class="modal-panel">
+    <div class="modal-title">Aprovar Acesso</div>
+    <div class="modal-sub">Selecione o grupo que este usuário irá receber.</div>
+    <div class="modal-user-row" id="modal-user-info"></div>
+    <div class="group-select-list" id="modal-group-list"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-aprovar')">Cancelar</button>
+      <button class="btn btn-success" id="btn-confirmar-aprovacao" onclick="confirmarAprovacao()" disabled>✓ Confirmar Aprovação</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ALTERAR GRUPO -->
+<div class="modal-overlay" id="modal-alterar-grupo">
+  <div class="modal-panel">
+    <div class="modal-title">Alterar Grupo</div>
+    <div class="modal-sub">Selecione o novo grupo para este usuário.</div>
+    <div class="modal-user-row" id="modal-alterar-user-info"></div>
+    <div class="group-select-list" id="modal-alterar-group-list"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-alterar-grupo')">Cancelar</button>
+      <button class="btn" id="btn-confirmar-alterar" onclick="confirmarAlterarGrupo()" disabled>Salvar Alteração</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ─── ESTADO ────────────────────────────────────────────────────────────────
+  let db;
+  let allUsers    = {}; // uid → objeto
+  let pendentes   = {}; // uid → objeto (inclui legados)
+  let filtroAtivo = 'all';
+  let pendingUID  = null;  // usuário sendo aprovado
+  let alterUID    = null;  // usuário com grupo sendo alterado
+  let grupoSelecionadoModal  = null;
+  let grupoAlterarModal      = null;
+
+  const LABELS  = PortalAuth.LABELS;
+  const ICONS   = PortalAuth.ICONS;
+  const PAGES   = PortalAuth.PAGES;
+
+  // ─── INIT PORTAL AUTH ──────────────────────────────────────────────────────
+  PortalAuth.init('admin-usuarios.html', function(user, grupo) {
+    db = PortalAuth.getDb();
+    iniciarListeners();
+    renderMatriz();
+  });
+
+  // ─── LISTENERS FIREBASE ────────────────────────────────────────────────────
+  function iniciarListeners() {
+    // Todos usuários do novo sistema
+    db.ref('users').on('value', (snap) => {
+      allUsers = {};
+      snap.forEach((c) => { allUsers[c.key] = { uid: c.key, ...c.val() }; });
+      renderTudo();
+    });
+
+    // Legados: vendedoresPendentes não migrados
+    db.ref('vendedoresPendentes').on('value', (snap) => {
+      // Remove legados já migrados
+      Object.keys(pendentes).forEach(uid => {
+        if (pendentes[uid]._legacy) delete pendentes[uid];
+      });
+      snap.forEach((c) => {
+        if (!allUsers[c.key]) { // Só se ainda não migrou
+          pendentes[c.key] = { uid: c.key, _legacy: true, ...c.val(), status: 'pending', requestedGrupo: 'vendedor' };
+        }
+      });
+      renderTudo();
+    });
+  }
+
+  function renderTudo() {
+    // Consolida pendentes (novo sistema + legados)
+    pendentes = {};
+    Object.values(allUsers).forEach(u => {
+      if (u.status === 'pending') pendentes[u.uid] = u;
+    });
+
+    // Re-adiciona legados que ainda não estão em allUsers
+    // (o listener de vendedoresPendentes cuida disso)
+
+    renderStats();
+    renderPendentes();
+    renderUsuarios();
+    renderGrupos();
+  }
+
+  // ─── STATS ─────────────────────────────────────────────────────────────────
+  function renderStats() {
+    const aprovados = Object.values(allUsers).filter(u => u.status === 'approved');
+    const pends     = Object.values(allUsers).filter(u => u.status === 'pending').length
+                    + Object.values(pendentes).filter(u => u._legacy).length;
+
+    document.getElementById('st-pendentes').textContent  = pends;
+    document.getElementById('st-aprovados').textContent  = aprovados.length;
+    document.getElementById('st-financeiro').textContent = aprovados.filter(u => u.grupo === 'financeiro').length;
+    document.getElementById('st-vendedor').textContent   = aprovados.filter(u => u.grupo === 'vendedor').length;
+    document.getElementById('st-prevencao').textContent  = aprovados.filter(u => u.grupo === 'prevencao').length;
+
+    const badge = document.getElementById('badge-pendentes');
+    const total = Object.keys(pendentes).length;
+    if (total > 0) { badge.style.display = 'inline-block'; badge.textContent = total; }
+    else             badge.style.display = 'none';
+  }
+
+  // ─── TAB PENDENTES ─────────────────────────────────────────────────────────
+  function renderPendentes() {
+    const tbody = document.getElementById('tbody-pendentes');
+    const lista = Object.values(pendentes);
+
+    if (lista.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">✓ Nenhuma solicitação pendente</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = lista.map(u => `
+      <tr>
+        <td>
+          <div class="user-cell">
+            <img src="${esc(u.photo||u.photoURL||'')}" onerror="this.style.display='none'" alt="">
+            <div>
+              <div class="user-cell-name">${esc(u.name||u.displayName||'—')}</div>
+              <div class="user-cell-email">${esc(u.email||'')}</div>
+            </div>
+          </div>
+        </td>
+        <td>${badgeGrupo(u.requestedGrupo || 'vendedor')}</td>
+        <td style="font-size:12px;">${formatarData(u.requestedAt)}</td>
+        <td><span style="font-size:11px; color:var(--text-3);">${u._legacy ? 'Sistema legado' : 'Novo sistema'}</span></td>
+        <td>
+          <div class="btn-group">
+            <button class="btn btn-success" onclick="abrirModalAprovar('${esc(u.uid)}')">✓ Aprovar</button>
+            <button class="btn btn-danger"  onclick="negarUsuario('${esc(u.uid)}')">✕ Negar</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ─── TAB TODOS USUÁRIOS ────────────────────────────────────────────────────
+  function filtrarUsuarios(grupo) {
+    filtroAtivo = grupo;
+    document.querySelectorAll('[id^="filter-"]').forEach(b => b.classList.remove('active'));
+    const el = document.getElementById('filter-' + grupo);
+    if (el) { el.classList.add('active'); el.style.borderColor = 'var(--cyan)'; el.style.color = 'var(--cyan)'; }
+    renderUsuarios();
+  }
+
+  function renderUsuarios() {
+    const tbody   = document.getElementById('tbody-usuarios');
+    let   lista   = Object.values(allUsers).filter(u => u.status === 'approved');
+    if (filtroAtivo !== 'all') lista = lista.filter(u => u.grupo === filtroAtivo);
+
+    if (lista.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Nenhum usuário encontrado</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = lista.map(u => `
+      <tr>
+        <td>
+          <div class="user-cell">
+            <img src="${esc(u.photo||u.photoURL||'')}" onerror="this.style.display='none'" alt="">
+            <div>
+              <div class="user-cell-name">${esc(u.name||'—')}</div>
+              <div class="user-cell-email">${esc(u.email||'')}</div>
+            </div>
+          </div>
+        </td>
+        <td>${badgeGrupo(u.grupo)}</td>
+        <td><span class="badge badge-approved">✓ Ativo</span></td>
+        <td style="font-size:12px;">${formatarData(u.approvedAt)}</td>
+        <td>
+          <div class="btn-group">
+            <button class="btn btn-ghost" onclick="abrirModalAlterar('${esc(u.uid)}')">✎ Alterar grupo</button>
+            <button class="btn btn-danger" onclick="revogarAcesso('${esc(u.uid)}', '${esc(u.name||u.email||'')}')">Revogar</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ─── TAB GRUPOS ────────────────────────────────────────────────────────────
+  function renderGrupos() {
+    const container = document.getElementById('grupos-grid');
+    const grupos    = ['admin','financeiro','vendedor','prevencao'];
+    const adminsUID = []; // Admins vêm de allUsers com grupo=admin OU do nó admins/
+
+    container.innerHTML = grupos.map(g => {
+      const membros = Object.values(allUsers).filter(u => u.status === 'approved' && u.grupo === g);
+      return `
+        <div class="grupo-card">
+          <div class="grupo-card-header">
+            <span class="grupo-card-icon">${ICONS[g]}</span>
+            <span class="grupo-card-name">${LABELS[g]}</span>
+            <span class="grupo-card-count">${membros.length} membro${membros.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="grupo-card-body">
+            ${membros.length === 0
+              ? '<div class="grupo-empty">Nenhum usuário neste grupo</div>'
+              : membros.map(u => `
+                <div class="grupo-member">
+                  <img src="${esc(u.photo||u.photoURL||'')}" onerror="this.style.display='none'" alt="">
+                  <div>
+                    <div class="grupo-member-name">${esc(u.name||'—')}</div>
+                    <div class="grupo-member-email">${esc(u.email||'')}</div>
+                  </div>
+                </div>`).join('')}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ─── TAB MATRIZ ────────────────────────────────────────────────────────────
+  function renderMatriz() {
+    const tbody  = document.getElementById('tbody-matriz');
+    const grupos = ['admin','financeiro','vendedor','prevencao'];
+
+    const PAGE_LABELS = {
+      'index.html':               '🏠 Portal Principal',
+      'pix-envio.html':           '💸 Envio de PIX',
+      'pix-gerenciamento.html':   '📊 Gerenciamento PIX',
+      'conciliacao-pix.html':     '✓ Conciliação PIX',
+      'cadastro-com-prazo.html':  '📋 Cadastro com Prazo',
+      'ordem-de-coleta.html':     '📦 Ordem de Coleta',
+      'atualizacoes.html':        '📰 Atualizações',
+      'sugestoes-melhorias.html': '💡 Sugestões',
+      'admin-usuarios.html':      '⚙️ Gestão de Usuários',
+    };
+
+    tbody.innerHTML = Object.entries(PAGES).map(([page, permitidos]) => `
+      <tr>
+        <td style="font-weight:600; color:var(--text);">${PAGE_LABELS[page] || page}</td>
+        ${grupos.map(g => `
+          <td style="text-align:center;">
+            ${permitidos.includes(g)
+              ? '<span class="check-yes">✓</span>'
+              : '<span class="check-no">—</span>'}
+          </td>`).join('')}
+      </tr>
+    `).join('');
+  }
+
+  // ─── MODAL: APROVAR ────────────────────────────────────────────────────────
+  function abrirModalAprovar(uid) {
+    const u = pendentes[uid] || allUsers[uid];
+    if (!u) return;
+    pendingUID = uid;
+    grupoSelecionadoModal = u.requestedGrupo || null;
+
+    // Preenche info do usuário
+    document.getElementById('modal-user-info').innerHTML = `
+      <img src="${esc(u.photo||u.photoURL||'')}" onerror="this.style.display='none'" alt="" style="width:40px;height:40px;border-radius:50%;border:1px solid var(--border);">
+      <div>
+        <div class="modal-user-name">${esc(u.name||u.displayName||'—')}</div>
+        <div class="modal-user-email">${esc(u.email||'')}</div>
+      </div>
+      <div class="modal-user-badge">${badgeGrupo(u.requestedGrupo||'')}</div>
+    `;
+
+    // Lista de grupos (exceto admin — admin só pode ser definido diretamente no Firebase)
+    const grupos = ['financeiro','vendedor','prevencao'];
+    document.getElementById('modal-group-list').innerHTML = grupos.map(g => `
+      <div class="group-select-opt${grupoSelecionadoModal === g ? ' selected' : ''}"
+           onclick="selecionarGrupoModal('${g}', this, 'modal-group-list', 'btn-confirmar-aprovacao')">
+        <span class="group-select-icon">${ICONS[g]}</span>
+        <span class="group-select-label">${LABELS[g]}</span>
+      </div>
+    `).join('');
+
+    document.getElementById('btn-confirmar-aprovacao').disabled = !grupoSelecionadoModal;
+    document.getElementById('modal-aprovar').classList.add('show');
+  }
+
+  function selecionarGrupoModal(grupo, el, listId, btnId) {
+    grupoSelecionadoModal = grupo;
+    document.querySelectorAll(`#${listId} .group-select-opt`).forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById(btnId).disabled = false;
+  }
+
+  async function confirmarAprovacao() {
+    if (!pendingUID || !grupoSelecionadoModal) return;
+    const btn = document.getElementById('btn-confirmar-aprovacao');
+    btn.disabled = true; btn.textContent = 'Aprovando...';
+
+    try {
+      const now   = new Date().toISOString();
+      const admin = PortalAuth.getUser();
+      const u     = pendentes[pendingUID] || allUsers[pendingUID] || {};
+
+      // Escreve no novo sistema
+      await db.ref('users/' + pendingUID).set({
+        email:        u.email || '',
+        name:         u.name || u.displayName || u.email || '',
+        photo:        u.photo || u.photoURL || '',
+        grupo:        grupoSelecionadoModal,
+        status:       'approved',
+        requestedGrupo: u.requestedGrupo || grupoSelecionadoModal,
+        requestedAt:  u.requestedAt || now,
+        approvedAt:   now,
+        approvedBy:   admin ? admin.uid : 'admin',
+      });
+
+      // Backward compat: mantém nó vendedores se for vendedor
+      if (grupoSelecionadoModal === 'vendedor') {
+        await db.ref('vendedores/' + pendingUID).set({
+          email:      u.email || '',
+          name:       u.name || u.displayName || '',
+          approvedAt: now,
+          approvedBy: admin ? admin.email : 'admin',
+        });
+      }
+
+      // Remove legados
+      await db.ref('vendedoresPendentes/' + pendingUID).remove();
+      await db.ref('notifications/pending/' + pendingUID).remove();
+
+      fecharModal('modal-aprovar');
+      showToast('✓ ' + (u.name||u.email||'Usuário') + ' aprovado como ' + LABELS[grupoSelecionadoModal], 'success');
+    } catch (e) {
+      showToast('Erro ao aprovar: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = '✓ Confirmar Aprovação';
+      pendingUID = null; grupoSelecionadoModal = null;
+    }
+  }
+
+  // ─── NEGAR ─────────────────────────────────────────────────────────────────
+  async function negarUsuario(uid) {
+    const u = pendentes[uid] || allUsers[uid];
+    if (!u) return;
+    if (!confirm(`Negar acesso de ${u.name || u.email}? Eles poderão solicitar novamente.`)) return;
+
+    try {
+      if (u._legacy) {
+        await db.ref('vendedoresPendentes/' + uid).remove();
+      } else {
+        await db.ref('users/' + uid).update({ status: 'denied', deniedAt: new Date().toISOString() });
+      }
+      await db.ref('notifications/pending/' + uid).remove();
+      showToast('Acesso negado para ' + (u.name || u.email), 'info');
+    } catch (e) {
+      showToast('Erro: ' + e.message, 'error');
+    }
+  }
+
+  // ─── MODAL: ALTERAR GRUPO ──────────────────────────────────────────────────
+  function abrirModalAlterar(uid) {
+    const u = allUsers[uid];
+    if (!u) return;
+    alterUID = uid;
+    grupoAlterarModal = u.grupo;
+
+    document.getElementById('modal-alterar-user-info').innerHTML = `
+      <img src="${esc(u.photo||u.photoURL||'')}" onerror="this.style.display='none'" alt="" style="width:40px;height:40px;border-radius:50%;border:1px solid var(--border);">
+      <div>
+        <div class="modal-user-name">${esc(u.name||'—')}</div>
+        <div class="modal-user-email">${esc(u.email||'')}</div>
+      </div>
+      <div class="modal-user-badge">${badgeGrupo(u.grupo)}</div>
+    `;
+
+    const grupos = ['financeiro','vendedor','prevencao'];
+    document.getElementById('modal-alterar-group-list').innerHTML = grupos.map(g => `
+      <div class="group-select-opt${grupoAlterarModal === g ? ' selected' : ''}"
+           onclick="selecionarGrupoAlterar('${g}', this)">
+        <span class="group-select-icon">${ICONS[g]}</span>
+        <span class="group-select-label">${LABELS[g]}</span>
+      </div>
+    `).join('');
+
+    document.getElementById('btn-confirmar-alterar').disabled = false;
+    document.getElementById('modal-alterar-grupo').classList.add('show');
+  }
+
+  function selecionarGrupoAlterar(grupo, el) {
+    grupoAlterarModal = grupo;
+    document.querySelectorAll('#modal-alterar-group-list .group-select-opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  async function confirmarAlterarGrupo() {
+    if (!alterUID || !grupoAlterarModal) return;
+    const btn = document.getElementById('btn-confirmar-alterar');
+    btn.disabled = true; btn.textContent = 'Salvando...';
+
+    try {
+      const u     = allUsers[alterUID];
+      const admin = PortalAuth.getUser();
+
+      await db.ref('users/' + alterUID).update({
+        grupo:          grupoAlterarModal,
+        grupoAlteredAt: new Date().toISOString(),
+        grupoAlteredBy: admin ? admin.uid : 'admin',
+      });
+
+      // Backward compat: gerencia nó vendedores
+      if (grupoAlterarModal === 'vendedor') {
+        await db.ref('vendedores/' + alterUID).set({
+          email:      u.email || '',
+          name:       u.name  || '',
+          approvedAt: u.approvedAt || new Date().toISOString(),
+        });
+      } else {
+        await db.ref('vendedores/' + alterUID).remove();
+      }
+
+      fecharModal('modal-alterar-grupo');
+      showToast('Grupo de ' + (u.name||u.email||'usuário') + ' alterado para ' + LABELS[grupoAlterarModal], 'success');
+    } catch (e) {
+      showToast('Erro: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Salvar Alteração';
+      alterUID = null; grupoAlterarModal = null;
+    }
+  }
+
+  // ─── REVOGAR ACESSO ────────────────────────────────────────────────────────
+  async function revogarAcesso(uid, nome) {
+    if (!confirm(`Revogar acesso de ${nome}? O usuário perderá o acesso imediatamente.`)) return;
+    try {
+      await db.ref('users/' + uid).update({ status: 'denied', revokedAt: new Date().toISOString() });
+      await db.ref('vendedores/' + uid).remove();
+      showToast('Acesso de ' + nome + ' revogado.', 'info');
+    } catch (e) {
+      showToast('Erro: ' + e.message, 'error');
+    }
+  }
+
+  // ─── TABS ──────────────────────────────────────────────────────────────────
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display = 'none');
+      this.classList.add('active');
+      document.getElementById('tab-' + this.dataset.tab).style.display = 'block';
+    });
+  });
+
+  // ─── HELPERS ───────────────────────────────────────────────────────────────
+  function fecharModal(id) {
+    document.getElementById(id).classList.remove('show');
+  }
+
+  function badgeGrupo(grupo) {
+    if (!grupo) return '<span class="badge" style="background:var(--surface); color:var(--text-3);">—</span>';
+    return `<span class="badge badge-${grupo}">${ICONS[grupo] || ''} ${LABELS[grupo] || grupo}</span>`;
+  }
+
+  function formatarData(iso) {
+    if (!iso) return '—';
+    try { return new Date(iso).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+    catch(e) { return iso; }
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ─── TOAST ─────────────────────────────────────────────────────────────────
+  function showToast(msg, tipo = 'info') {
+    const icons = { success: '✓', error: '✕', info: 'ℹ' };
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${tipo}`;
+    toast.innerHTML = `<span>${icons[tipo] || ''}</span> ${esc(msg)}`;
+    container.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(8px)'; toast.style.transition = 'all .3s'; setTimeout(() => toast.remove(), 300); }, 3500);
+  }
+
+  // ─── ESCAPE MODAL (ESC) ────────────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+    }
+  });
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+  });
+</script>
+</body>
+</html>
