@@ -205,7 +205,8 @@ const PortalAuth = (function () {
           _bootstrapUser();
           return;
         }
-        if (data.status === 'denied') { _showState('denied'); return; }
+        if (data.status === 'denied')   { _showState('denied');   return; }
+        if (data.status === 'inactive') { _showState('inactive'); return; }
         // status === 'pending'
         _showState('pending');
         return;
@@ -653,6 +654,15 @@ const PortalAuth = (function () {
         <button class="pa-link-btn" onclick="PortalAuth.logout()">Sair da conta</button>
       </div>`,
 
+      inactive: `<div class="pa-card">
+        <div class="pa-icon-box" style="background:rgba(227,30,36,.15);">⏸️</div>
+        <div class="pa-title">Acesso Inativo</div>
+        <div class="pa-desc">Seu acesso ao portal foi desativado. Clique abaixo para solicitar a reativação — um administrador irá revisar e liberar seu acesso em breve.</div>
+        ${avatarRow}
+        <button class="pa-btn" onclick="PortalAuth._requestReactivation()" style="margin-bottom:8px;">🔄 Solicitar Reativação</button>
+        <button class="pa-link-btn" onclick="PortalAuth.logout()">Sair da conta</button>
+      </div>`,
+
       denied: `<div class="pa-card">
         <div class="pa-icon-box" style="background:rgba(227,30,36,.15);">🚫</div>
         <div class="pa-title">Acesso Negado</div>
@@ -705,10 +715,17 @@ const PortalAuth = (function () {
       // Verifica se CPF já tem cadastro
       const cpfSnap = await _db.ref('cpf-index/' + cpf).once('value');
       if (cpfSnap.exists()) {
-        const err = document.getElementById('pa-cpf-err');
-        if (err) { err.textContent = 'Já existe um cadastro com este CPF. Entre em contato com o suporte.'; err.style.display = 'block'; }
-        if (btn) { btn.disabled = false; btn.textContent = 'Solicitar Acesso'; }
-        return;
+        const existingUid  = cpfSnap.val();
+        const existingSnap = await _db.ref('users/' + existingUid).once('value');
+        if (!existingSnap.exists()) {
+          // Entrada órfã: usuário foi deletado manualmente pelo console → limpa e permite novo cadastro
+          await _db.ref('cpf-index/' + cpf).remove();
+        } else {
+          const err = document.getElementById('pa-cpf-err');
+          if (err) { err.textContent = 'Já existe um cadastro com este CPF. Entre em contato com o suporte.'; err.style.display = 'block'; }
+          if (btn) { btn.disabled = false; btn.textContent = 'Solicitar Acesso'; }
+          return;
+        }
       }
       await _submitGroupRequest(_selectedGrp, { nome, cpf, cracha, loja, tel });
     } catch (e) {
@@ -757,6 +774,34 @@ const PortalAuth = (function () {
     if (!_user) return;
     _showState('loading');
     await _onAuthChange(_user);
+  }
+
+  async function _requestReactivation() {
+    if (!_user) return;
+    _showState('loading');
+    try {
+      const snap = await _db.ref('users/' + _user.uid).once('value');
+      if (!snap.exists()) { _showState('group-select'); return; }
+      const data = snap.val();
+      const now  = new Date().toISOString();
+      await _db.ref('users/' + _user.uid).update({
+        status:         'pending',
+        requestedGrupo: data.grupo || data.requestedGrupo || 'vendedor',
+        requestedAt:    now,
+        reactivation:   true,
+      });
+      await _db.ref('notifications/pending/' + _user.uid).set({
+        name:           data.name || _user.displayName || _user.email,
+        email:          _user.email || data.email || '',
+        requestedGrupo: data.grupo || data.requestedGrupo || 'vendedor',
+        requestedAt:    now,
+        seen:           false,
+        reactivation:   true,
+      });
+      _showState('pending');
+    } catch(e) {
+      _showState('inactive');
+    }
   }
 
   async function _reRequest() {
@@ -898,6 +943,7 @@ const PortalAuth = (function () {
     _validateForm,
     _reRequest,
     _checkApproval,
+    _requestReactivation,
     _filterStores,
     _openStoreDrop,
     _closeStoreDrop,

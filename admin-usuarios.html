@@ -275,6 +275,10 @@
       <div class="stat-label">Prev. Perdas</div>
       <div class="stat-value" id="st-prevencao">0</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-label">Inativos</div>
+      <div class="stat-value" id="st-inativos" style="color:var(--text-3);">0</div>
+    </div>
   </div>
 
   <!-- TABS -->
@@ -318,6 +322,7 @@
       <button class="btn btn-ghost" id="filter-financeiro-loja"  onclick="filtrarUsuarios('financeiro-loja')"  style="font-size:12px;">🏪 Fin. Loja</button>
       <button class="btn btn-ghost" id="filter-vendedor"         onclick="filtrarUsuarios('vendedor')"         style="font-size:12px;">🛍️ Vendedor</button>
       <button class="btn btn-ghost" id="filter-prevencao"        onclick="filtrarUsuarios('prevencao')"        style="font-size:12px;">🔒 Prev. Perdas</button>
+      <button class="btn btn-ghost" id="filter-inactive"         onclick="filtrarUsuarios('inactive')"         style="font-size:12px;">⏸️ Inativos</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -503,6 +508,7 @@
     document.getElementById('st-financeiro-detalhe').textContent = fSede + ' sede · ' + fLoja + ' loja';
     document.getElementById('st-vendedor').textContent   = aprovados.filter(u => u.grupo === 'vendedor').length;
     document.getElementById('st-prevencao').textContent  = aprovados.filter(u => u.grupo === 'prevencao').length;
+    document.getElementById('st-inativos').textContent   = Object.values(allUsers).filter(u => u.status === 'inactive').length;
 
     const badge = document.getElementById('badge-pendentes');
     const total = Object.keys(pendentes).length;
@@ -533,7 +539,14 @@
         </td>
         <td>${badgeGrupo(u.requestedGrupo || 'vendedor')}</td>
         <td style="font-size:12px;">${formatarData(u.requestedAt)}</td>
-        <td><span style="font-size:11px; color:var(--text-3);">${u._legacy ? 'Sistema legado' : 'Novo sistema'}</span></td>
+        <td>
+          ${u._legacy
+            ? '<span style="font-size:11px;color:var(--text-3);">Sistema legado</span>'
+            : u.reactivation
+              ? '<span class="badge" style="background:rgba(139,92,246,.12);color:#8b5cf6;font-size:10px;padding:3px 8px;">🔄 Reativação</span>'
+              : '<span style="font-size:11px;color:var(--text-3);">Novo cadastro</span>'
+          }
+        </td>
         <td>
           <div class="btn-group">
             <button class="btn btn-success" onclick="abrirModalAprovar('${esc(u.uid)}')">✓ Aprovar</button>
@@ -558,16 +571,23 @@
   }
 
   function renderUsuarios() {
-    const tbody   = document.getElementById('tbody-usuarios');
-    let   lista   = Object.values(allUsers).filter(u => u.status === 'approved');
-    if (filtroAtivo !== 'all') lista = lista.filter(u => u.grupo === filtroAtivo);
+    const tbody = document.getElementById('tbody-usuarios');
+    let lista;
+    if (filtroAtivo === 'inactive') {
+      lista = Object.values(allUsers).filter(u => u.status === 'inactive');
+    } else {
+      lista = Object.values(allUsers).filter(u => u.status === 'approved');
+      if (filtroAtivo !== 'all') lista = lista.filter(u => u.grupo === filtroAtivo);
+    }
 
     if (lista.length === 0) {
       tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Nenhum usuário encontrado</td></tr>';
       return;
     }
 
-    tbody.innerHTML = lista.map(u => `
+    tbody.innerHTML = lista.map(u => {
+      const inactive = u.status === 'inactive';
+      return `
       <tr>
         <td>
           <div class="user-cell">
@@ -579,16 +599,22 @@
           </div>
         </td>
         <td>${badgeGrupo(u.grupo)}</td>
-        <td><span class="badge badge-approved">✓ Ativo</span></td>
-        <td style="font-size:12px;">${formatarData(u.approvedAt)}</td>
+        <td>${inactive
+          ? '<span class="badge badge-denied">⏸ Inativo</span>'
+          : '<span class="badge badge-approved">✓ Ativo</span>'}</td>
+        <td style="font-size:12px;">${formatarData(inactive ? u.inactivatedAt : u.approvedAt)}</td>
         <td>
           <div class="btn-group">
-            <button class="btn btn-ghost" onclick="abrirModalAlterar('${esc(u.uid)}')">✎ Alterar grupo</button>
-            <button class="btn btn-danger" onclick="revogarAcesso('${esc(u.uid)}', '${esc(u.name||u.email||'')}')">Revogar</button>
+            ${inactive
+              ? `<button class="btn btn-success" onclick="abrirModalAprovar('${esc(u.uid)}')">🔄 Reativar</button>
+                 <button class="btn btn-danger"  onclick="deletarPermanente('${esc(u.uid)}', '${esc(u.name||u.email||'')}')">🗑️ Excluir</button>`
+              : `<button class="btn btn-ghost"  onclick="abrirModalAlterar('${esc(u.uid)}')">✎ Alterar grupo</button>
+                 <button class="btn btn-danger" onclick="inativarAcesso('${esc(u.uid)}', '${esc(u.name||u.email||'')}')">⏸ Inativar</button>`
+            }
           </div>
         </td>
-      </tr>
-    `).join('');
+      </tr>`;
+    }).join('');
   }
 
   // ─── TAB GRUPOS ────────────────────────────────────────────────────────────
@@ -657,7 +683,7 @@
     const u = pendentes[uid] || allUsers[uid];
     if (!u) return;
     pendingUID = uid;
-    grupoSelecionadoModal = u.requestedGrupo || null;
+    grupoSelecionadoModal = u.grupo || u.requestedGrupo || null;
 
     // Preenche info do usuário
     document.getElementById('modal-user-info').innerHTML = `
@@ -672,11 +698,14 @@
     // Detalhes de cadastro (CPF mascarado, crachá, loja, celular)
     const detailsEl = document.getElementById('modal-user-details');
     const cpfMasked = u.cpf ? String(u.cpf).replace(/^(\d{3})\d{3}\d{3}(\d{2})$/, '$1.***.***-$2') : null;
+    const isReactivation = u.status === 'inactive' || u.reactivation === true;
     const detailItems = [
-      u.cpf      ? { label: 'CPF',     value: cpfMasked || esc(String(u.cpf)) } : null,
-      u.cracha   ? { label: 'Crachá',  value: esc(String(u.cracha)) }           : null,
-      u.loja     ? { label: 'Loja Nº', value: esc(String(u.loja)) }             : null,
-      u.telefone ? { label: 'Celular', value: esc(String(u.telefone)) }         : null,
+      u.cpf      ? { label: 'CPF',            value: cpfMasked || esc(String(u.cpf)) }          : null,
+      u.cracha   ? { label: 'Crachá',         value: esc(String(u.cracha)) }                    : null,
+      u.loja     ? { label: 'Loja Nº',        value: esc(String(u.loja)) }                      : null,
+      u.telefone ? { label: 'Celular',        value: esc(String(u.telefone)) }                  : null,
+      isReactivation && u.grupo
+                 ? { label: 'Grupo anterior', value: (ICONS[u.grupo]||'') + ' ' + esc(LABELS[u.grupo]||u.grupo) } : null,
     ].filter(Boolean);
     if (detailItems.length > 0 && detailsEl) {
       detailsEl.style.display = 'block';
@@ -851,21 +880,38 @@
     }
   }
 
-  // ─── REVOGAR ACESSO ────────────────────────────────────────────────────────
-  async function revogarAcesso(uid, nome) {
-    if (!confirm(`Revogar acesso de ${nome}? O usuário perderá o acesso imediatamente e poderá solicitar novamente.`)) return;
+  // ─── INATIVAR ACESSO (soft delete) ────────────────────────────────────────
+  async function inativarAcesso(uid, nome) {
+    if (!confirm(`Inativar acesso de ${nome}?\n\nO usuário perderá o acesso imediatamente, mas poderá solicitar reativação.`)) return;
     try {
-      // Lê o CPF salvo para limpar o índice
+      const now   = new Date().toISOString();
+      const admin = PortalAuth.getUser();
+      await db.ref('users/' + uid).update({
+        status:        'inactive',
+        inactivatedAt: now,
+        inactivatedBy: admin ? admin.uid : 'admin',
+      });
+      await db.ref('vendedores/' + uid).remove();
+      await db.ref('notifications/pending/' + uid).remove();
+      showToast('Acesso de ' + nome + ' inativado. Usuário poderá solicitar reativação.', 'info');
+    } catch (e) {
+      showToast('Erro: ' + e.message, 'error');
+    }
+  }
+
+  // ─── EXCLUIR PERMANENTE ────────────────────────────────────────────────────
+  async function deletarPermanente(uid, nome) {
+    if (!confirm(`Excluir PERMANENTEMENTE ${nome}?\n\nTodos os dados serão removidos. Esta ação não pode ser desfeita.`)) return;
+    try {
       const snap = await db.ref('users/' + uid).once('value');
       if (snap.exists()) {
         const data = snap.val();
         if (data.cpf) await db.ref('cpf-index/' + data.cpf).remove();
       }
-      // Remove o registro completamente — permite nova solicitação
       await db.ref('users/' + uid).remove();
       await db.ref('vendedores/' + uid).remove();
       await db.ref('notifications/pending/' + uid).remove();
-      showToast('Acesso de ' + nome + ' revogado. Usuário poderá solicitar novamente.', 'info');
+      showToast('Usuário ' + nome + ' excluído permanentemente.', 'info');
     } catch (e) {
       showToast('Erro: ' + e.message, 'error');
     }
