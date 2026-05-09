@@ -620,12 +620,12 @@
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-eyebrow">Portal de Ferramentas</div>
-  <h1 class="hero-title">
+  <div class="hero-eyebrow" id="heroEyebrow">Portal de Ferramentas</div>
+  <h1 class="hero-title" id="heroTitle">
     Tudo que você precisa,<br>
     <em>em um só lugar.</em>
   </h1>
-  <p class="hero-sub">
+  <p class="hero-sub" id="heroSub">
     Ferramentas desenvolvidas especialmente para a equipe de televendas do Max Atacadista. Rápido, simples e eficiente.
   </p>
 
@@ -660,7 +660,7 @@
   <div class="app-grid">
 
     <!-- FEATURED: Ordem de Coleta -->
-    <a class="app-card featured reveal" href="ordem-de-coleta.html">
+    <a class="app-card featured reveal" href="ordem-de-coleta.html" data-grupos="admin,vendedor,prevencao">
       <div class="card-icon-wrap icon-red">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;color:#fff"><path d="M9 2h6a2 2 0 0 1 2 2v2h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2V4a2 2 0 0 1 2-2z"/><path d="M9 4h6v3H9z"/><path d="M8 12h8M8 16h5"/></svg>
       </div>
@@ -676,7 +676,7 @@
     </a>
 
     <!-- Crediffato -->
-    <a class="app-card reveal" href="cadastro-com-prazo.html">
+    <a class="app-card reveal" href="cadastro-com-prazo.html" data-grupos="admin,financeiro-sede,vendedor">
       <div class="card-icon-wrap icon-blue">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;color:#fff"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
       </div>
@@ -693,7 +693,7 @@
     </a>
 
     <!-- Envio de PIX (Televendas) -->
-    <a class="app-card reveal" href="pix-envio.html">
+    <a class="app-card reveal" href="pix-envio.html" data-grupos="admin,vendedor,financeiro-sede">
       <div class="card-icon-wrap icon-cyan">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;color:#fff"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
       </div>
@@ -761,7 +761,7 @@
     </a>
 
     <!-- Atualizações -->
-    <a class="app-card reveal" href="atualizacoes.html">
+    <a class="app-card reveal" href="atualizacoes.html" data-grupos="admin,financeiro-sede,financeiro-loja,vendedor,prevencao">
       <div class="card-icon-wrap icon-amber">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;color:#fff"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
       </div>
@@ -778,7 +778,7 @@
     </a>
 
     <!-- Sugestões e Melhorias -->
-    <a class="app-card reveal" href="sugestoes-melhorias.html">
+    <a class="app-card reveal" href="sugestoes-melhorias.html" data-grupos="admin,financeiro-sede,financeiro-loja,vendedor,prevencao">
       <div class="card-icon-wrap icon-green">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;color:#fff"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="12" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/></svg>
       </div>
@@ -795,7 +795,7 @@
     </a>
 
     <!-- Gerenciamento PIX (Financeiro) -->
-    <a class="app-card reveal" href="pix-gerenciamento.html">
+    <a class="app-card reveal" href="pix-gerenciamento.html" data-grupos="admin,financeiro-sede,financeiro-loja">
       <div class="card-icon-wrap icon-cyan">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;color:#fff"><circle cx="12" cy="12" r="1" fill="currentColor"/><path d="M8.56 2.75c2.65 3.96 6.88 6.98 11.31 8.62 1.66.62 3.26 1.47 4.93 2.11-1.04 1.89-2.56 3.46-4.31 4.53-.93.5-1.8 1.23-2.97 1.99-.26.15-.53.3-.79.46-.89.55-1.78 1.1-2.69 1.57-2.23 1.13-4.84 1.86-7.08 1.15-.26-.07-.51-.14-.76-.22a5.94 5.94 0 0 1-1.19-.45 9.94 9.94 0 0 1-2.02-.97c-.09-.05-.17-.09-.25-.14l-.26.15c-.9.56-1.79 1.1-2.69 1.57-2.23 1.13-4.84 1.86-7.08 1.15-.26-.07-.51-.14-.76-.22m4.5-12.99c-1.04 1.89-2.56 3.46-4.31 4.53" fill="currentColor"/><path d="M2 12a10 10 0 1 0 20 0 10 10 0 0 0-20 0z"/></svg>
       </div>
@@ -886,10 +886,29 @@
   PortalAuth.init('index.html', function(user, grupo) {
     document.getElementById('userAvatar').src = user.photoURL || '';
     document.getElementById('userName').textContent = user.displayName || user.email;
+
+    // Personaliza hero por grupo
+    var HERO = {
+      'admin':            { eyebrow: 'Portal Admin',               title: 'Tudo que você precisa,<br><em>em um só lugar.</em>',           sub: 'Gerencie usuários, ferramentas e acessos do Portal Max Atacadista.' },
+      'financeiro-sede':  { eyebrow: 'Portal Financeiro',          title: 'Ferramentas para o<br><em>Financeiro Sede.</em>',              sub: 'Envio, gerenciamento e conciliação de PIX para a equipe financeira da sede.' },
+      'financeiro-loja':  { eyebrow: 'Portal Financeiro',          title: 'Ferramentas para o<br><em>Financeiro Loja.</em>',              sub: 'Gerencie os PIX recebidos na sua loja em tempo real.' },
+      'vendedor':         { eyebrow: 'Portal Televendas',          title: 'Tudo que você precisa,<br><em>em um só lugar.</em>',           sub: 'Ferramentas desenvolvidas especialmente para a equipe de televendas do Max Atacadista.' },
+      'prevencao':        { eyebrow: 'Portal Prevenção de Perdas', title: 'Ferramentas para<br><em>Prevenção de Perdas.</em>',            sub: 'Gestão de ordens de coleta e controles de segurança do Max Atacadista.' },
+    };
+    var h = HERO[grupo] || HERO['vendedor'];
+    document.getElementById('heroEyebrow').textContent = h.eyebrow;
+    document.getElementById('heroTitle').innerHTML     = h.title;
+    document.getElementById('heroSub').textContent     = h.sub;
+
     // Exibe card de admin apenas para admins
     if (grupo === 'admin') {
       document.getElementById('admin-card').style.display = 'flex';
     }
+    // Filtra cards pelo grupo do usuário
+    document.querySelectorAll('.app-card[data-grupos]').forEach(function(card) {
+      var grupos = card.dataset.grupos.split(',');
+      if (!grupos.includes(grupo)) card.style.display = 'none';
+    });
     // Reveal on scroll
     const reveals = document.querySelectorAll('.reveal');
     const obs = new IntersectionObserver((entries) => {

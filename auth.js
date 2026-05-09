@@ -35,35 +35,38 @@ const PortalAuth = (function () {
   // ── MATRIZ DE PERMISSÕES ───────────────────────────────────────────────────
   // Grupos permitidos por página. Adicionar novos grupos/páginas aqui.
   const PAGES = {
-    'index.html':               ['admin', 'financeiro', 'vendedor', 'prevencao'],
-    'pix-envio.html':           ['admin', 'financeiro', 'vendedor'],
-    'pix-gerenciamento.html':   ['admin', 'financeiro'],
-    'conciliacao-pix.html':     ['admin', 'financeiro'],
-    'cadastro-com-prazo.html':  ['admin', 'financeiro', 'vendedor'],
+    'index.html':               ['admin', 'financeiro-sede', 'financeiro-loja', 'vendedor', 'prevencao'],
+    'pix-envio.html':           ['admin', 'vendedor', 'financeiro-sede'],
+    'pix-gerenciamento.html':   ['admin', 'financeiro-sede', 'financeiro-loja'],
+    'conciliacao-pix.html':     ['admin', 'financeiro-sede'],
+    'cadastro-com-prazo.html':  ['admin', 'financeiro-sede', 'vendedor'],
     'ordem-de-coleta.html':     ['admin', 'vendedor', 'prevencao'],
-    'atualizacoes.html':        ['admin', 'financeiro', 'vendedor', 'prevencao'],
-    'sugestoes-melhorias.html': ['admin', 'financeiro', 'vendedor', 'prevencao'],
+    'atualizacoes.html':        ['admin', 'financeiro-sede', 'financeiro-loja', 'vendedor', 'prevencao'],
+    'sugestoes-melhorias.html': ['admin', 'financeiro-sede', 'financeiro-loja', 'vendedor', 'prevencao'],
     'admin-usuarios.html':      ['admin'],
   };
 
   const GRUPO_LABELS = {
-    admin:     'Administrador',
-    financeiro:'Financeiro',
-    vendedor:  'Vendedor',
-    prevencao: 'Prevenção de Perdas',
+    admin:             'Administrador',
+    'financeiro-sede': 'Financeiro Sede',
+    'financeiro-loja': 'Financeiro Loja',
+    vendedor:          'Vendedor',
+    prevencao:         'Prevenção de Perdas',
   };
 
   const GRUPO_ICONS = {
-    admin:     '⚙️',
-    financeiro:'💰',
-    vendedor:  '🛍️',
-    prevencao: '🔒',
+    admin:             '⚙️',
+    'financeiro-sede': '💰',
+    'financeiro-loja': '🏪',
+    vendedor:          '🛍️',
+    prevencao:         '🔒',
   };
 
   const GRUPO_DESCS = {
-    financeiro: 'Acesso ao gerenciamento financeiro e conciliação de PIX',
-    vendedor:   'Envio de PIX e acompanhamento de pedidos de venda',
-    prevencao:  'Gestão de ordens de coleta e controles de segurança',
+    'financeiro-sede': 'Envio, gerenciamento e conciliação de PIX — equipe da sede',
+    'financeiro-loja': 'Gerenciamento de PIX recebido — equipe das lojas',
+    vendedor:          'Envio de PIX e acompanhamento de pedidos de venda',
+    prevencao:         'Gestão de ordens de coleta e controles de segurança',
   };
 
   // ── STATE INTERNO ──────────────────────────────────────────────────────────
@@ -116,7 +119,13 @@ const PortalAuth = (function () {
       if (userSnap.exists()) {
         const data = userSnap.val();
         if (data.status === 'approved') {
-          _grupo = data.grupo;
+          let gr = data.grupo;
+          // Retrocompat: grupo legado 'financeiro' → 'financeiro-sede'
+          if (gr === 'financeiro') {
+            gr = 'financeiro-sede';
+            _db.ref('users/' + user.uid + '/grupo').set('financeiro-sede'); // migra silenciosamente
+          }
+          _grupo = gr;
           if (!_hasAccess()) { _showState('denied'); return; }
           _bootstrapUser();
           return;
@@ -175,27 +184,37 @@ const PortalAuth = (function () {
   }
 
   // ── SOLICITAÇÃO DE ACESSO ─────────────────────────────────────────────────
-  async function _submitGroupRequest(grupo) {
+  async function _submitGroupRequest(grupo, extra) {
     if (!_user || !grupo) return;
     const now = new Date().toISOString();
+    const ex  = extra || {};
 
     await _db.ref('users/' + _user.uid).set({
-      email:        _user.email,
-      name:         _user.displayName || _user.email,
-      photo:        _user.photoURL || '',
-      grupo:        null,
-      status:       'pending',
+      email:          _user.email,
+      name:           ex.nome || _user.displayName || _user.email,
+      photo:          _user.photoURL || '',
+      grupo:          null,
+      status:         'pending',
       requestedGrupo: grupo,
-      requestedAt:  now,
+      requestedAt:    now,
+      cpf:            ex.cpf     || null,
+      cracha:         ex.cracha  || null,
+      loja:           ex.loja    || null,
+      telefone:       ex.tel     || null,
     });
+
+    // Registra índice de CPF para evitar duplicatas
+    if (ex.cpf) {
+      await _db.ref('cpf-index/' + ex.cpf).set(_user.uid);
+    }
 
     // Notificação no Firebase para admins
     await _db.ref('notifications/pending/' + _user.uid).set({
-      name:         _user.displayName || _user.email,
-      email:        _user.email,
+      name:           ex.nome || _user.displayName || _user.email,
+      email:          _user.email,
       requestedGrupo: grupo,
-      requestedAt:  now,
-      seen:         false,
+      requestedAt:    now,
+      seen:           false,
     });
 
     _showState('pending');
@@ -365,6 +384,16 @@ const PortalAuth = (function () {
         margin:0 auto 20px;
       }
       @keyframes pa-spin { to { transform:rotate(360deg); } }
+      .pa-input {
+        background:var(--surface,rgba(255,255,255,.04));
+        border:1px solid var(--border,rgba(255,255,255,.08));
+        border-radius:10px; padding:10px 14px;
+        font-size:13px; color:var(--text,#f0f0f5);
+        font-family:inherit; width:100%; outline:none;
+        transition:border-color .2s;
+      }
+      .pa-input:focus { border-color:var(--cyan,#0891b2); }
+      .pa-input::placeholder { color:var(--text-3,rgba(240,240,245,.3)); }
       .pa-avatar-row {
         display:flex; align-items:center; gap:12px;
         background:rgba(255,255,255,.03);
@@ -463,11 +492,21 @@ const PortalAuth = (function () {
         <button class="pa-google-btn" onclick="PortalAuth.login()">${googleIcon} Entrar com Google</button>
       </div>`,
 
-      'group-select': `<div class="pa-card">
+      'group-select': `<div class="pa-card" style="max-width:520px">
         <div class="pa-logo">M</div>
         <div class="pa-title">Solicitar Acesso</div>
-        <div class="pa-desc">Bem-vindo(a)! Selecione seu perfil e envie a solicitação. Um administrador irá aprovar em breve.</div>
+        <div class="pa-desc">Preencha seus dados e selecione seu perfil. Um administrador irá aprovar em breve.</div>
         ${avatarRow}
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;text-align:left">
+          <input id="pa-nome"     class="pa-input" type="text" placeholder="Nome completo *" maxlength="80" oninput="PortalAuth._validateForm()">
+          <input id="pa-cpf"      class="pa-input" type="text" placeholder="CPF (000.000.000-00) *" maxlength="14" oninput="PortalAuth._maskCpf(this);PortalAuth._validateForm()">
+          <div id="pa-cpf-err" style="font-size:11px;color:#e31e24;margin-top:-6px;display:none"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <input id="pa-cracha"   class="pa-input" type="text" placeholder="Nº Crachá *"  maxlength="20" oninput="PortalAuth._validateForm()">
+            <input id="pa-loja"     class="pa-input" type="text" placeholder="Nº Loja *"    maxlength="10" oninput="PortalAuth._validateForm()">
+          </div>
+          <input id="pa-telefone" class="pa-input" type="tel"  placeholder="Celular (00) 00000-0000 *" maxlength="15" oninput="PortalAuth._maskTel(this);PortalAuth._validateForm()">
+        </div>
         <div class="pa-group-list">
           ${Object.entries(GRUPO_LABELS).filter(([k]) => k !== 'admin').map(([key, label]) => `
             <button class="pa-group-opt" data-grupo="${key}" onclick="PortalAuth._selGrp(this)">
@@ -507,16 +546,31 @@ const PortalAuth = (function () {
     _selectedGrp = btn.dataset.grupo;
     document.querySelectorAll('.pa-group-opt').forEach(b => b.classList.remove('pa-sel'));
     btn.classList.add('pa-sel');
-    const submitBtn = document.getElementById('pa-submit-btn');
-    if (submitBtn) submitBtn.disabled = false;
+    _validateForm();
   }
 
   async function _confirmGrp() {
     if (!_selectedGrp) return;
+    const nome   = (document.getElementById('pa-nome')     || {}).value || '';
+    const cpfRaw = (document.getElementById('pa-cpf')      || {}).value || '';
+    const cracha = (document.getElementById('pa-cracha')   || {}).value || '';
+    const loja   = (document.getElementById('pa-loja')     || {}).value || '';
+    const tel    = (document.getElementById('pa-telefone') || {}).value || '';
+    const cpf    = _cpfSanitize(cpfRaw);
+
     const btn = document.getElementById('pa-submit-btn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
+    if (btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
+
     try {
-      await _submitGroupRequest(_selectedGrp);
+      // Verifica se CPF já tem cadastro
+      const cpfSnap = await _db.ref('cpf-index/' + cpf).once('value');
+      if (cpfSnap.exists()) {
+        const err = document.getElementById('pa-cpf-err');
+        if (err) { err.textContent = 'Já existe um cadastro com este CPF. Entre em contato com o suporte.'; err.style.display = 'block'; }
+        if (btn) { btn.disabled = false; btn.textContent = 'Solicitar Acesso'; }
+        return;
+      }
+      await _submitGroupRequest(_selectedGrp, { nome, cpf, cracha, loja, tel });
     } catch (e) {
       if (btn) { btn.disabled = false; btn.textContent = 'Solicitar Acesso'; }
       alert('Erro ao enviar solicitação: ' + e.message);
@@ -528,6 +582,55 @@ const PortalAuth = (function () {
     return String(s || '').replace(/[&<>"']/g, c => (
       { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
     ));
+  }
+
+  function _cpfSanitize(cpf) { return String(cpf || '').replace(/\D/g, ''); }
+
+  function _validateCpfDigits(cpf) {
+    cpf = _cpfSanitize(cpf);
+    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+    let s = 0, r;
+    for (let i = 1; i <= 9; i++) s += +cpf[i-1] * (11-i);
+    r = (s * 10) % 11; if (r === 10 || r === 11) r = 0; if (r !== +cpf[9]) return false;
+    s = 0;
+    for (let i = 1; i <= 10; i++) s += +cpf[i-1] * (12-i);
+    r = (s * 10) % 11; if (r === 10 || r === 11) r = 0;
+    return r === +cpf[10];
+  }
+
+  function _maskCpf(input) {
+    let v = input.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 9)      v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+    else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+    else if (v.length > 3) v = v.replace(/(\d{3})(\d{0,3})/, '$1.$2');
+    input.value = v;
+  }
+
+  function _maskTel(input) {
+    let v = input.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 6)      v = v.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+    else if (v.length > 2) v = v.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+    input.value = v;
+  }
+
+  function _validateForm() {
+    const nome   = (document.getElementById('pa-nome')     || {}).value || '';
+    const cpfRaw = (document.getElementById('pa-cpf')      || {}).value || '';
+    const cracha = (document.getElementById('pa-cracha')   || {}).value || '';
+    const loja   = (document.getElementById('pa-loja')     || {}).value || '';
+    const tel    = (document.getElementById('pa-telefone') || {}).value || '';
+    const cpfOk  = _validateCpfDigits(cpfRaw);
+    const telOk  = tel.replace(/\D/g, '').length >= 10;
+    const allOk  = nome.trim() && cpfOk && cracha.trim() && loja.trim() && telOk && _selectedGrp;
+    const btn    = document.getElementById('pa-submit-btn');
+    if (btn) btn.disabled = !allOk;
+    // Feedback inline do CPF
+    const err = document.getElementById('pa-cpf-err');
+    if (err) {
+      const digits = cpfRaw.replace(/\D/g, '');
+      if (digits.length === 11 && !cpfOk) { err.textContent = 'CPF inválido'; err.style.display = 'block'; }
+      else                                 { err.textContent = ''; err.style.display = 'none'; }
+    }
   }
 
   // ── API PÚBLICA ────────────────────────────────────────────────────────────
@@ -558,5 +661,8 @@ const PortalAuth = (function () {
     // Expostos para onclick inline nos templates
     _selGrp,
     _confirmGrp,
+    _maskCpf,
+    _maskTel,
+    _validateForm,
   };
 })();
