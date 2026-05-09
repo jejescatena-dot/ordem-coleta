@@ -308,6 +308,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
 </style>
 </head>
 <body>
+<!-- Auth gerenciado pelo auth.js -->
+<div id="appContent" style="display:none;">
 
 <!-- HEADER -->
 <header class="site-header">
@@ -1380,6 +1382,17 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
     <div class="prog-steps"><div class="prog-steps-fill" id="stepsBar"></div></div>
   </div>
 </div>
+
+</div><!-- /appContent -->
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="auth.js"></script>
+<script>
+  // ── AUTH via auth.js ──
+  PortalAuth.init('cadastro-com-prazo.html', function() {});
+</script>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ===== ESTADO GLOBAL =====

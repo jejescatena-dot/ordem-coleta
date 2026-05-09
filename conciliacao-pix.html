@@ -160,6 +160,9 @@
     font-weight: 500;
   }
   .nav-right { display:flex; align-items:center; gap:14px; }
+  .user-pill { display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); padding:4px 12px 4px 4px; border-radius:20px; font-size:12px; color:var(--text); }
+  .user-pill img { width:24px; height:24px; border-radius:50%; }
+  .user-pill button { background:none; border:none; color:var(--text-2); font-size:12px; cursor:pointer; padding:0; font-family:inherit; }
   .nav-badge {
     font-size: 11px;
     color: var(--text-2);
@@ -488,8 +491,10 @@
   <div class="bg-grid"></div>
 </div>
 
+<!-- Auth gerenciado pelo auth.js -->
+
 <!-- NAV -->
-<nav class="nav">
+<nav class="nav" id="appNav" style="display:none;">
   <a class="nav-logo" href="index.html">
     <div class="nav-logo-mark">M</div>
     <div class="nav-logo-text">
@@ -498,6 +503,11 @@
     </div>
   </a>
   <div class="nav-right">
+    <div class="user-pill">
+      <img id="userAvatar" src="" alt="">
+      <span id="userName"></span>
+      <button onclick="PortalAuth.logout()" title="Sair">Sair</button>
+    </div>
     <div class="nav-badge">Conciliação PIX</div>
     <div class="theme-toggle" role="group" aria-label="Alternar tema">
       <button id="themeLight" type="button" title="Tema claro" aria-label="Tema claro">
@@ -511,13 +521,13 @@
 </nav>
 
 <!-- HEADER -->
-<section class="page-header">
+<section class="page-header" id="appHeader" style="display:none;">
   <h1 class="header-title">Conciliação PIX</h1>
   <p class="header-desc">Gerencie transferências PIX entre múltiplas lojas. Registre movimentações, aloque pagamentos e concilie com seus pedidos.</p>
 </section>
 
 <!-- CONTENT -->
-<section class="content">
+<section class="content" id="appContent" style="display:none;">
 
   <!-- STATS -->
   <div class="stats-grid">
@@ -754,28 +764,16 @@
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="auth.js"></script>
 <script>
-  // ── THEME TOGGLE ──
-  (function(){
-    const root = document.documentElement;
-    const btnL = document.getElementById('themeLight');
-    const btnD = document.getElementById('themeDark');
-    function apply(theme){
-      root.setAttribute('data-theme', theme);
-      try { localStorage.setItem('mx-theme', theme); } catch(e){}
-      btnL.classList.toggle('active', theme==='light');
-      btnD.classList.toggle('active', theme==='dark');
-    }
-    let saved = 'dark';
-    try {
-      const stored = localStorage.getItem('mx-theme');
-      if (stored) saved = stored;
-      else saved = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    } catch(e){}
-    apply(saved);
-    btnL.addEventListener('click', ()=>apply('light'));
-    btnD.addEventListener('click', ()=>apply('dark'));
-  })();
+  // ── AUTH via auth.js ──
+  PortalAuth.init('conciliacao-pix.html', function(user) {
+    document.getElementById('userAvatar').src = user.photoURL || '';
+    document.getElementById('userName').textContent = user.displayName || user.email;
+  });
 
   // ── DATA STRUCTURE ──
   let pixes = [];

@@ -150,6 +150,9 @@
     font-weight: 500;
   }
   .nav-right { display:flex; align-items:center; gap:14px; }
+  .user-pill { display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); padding:4px 12px 4px 4px; border-radius:20px; font-size:12px; color:var(--text); }
+  .user-pill img { width:24px; height:24px; border-radius:50%; }
+  .user-pill button { background:none; border:none; color:var(--text-2); font-size:12px; cursor:pointer; padding:0; font-family:inherit; }
   .nav-badge {
     font-size: 11px;
     color: var(--text-2);
@@ -584,8 +587,10 @@
   <div class="bg-grid"></div>
 </div>
 
+<!-- Auth gerenciado pelo auth.js -->
+
 <!-- NAV -->
-<nav class="nav">
+<nav class="nav" id="appNav" style="display:none;">
   <a class="nav-logo" href="index.html">
     <div class="nav-logo-mark">M</div>
     <div class="nav-logo-text">
@@ -594,6 +599,11 @@
     </div>
   </a>
   <div class="nav-right">
+    <div class="user-pill">
+      <img id="userAvatar" src="" alt="">
+      <span id="userName"></span>
+      <button onclick="PortalAuth.logout()" title="Sair">Sair</button>
+    </div>
     <div class="nav-badge">Irmãos Muffato S.A.</div>
     <div class="theme-toggle" role="group" aria-label="Alternar tema">
       <button id="themeLight" type="button" title="Tema claro" aria-label="Tema claro">
@@ -605,6 +615,8 @@
     </div>
   </div>
 </nav>
+
+<div id="appContent" style="display:none;">
 
 <!-- HERO -->
 <section class="hero">
@@ -799,6 +811,23 @@
       </div>
     </a>
 
+    <!-- Admin: Gestão de Usuários (visível só para admins) -->
+    <a class="app-card reveal" href="admin-usuarios.html" id="admin-card" style="display:none;">
+      <div class="card-icon-wrap icon-purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;color:#fff"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="card-tag" style="background:rgba(124,30,227,0.15);color:#c05fff;">Admin</div>
+      <div class="card-name">Gestão de Usuários</div>
+      <div class="card-desc">Aprove ou negue solicitações de acesso, gerencie grupos e permissões de todos os usuários do portal. Restrito a administradores.</div>
+      <div class="card-footer">
+        <div class="card-status">
+          <div class="status-dot" style="background:#c05fff;"></div>
+          Somente Admin
+        </div>
+        <div class="card-arrow">→</div>
+      </div>
+    </a>
+
     <!-- Em breve - Assistente IA -->
     <div class="app-card soon">
       <div class="card-icon-wrap icon-teal">
@@ -846,40 +875,31 @@
   <div class="footer-right">CNPJ: 76.430.438/0001-71</div>
 </footer>
 
+</div><!-- /appContent -->
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="auth.js"></script>
 <script>
-  // Theme toggle
-  (function(){
-    const root = document.documentElement;
-    const btnL = document.getElementById('themeLight');
-    const btnD = document.getElementById('themeDark');
-    function apply(theme){
-      root.setAttribute('data-theme', theme);
-      try { localStorage.setItem('mx-theme', theme); } catch(e){}
-      btnL.classList.toggle('active', theme==='light');
-      btnD.classList.toggle('active', theme==='dark');
+  // ── AUTH via auth.js ──
+  PortalAuth.init('index.html', function(user, grupo) {
+    document.getElementById('userAvatar').src = user.photoURL || '';
+    document.getElementById('userName').textContent = user.displayName || user.email;
+    // Exibe card de admin apenas para admins
+    if (grupo === 'admin') {
+      document.getElementById('admin-card').style.display = 'flex';
     }
-    let saved = 'dark';
-    try { saved = localStorage.getItem('mx-theme') || 'dark'; } catch(e){}
-    apply(saved);
-    btnL.addEventListener('click', ()=>apply('light'));
-    btnD.addEventListener('click', ()=>apply('dark'));
-  })();
-
-  // Reveal on scroll
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) e.target.classList.add('visible');
-    });
-  }, { threshold: 0.1 });
-  reveals.forEach(el => observer.observe(el));
-
-  // Trigger hero items immediately
-  setTimeout(() => {
-    document.querySelectorAll('.hero .reveal, .section .reveal').forEach(el => {
-      el.classList.add('visible');
-    });
-  }, 100);
+    // Reveal on scroll
+    const reveals = document.querySelectorAll('.reveal');
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => obs.observe(el));
+    setTimeout(() => {
+      document.querySelectorAll('.hero .reveal, .section .reveal').forEach(el => el.classList.add('visible'));
+    }, 100);
+  });
 </script>
 </body>
 </html>
