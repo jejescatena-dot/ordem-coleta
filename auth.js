@@ -811,7 +811,9 @@ const PortalAuth = (function () {
       if (snap.exists()) {
         const data = snap.val();
         if (data.cpf) {
-          await _db.ref('cpf-index/' + data.cpf).remove();
+          try {
+            await _db.ref('cpf-index/' + data.cpf).remove();
+          } catch(_) {} // ignora erro se entrada apontar para outro uid (órfã)
         }
       }
       // Remove o registro do usuário para liberar nova solicitação
