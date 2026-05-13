@@ -400,6 +400,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
           <p>Novo cliente para compras à vista (PF ou PJ). Solicitação via chat do Crediffato.</p>
         </div>
 
+        <div class="result-card" onclick="selectFlow('transferencia')" style="cursor:pointer">
+          <div class="rc-icon">💳</div>
+          <h3 style="color:#1565c0">Transferência de Limite</h3>
+          <p>Cliente com múltiplas lojas. Transfere limite disponível entre filiais do mesmo grupo.</p>
+        </div>
+
       </div>
     </div>
   </div>
@@ -660,6 +666,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
       <div><h2>Documentos e Informações a Solicitar</h2><p>Tudo que o cliente precisa trazer ou enviar</p></div>
     </div>
     <div class="card-body">
+      <div style="margin-bottom:18px">
+        <a href="formularios/ficha-cadastral-pj.pdf" download="ficha-cadastral-pj.pdf" class="btn btn-blue btn-lg" style="display:inline-flex">
+          📥 Baixar Ficha Cadastral PJ em Branco
+        </a>
+        <p style="font-size:12px;color:#666;margin-top:6px">⬆️ Baixe, envie ao cliente para preencher e receba de volta assinada</p>
+      </div>
       <div class="doc-list">
         <div class="doc-item">
           <span class="di-icon">📄</span>
@@ -1354,6 +1366,182 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
 </div><!-- /phaseV -->
 
 
+<!-- ╔══════════════════════════════════════════╗
+     ║  FASE T – TRANSFERÊNCIA DE LIMITE       ║
+     ╚══════════════════════════════════════════╝ -->
+<div class="phase" id="phaseT">
+
+  <div class="phase-banner" style="background:linear-gradient(135deg,#1565c0 0%,#0d47a1 100%)">
+    <div class="pb-num">💳</div>
+    <div>
+      <h2>Transferência de Limite Entre Lojas</h2>
+      <p>Transfira limite disponível de uma filial para outra do mesmo grupo econômico.</p>
+    </div>
+  </div>
+
+  <!-- Loja Origem -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">📤</span>
+      <div><h2>Loja de Origem</h2><p>Dados da filial que cede o limite</p></div>
+    </div>
+    <div class="card-body">
+      <div class="field-grid col-2" style="margin-bottom:14px">
+        <div class="field">
+          <label>CNPJ da Origem <span class="req">*</span></label>
+          <input type="text" id="ft_cnpjOrigem" placeholder="00.000.000/0000-00" maxlength="18" oninput="atualizarDisponivel()">
+          <div class="err">Campo obrigatório</div>
+        </div>
+        <div class="field">
+          <label>Filial de Origem <span class="req">*</span></label>
+          <select id="ft_filialOrigem" onchange="atualizarDisponivel()">
+            <option value="">Selecione a loja...</option>
+          </select>
+          <div class="err">Selecione a filial</div>
+        </div>
+      </div>
+
+      <div class="field-grid col-3" style="margin-bottom:14px">
+        <div class="field">
+          <label>Limite Total (R$) <span class="req">*</span></label>
+          <input type="text" id="ft_limiteTotal" placeholder="R$ 0,00" oninput="atualizarDisponivel()">
+          <div class="err">Campo obrigatório</div>
+        </div>
+        <div class="field">
+          <label>Limite Utilizado (R$) <span class="req">*</span></label>
+          <input type="text" id="ft_limiteUsado" placeholder="R$ 0,00" oninput="atualizarDisponivel()">
+          <div class="err">Campo obrigatório</div>
+        </div>
+        <div class="field">
+          <label>Limite Disponível (R$)</label>
+          <input type="text" id="ft_limiteDisponivel" placeholder="R$ 0,00" readonly style="background:#f0faf2;color:#2e7d32;font-weight:600">
+          <p class="hint">Calculado automaticamente</p>
+        </div>
+      </div>
+
+      <div class="field-grid col-2">
+        <div class="field">
+          <label>Vendedor Responsável</label>
+          <input type="text" id="ft_vendedor" placeholder="Seu nome" oninput="gerarEmailTransferencia()">
+        </div>
+        <div class="field">
+          <label>E-mail do Vendedor</label>
+          <input type="email" id="ft_email_vendedor" placeholder="seu.email@muffato.com.br" oninput="gerarEmailTransferencia()">
+          <p class="hint">ℹ️ Opcional — será incluído no e-mail</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loja Destino -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">📥</span>
+      <div><h2>Loja de Destino</h2><p>Dados da filial que recebe o limite</p></div>
+    </div>
+    <div class="card-body">
+      <div class="field-grid col-2" style="margin-bottom:14px">
+        <div class="field">
+          <label>CNPJ da Destino <span class="req">*</span></label>
+          <input type="text" id="ft_cnpjDestino" placeholder="00.000.000/0000-00" maxlength="18" oninput="validarGrupoEconomico()">
+          <div class="err">Campo obrigatório</div>
+        </div>
+        <div class="field">
+          <label>Filial de Destino <span class="req">*</span></label>
+          <select id="ft_filialDestino">
+            <option value="">Selecione a loja...</option>
+          </select>
+          <div class="err">Selecione a filial</div>
+        </div>
+      </div>
+
+      <!-- Alerta de grupo econômico -->
+      <div id="ft_alertGrupo" style="display:none;margin-bottom:14px">
+        <div class="alert alert-orange">
+          <span class="alert-icon">⚠️</span>
+          <div><strong>CNPJs de grupos diferentes.</strong> A filial de origem e destino parecem estar em grupos econômicos diferentes. Verifique se os dados estão corretos antes de prosseguir.</div>
+        </div>
+      </div>
+
+      <div id="ft_alertGrupoOk" style="display:none;margin-bottom:14px">
+        <div class="alert alert-green">
+          <span class="alert-icon">✅</span>
+          <div>CNPJs do mesmo grupo econômico — transferência autorizada.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Valor a Transferir -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">💰</span>
+      <div><h2>Valor a Transferir</h2><p>Defina quanto de limite será transferido</p></div>
+    </div>
+    <div class="card-body">
+      <div class="field-grid col-2" style="margin-bottom:14px">
+        <div class="field">
+          <label>Valor a Transferir (R$) <span class="req">*</span></label>
+          <input type="text" id="ft_valorTransferencia" placeholder="R$ 0,00" oninput="validarValorTransferencia()">
+          <p class="hint" id="ft_valorHint" style="color:#e65100;display:none">⚠️ O valor máximo disponível é: <strong id="ft_maxDisponivel">R$ 0,00</strong></p>
+          <div class="err" id="ft_valorErr" style="display:none">O valor ultrapassa o limite disponível</div>
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <div class="alert alert-blue" style="height:100%;margin:0">
+            <span class="alert-icon">ℹ️</span>
+            <div style="font-size:12px;line-height:1.6"><strong>Máximo permitido:</strong> baseado no limite disponível da loja de origem.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email Pronto -->
+  <div class="card">
+    <div class="card-header">
+      <span class="ch-icon">✉️</span>
+      <div><h2>E-mail Pronto para Envio</h2><p>Revise e copie antes de enviar para <a href="mailto:cadastrocliente@muffato.com.br" style="color:#1565c0;font-weight:600">cadastrocliente@muffato.com.br</a></p></div>
+    </div>
+    <div class="card-body">
+
+      <div id="ft_emailEmpty" style="padding:24px;text-align:center;color:#aaa;font-size:13px;background:#f8f9fa;border-radius:8px;border:1.5px dashed #ddd">
+        ✏️ Preencha todos os campos acima para gerar o e-mail automaticamente
+      </div>
+
+      <div id="ft_emailPreview" style="display:none">
+        <div style="background:#f8f9fa;border:1.5px solid #e0e0e0;border-radius:10px;padding:18px;margin-bottom:14px;font-size:13px;line-height:1.7">
+          <div style="margin-bottom:6px;display:flex;align-items:center;gap:8px">
+            <strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;min-width:60px">PARA</strong>
+            <span style="color:#1565c0;font-weight:600">cadastrocliente@muffato.com.br</span>
+          </div>
+          <div style="margin-bottom:12px;display:flex;align-items:flex-start;gap:8px">
+            <strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;min-width:60px;margin-top:2px">ASSUNTO</strong>
+            <span id="ft_emailSubject" style="font-weight:700;color:#222"></span>
+          </div>
+          <hr style="border:none;border-top:1.5px solid #e0e0e0;margin:10px 0">
+          <div id="ft_emailBody" style="white-space:pre-wrap;color:#333"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-green" onclick="copiarEmailTransferencia()">📋 Copiar E-mail</button>
+          <a class="btn btn-blue" href="https://webmail.muffato.com.br/" target="_blank">✉️ Acessar Email Zimbra</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="card">
+    <div class="card-body">
+      <div class="btn-row">
+        <button class="btn btn-gray" onclick="selectFlow('reset')">← Voltar ao início</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /phaseT -->
+
+
 </div><!-- /container -->
 
 <!-- BARRA FIXA DE PROGRESSO DO CHECKLIST -->
@@ -1408,7 +1596,7 @@ window.addEventListener('popstate', function(e){
   if(!e.state || !e.state.nav) return;
   _historyNav = true;
   const nav = e.state.nav;
-  if(['novo','aumento','reativacao','vista'].includes(nav)) selectFlow(nav);
+  if(['novo','aumento','reativacao','vista','transferencia'].includes(nav)) selectFlow(nav);
   else if(nav === 'phase0') selectFlow('reset');
   else if(nav.startsWith('fase')) _navToPhase(parseInt(nav.replace('fase','')));
   _historyNav = false;
@@ -1454,6 +1642,20 @@ function selectFlow(type) {
     document.getElementById('phaseV').classList.add('active');
     currentPhase='V';
     if(stepperWrap) stepperWrap.style.display='none';
+  } else if(type==='transferencia') {
+    document.getElementById('phaseT').classList.add('active');
+    currentPhase='T';
+    if(stepperWrap) stepperWrap.style.display='none';
+    // Clone filiais para origem e destino
+    const f1Filial=document.getElementById('f1_filial');
+    const ftOrigem=document.getElementById('ft_filialOrigem');
+    const ftDestino=document.getElementById('ft_filialDestino');
+    if(ftOrigem && f1Filial && ftOrigem.options.length<=1){
+      Array.from(f1Filial.options).slice(1).forEach(o=>ftOrigem.appendChild(o.cloneNode(true)));
+    }
+    if(ftDestino && f1Filial && ftDestino.options.length<=1){
+      Array.from(f1Filial.options).slice(1).forEach(o=>ftDestino.appendChild(o.cloneNode(true)));
+    }
   } else { // reset / phase0
     document.getElementById('phase0').classList.add('active');
     currentPhase=0;
@@ -1885,8 +2087,8 @@ const _cepEl=document.getElementById('cep');if(_cepEl)_cepEl.addEventListener('i
 // Máscaras para todos os fluxos
 document.addEventListener('input',function(e){
   const id=e.target.id;
-  if(id==='fa_cnpj'||id==='fr_cnpj'||id==='fv_cnpj') e.target.value=maskCNPJ(e.target.value);
-  if(id==='fa_limiteAtual'||id==='fa_limiteNovo'||id==='fr_limite') e.target.value=maskCurrency(e.target.value);
+  if(id==='fa_cnpj'||id==='fr_cnpj'||id==='fv_cnpj'||id==='ft_cnpjOrigem'||id==='ft_cnpjDestino') e.target.value=maskCNPJ(e.target.value);
+  if(id==='fa_limiteAtual'||id==='fa_limiteNovo'||id==='fr_limite'||id==='ft_limiteTotal'||id==='ft_limiteUsado'||id==='ft_valorTransferencia') e.target.value=maskCurrency(e.target.value);
   if(id==='fv_cpf')                                    e.target.value=maskCPF(e.target.value);
   if(id==='fv_cep')                                    e.target.value=maskCEP(e.target.value);
   if(id==='fv_celPF'||id==='fv_celPJ')                e.target.value=maskPhone(e.target.value);
@@ -1977,6 +2179,177 @@ function updateChkProgress(){
   const alertOk=document.getElementById('alertPronto');
   if(alertAg)alertAg.style.display=complete?'none':'flex';
   if(alertOk)alertOk.style.display=complete?'flex':'none';
+}
+
+// ===== TRANSFERÊNCIA DE LIMITE =====
+function extrairRaizCNPJ(cnpj) {
+  // Extrai a raiz do CNPJ (números antes da barra)
+  // Ex: "76.430.438/0025-49" retorna "76.430.438"
+  if(!cnpj) return '';
+  return cnpj.split('/')[0];
+}
+
+function validarGrupoEconomico() {
+  const cnpjOrigem = document.getElementById('ft_cnpjOrigem').value.trim();
+  const cnpjDestino = document.getElementById('ft_cnpjDestino').value.trim();
+  const alertGrupo = document.getElementById('ft_alertGrupo');
+  const alertGrupoOk = document.getElementById('ft_alertGrupoOk');
+
+  if(!cnpjOrigem || !cnpjDestino) {
+    alertGrupo.style.display = 'none';
+    alertGrupoOk.style.display = 'none';
+    return;
+  }
+
+  const raizOrigem = extrairRaizCNPJ(cnpjOrigem);
+  const raizDestino = extrairRaizCNPJ(cnpjDestino);
+  const samesGroup = raizOrigem === raizDestino;
+
+  alertGrupo.style.display = samesGroup ? 'none' : 'block';
+  alertGrupoOk.style.display = samesGroup ? 'block' : 'none';
+
+  gerarEmailTransferencia();
+}
+
+function atualizarDisponivel() {
+  const total = parseFloat(document.getElementById('ft_limiteTotal').value.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  const usado = parseFloat(document.getElementById('ft_limiteUsado').value.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  const disponivel = Math.max(0, total - usado);
+
+  // Formata e mostra o disponível
+  const disponFormatado = formatarMoeda(disponivel);
+  document.getElementById('ft_limiteDisponivel').value = disponFormatado;
+
+  // Atualiza hint de valor máximo
+  document.getElementById('ft_maxDisponivel').textContent = disponFormatado;
+
+  // Limpa validação de valor se necessário
+  const valorTransf = document.getElementById('ft_valorTransferencia').value;
+  if(valorTransf) validarValorTransferencia();
+
+  gerarEmailTransferencia();
+}
+
+function formatarMoeda(valor) {
+  // Converte número para formato R$ 1.234,56
+  const n = Math.round(valor * 100) / 100;
+  const parts = n.toFixed(2).split('.');
+  const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return 'R$ ' + intPart + ',' + parts[1];
+}
+
+function validarValorTransferencia() {
+  const valorTransf = document.getElementById('ft_valorTransferencia').value;
+  const totalStr = document.getElementById('ft_limiteTotal').value;
+  const usadoStr = document.getElementById('ft_limiteUsado').value;
+
+  const total = parseFloat(totalStr.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  const usado = parseFloat(usadoStr.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  const disponivel = Math.max(0, total - usado);
+  const valor = parseFloat(valorTransf.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+
+  const valorErr = document.getElementById('ft_valorErr');
+  const valorHint = document.getElementById('ft_valorHint');
+  const inputValor = document.getElementById('ft_valorTransferencia');
+
+  if(!valorTransf) {
+    valorErr.style.display = 'none';
+    valorHint.style.display = 'none';
+    inputValor.classList.remove('invalid');
+    gerarEmailTransferencia();
+    return;
+  }
+
+  if(valor > disponivel) {
+    valorErr.style.display = 'block';
+    valorHint.style.display = 'block';
+    inputValor.classList.add('invalid');
+    document.getElementById('ft_emailPreview').style.display = 'none';
+    document.getElementById('ft_emailEmpty').style.display = 'block';
+  } else {
+    valorErr.style.display = 'none';
+    valorHint.style.display = 'none';
+    inputValor.classList.remove('invalid');
+    gerarEmailTransferencia();
+  }
+}
+
+function gerarEmailTransferencia() {
+  const cnpjOrigem = document.getElementById('ft_cnpjOrigem').value.trim();
+  const filialOrigem = document.getElementById('ft_filialOrigem').value;
+  const limiteTotal = document.getElementById('ft_limiteTotal').value.trim();
+  const limiteUsado = document.getElementById('ft_limiteUsado').value.trim();
+  const cnpjDestino = document.getElementById('ft_cnpjDestino').value.trim();
+  const filialDestino = document.getElementById('ft_filialDestino').value;
+  const valorTransf = document.getElementById('ft_valorTransferencia').value.trim();
+  const vend = document.getElementById('ft_vendedor').value.trim();
+  const emailVend = document.getElementById('ft_email_vendedor').value.trim();
+
+  // Validação básica
+  if(!cnpjOrigem || !filialOrigem || !limiteTotal || !limiteUsado || !cnpjDestino || !filialDestino || !valorTransf) {
+    document.getElementById('ft_emailPreview').style.display = 'none';
+    document.getElementById('ft_emailEmpty').style.display = 'block';
+    return;
+  }
+
+  // Validação de valor excedente
+  const total = parseFloat(limiteTotal.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  const usado = parseFloat(limiteUsado.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  const disponivel = Math.max(0, total - usado);
+  const valor = parseFloat(valorTransf.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+
+  if(valor > disponivel) {
+    document.getElementById('ft_emailPreview').style.display = 'none';
+    document.getElementById('ft_emailEmpty').style.display = 'block';
+    return;
+  }
+
+  const subject = `TELEVENDAS - Transferência de Limite – Origem ${cnpjOrigem} para Destino ${cnpjDestino} – ${valorTransf}`;
+
+  const assinatura = vend
+    ? `\nAtenciosamente,\n${vend}\nGrupo Muffato – ${filialOrigem}`
+    : `\nAtenciosamente,\nEquipe de Televendas\nGrupo Muffato`;
+
+  const body =
+`Prezado(a) Time de Cadastro,
+
+Solicito a transferência de limite entre filiais do mesmo grupo econômico conforme detalhado abaixo:
+
+──────────────────────────────
+FILIAL DE ORIGEM
+──────────────────────────────
+• CNPJ: ${cnpjOrigem}
+• Filial: ${filialOrigem}
+• Limite Total: ${limiteTotal}
+• Limite Utilizado: ${limiteUsado}
+• Limite Disponível: ${document.getElementById('ft_limiteDisponivel').value}
+
+──────────────────────────────
+FILIAL DE DESTINO
+──────────────────────────────
+• CNPJ: ${cnpjDestino}
+• Filial: ${filialDestino}
+
+──────────────────────────────
+TRANSFERÊNCIA SOLICITADA
+──────────────────────────────
+• Valor a Transferir: ${valorTransf}${emailVend ? '\n\nPara confirmações, contactar: ' + emailVend : ''}
+${assinatura}`;
+
+  document.getElementById('ft_emailSubject').textContent = subject;
+  document.getElementById('ft_emailBody').textContent = body;
+
+  document.getElementById('ft_emailPreview').style.display = 'block';
+  document.getElementById('ft_emailEmpty').style.display = 'none';
+}
+
+function copiarEmailTransferencia() {
+  const subj = document.getElementById('ft_emailSubject').textContent;
+  const body = document.getElementById('ft_emailBody').textContent;
+  const full = `PARA: cadastrocliente@muffato.com.br\nASSUNTO: ${subj}\n\n${body}`;
+  navigator.clipboard.writeText(full)
+    .then(()=>showToast('✅ E-mail copiado!','success'))
+    .catch(()=>{const ta=document.createElement('textarea');ta.value=full;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ E-mail copiado!','success');});
 }
 
 // ===== HELPERS =====
