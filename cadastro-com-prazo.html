@@ -402,7 +402,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
 
         <div class="result-card" onclick="selectFlow('transferencia')" style="cursor:pointer">
           <div class="rc-icon">💳</div>
-          <h3 style="color:#1565c0">Transferência de Limite</h3>
+          <h3 style="color:#1565c0">Transferência de Saldo</h3>
           <p>Cliente com múltiplas lojas. Transfere limite disponível entre filiais do mesmo grupo.</p>
         </div>
 
@@ -667,7 +667,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
     </div>
     <div class="card-body">
       <div style="margin-bottom:18px">
-        <a href="FICHA CADASTRAL PJ- COM RESPONSÁVEIS.pdf" download="ficha-cadastral-pj.pdf" class="btn btn-blue btn-lg" style="display:inline-flex">
+        <a href="formularios/ficha-cadastral-pj.pdf" download="ficha-cadastral-pj.pdf" class="btn btn-blue btn-lg" style="display:inline-flex">
           📥 Baixar Ficha Cadastral PJ em Branco
         </a>
         <p style="font-size:12px;color:#666;margin-top:6px">⬆️ Baixe, envie ao cliente para preencher e receba de volta assinada</p>
@@ -1374,8 +1374,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
   <div class="phase-banner" style="background:linear-gradient(135deg,#1565c0 0%,#0d47a1 100%)">
     <div class="pb-num">💳</div>
     <div>
-      <h2>Transferência de Limite Entre Lojas</h2>
-      <p>Transfira limite disponível de uma filial para outra do mesmo grupo econômico.</p>
+      <h2>Transferência de Saldo Entre Lojas</h2>
+      <p>Transfira saldo disponível de uma filial para outra do mesmo grupo econômico.</p>
     </div>
   </div>
 
@@ -1437,21 +1437,22 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
   <div class="card">
     <div class="card-header">
       <span class="ch-icon">📥</span>
-      <div><h2>Loja de Destino</h2><p>Dados da filial que recebe o limite</p></div>
+      <div><h2>Loja de Destino</h2><p>Dados da filial que recebe o saldo</p></div>
     </div>
     <div class="card-body">
-      <div class="field-grid col-2" style="margin-bottom:14px">
+      <div class="field-grid col-1" style="margin-bottom:14px">
         <div class="field">
           <label>CNPJ da Destino <span class="req">*</span></label>
           <input type="text" id="ft_cnpjDestino" placeholder="00.000.000/0000-00" maxlength="18" oninput="validarGrupoEconomico()">
           <div class="err">Campo obrigatório</div>
         </div>
-        <div class="field">
-          <label>Filial de Destino <span class="req">*</span></label>
-          <select id="ft_filialDestino">
-            <option value="">Selecione a loja...</option>
-          </select>
-          <div class="err">Selecione a filial</div>
+      </div>
+
+      <!-- Alerta de CNPJ igual -->
+      <div id="ft_alertCnpjIgual" style="display:none;margin-bottom:14px">
+        <div class="alert alert-red">
+          <span class="alert-icon">❌</span>
+          <div><strong>CNPJs iguais!</strong> A origem e destino não podem ser iguais. Digite um CNPJ diferente.</div>
         </div>
       </div>
 
@@ -2194,12 +2195,26 @@ function validarGrupoEconomico() {
   const cnpjDestino = document.getElementById('ft_cnpjDestino').value.trim();
   const alertGrupo = document.getElementById('ft_alertGrupo');
   const alertGrupoOk = document.getElementById('ft_alertGrupoOk');
+  const alertCnpjIgual = document.getElementById('ft_alertCnpjIgual');
 
   if(!cnpjOrigem || !cnpjDestino) {
     alertGrupo.style.display = 'none';
     alertGrupoOk.style.display = 'none';
+    alertCnpjIgual.style.display = 'none';
     return;
   }
+
+  // Verifica se CNPJs são iguais
+  if(cnpjOrigem === cnpjDestino) {
+    alertCnpjIgual.style.display = 'block';
+    alertGrupo.style.display = 'none';
+    alertGrupoOk.style.display = 'none';
+    gerarEmailTransferencia();
+    return;
+  }
+
+  // Esconde alerta de CNPJs iguais se passou na validação
+  alertCnpjIgual.style.display = 'none';
 
   const raizOrigem = extrairRaizCNPJ(cnpjOrigem);
   const raizDestino = extrairRaizCNPJ(cnpjDestino);
@@ -2280,17 +2295,28 @@ function gerarEmailTransferencia() {
   const limiteTotal = document.getElementById('ft_limiteTotal').value.trim();
   const limiteUsado = document.getElementById('ft_limiteUsado').value.trim();
   const cnpjDestino = document.getElementById('ft_cnpjDestino').value.trim();
-  const filialDestino = document.getElementById('ft_filialDestino').value;
+  const filialDestino = filialOrigem; // Usa a mesma filial de origem como destino
   const valorTransf = document.getElementById('ft_valorTransferencia').value.trim();
   const vend = document.getElementById('ft_vendedor').value.trim();
   const emailVend = document.getElementById('ft_email_vendedor').value.trim();
 
   // Validação básica
-  if(!cnpjOrigem || !filialOrigem || !limiteTotal || !limiteUsado || !cnpjDestino || !filialDestino || !valorTransf) {
+  if(!cnpjOrigem || !filialOrigem || !limiteTotal || !limiteUsado || !cnpjDestino || !valorTransf) {
     document.getElementById('ft_emailPreview').style.display = 'none';
     document.getElementById('ft_emailEmpty').style.display = 'block';
     return;
   }
+
+  // Validação: CNPJs não podem ser iguais
+  if(cnpjOrigem === cnpjDestino) {
+    document.getElementById('ft_emailPreview').style.display = 'none';
+    document.getElementById('ft_emailEmpty').style.display = 'block';
+    document.getElementById('ft_alertCnpjIgual').style.display = 'block';
+    return;
+  }
+
+  // Esconde o alerta de CNPJs iguais se passou na validação
+  document.getElementById('ft_alertCnpjIgual').style.display = 'none';
 
   // Validação de valor excedente
   const total = parseFloat(limiteTotal.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
