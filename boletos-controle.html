@@ -455,20 +455,22 @@ const savedTheme = localStorage.getItem('theme') || 'dark';
 setTheme(savedTheme);
 
 // ── AUTH via PortalAuth ──
-PortalAuth.init('boletos-controle.html', function(user, grupo) {
-  currentUser = user;
-  currentUserGroup = grupo;
-  db = PortalAuth.getDb();
-  storage = PortalAuth.getStorage();
+window.addEventListener('DOMContentLoaded', function() {
+  PortalAuth.init('boletos-controle.html', function(user, grupo) {
+    currentUser = user;
+    currentUserGroup = grupo;
+    db = PortalAuth.getDb();
+    storage = PortalAuth.getStorage();
 
-  showApp();
-  loadData();
+    showApp();
+    loadData();
 
-  // Verificar status de manutenção
-  PortalAuth.getAppConfig().then(function(cfg) {
-    if (cfg && cfg['boletos-controle'] && cfg['boletos-controle'].enabled === false) {
-      document.getElementById('appContent').innerHTML = '<div style="padding:60px 40px; text-align:center;"><div class="alert alert-warning" style="display:inline-block; max-width:400px;">🔧 Esta página está em manutenção. Tente novamente em alguns momentos.</div></div>';
-    }
+    // Verificar status de manutenção
+    PortalAuth.getAppConfig().then(function(cfg) {
+      if (cfg && cfg['boletos-controle'] && cfg['boletos-controle'].enabled === false) {
+        document.getElementById('appContent').innerHTML = '<div style="padding:60px 40px; text-align:center;"><div class="alert alert-warning" style="display:inline-block; max-width:400px;">🔧 Esta página está em manutenção. Tente novamente em alguns momentos.</div></div>';
+      }
+    });
   });
 });
 
@@ -783,11 +785,6 @@ function showAlert(elementId, message, type) {
     elem.innerHTML = message;
     elem.style.display = 'block';
   }
-}
-
-// ── LOGOUT via PortalAuth ──
-function logout() {
-  PortalAuth.logout();
 }
 
 </script>

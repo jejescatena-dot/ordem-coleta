@@ -38,6 +38,7 @@ const PortalAuth = (function () {
     'index.html':               ['admin', 'financeiro-sede', 'financeiro-loja', 'vendedor', 'prevencao'],
     'pix-envio.html':           ['admin', 'vendedor', 'financeiro-sede'],
     'pix-gerenciamento.html':   ['admin', 'financeiro-sede', 'financeiro-loja'],
+    'boletos-controle.html':    ['admin', 'vendedor', 'financeiro-sede', 'financeiro-loja'],
     'conciliacao-pix.html':     ['admin', 'financeiro-sede'],
     'cadastro-com-prazo.html':  ['admin', 'financeiro-sede', 'vendedor'],
     'ordem-de-coleta.html':     ['admin', 'vendedor', 'prevencao'],
