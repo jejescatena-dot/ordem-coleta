@@ -1076,11 +1076,26 @@
 
   // ─── GESTÃO DE LOJAS ───────────────────────────────────────────────────────
   function carregarLojas() {
-    if (!db) return;
-    db.ref('lojas').on('value', (snap) => {
-      allLojas = snap.val() || {};
-      renderLojas();
-    });
+    // Usa PortalAuth.getLojas() que já tem fallback estruturado (não acessa Firebase diretamente)
+    const lojas = PortalAuth.getLojas();
+    if (lojas) {
+      allLojas = lojas;
+    }
+    renderLojas();
+
+    // Listener adicional para sincronizar se houver atualizações no Firebase (opcional)
+    if (db) {
+      db.ref('lojas').on('value', (snap) => {
+        const fjLojas = snap.val();
+        if (fjLojas) {
+          allLojas = fjLojas;
+          renderLojas();
+        }
+      }, (err) => {
+        // Se Firebase falhar, continua usando o fallback estruturado de PortalAuth
+        console.warn('[admin-usuarios] Erro ao sincronizar lojas do Firebase:', err);
+      });
+    }
   }
 
   function renderLojas() {
