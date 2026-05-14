@@ -209,6 +209,7 @@ const PortalAuth = (function () {
               nome: parsed.nome,
               cidade: parsed.cidade,
               estado: parsed.estado,
+              endereco: parsed.endereco,
               ativo: true
             };
           });
@@ -217,7 +218,7 @@ const PortalAuth = (function () {
       }
     } catch(e) {
       console.warn('[PortalAuth] Falha ao carregar lojas do Firebase, usando fallback:', e);
-      // Transforma LOJAS_PA (strings) em formato estruturado (objetos com cidade/estado)
+      // Transforma LOJAS_PA (strings) em formato estruturado (objetos com cidade/estado/endereco)
       const estruturadas = {};
       Object.entries(LOJAS_PA).forEach(([codigo, nome]) => {
         const parsed = _parseLojaInfo(codigo, nome);
@@ -226,6 +227,7 @@ const PortalAuth = (function () {
           nome: parsed.nome,
           cidade: parsed.cidade,
           estado: parsed.estado,
+          endereco: parsed.endereco,
           ativo: true
         };
       });
@@ -244,6 +246,7 @@ const PortalAuth = (function () {
           nome: parsed.nome,
           cidade: parsed.cidade,
           estado: parsed.estado,
+          endereco: parsed.endereco,
           ativo: true,
           criadoEm: new Date().toISOString()
         };
@@ -255,17 +258,27 @@ const PortalAuth = (function () {
     }
   }
 
-  // Parse de informações de loja: "Max Debret (Foz do Iguaçu/PR)" → {nome, cidade, estado}
+  // Parse de informações de loja: "Max Debret (Foz do Iguaçu/PR)" → {nome, cidade, estado, endereco}
   function _parseLojaInfo(codigo, fullName) {
     // Formato: "Max Debret (Foz do Iguaçu/PR)" → cidade: Foz do Iguaçu, estado: PR
     const match = fullName.match(/^(.+?)\s*\((.+?)\)$/);
     if (!match) {
-      return { nome: fullName, cidade: '', estado: '' };
+      return {
+        nome: fullName,
+        cidade: '',
+        estado: '',
+        endereco: { rua: '', numero: '', complemento: '', bairro: '', cep: '', referencia: '' }
+      };
     }
     const nome = match[1].trim();
     const localPart = match[2].trim(); // "Foz do Iguaçu/PR"
     const [cidade, estado] = localPart.split('/').map(s => s.trim());
-    return { nome, cidade: cidade || '', estado: estado || '' };
+    return {
+      nome,
+      cidade: cidade || '',
+      estado: estado || '',
+      endereco: { rua: '', numero: '', complemento: '', bairro: '', cep: '', referencia: '' }
+    };
   }
 
   // Migração: corrige lojas existentes com formato antigo
@@ -1137,6 +1150,28 @@ const PortalAuth = (function () {
       return Object.values(_lojas).filter(
         loja => loja.estado === estado && loja.ativo !== false
       );
+    },
+
+    // Retorna endereço formatado de uma loja
+    getEnderecoFormatado(codigo) {
+      if (!_lojas || !_lojas[codigo]) return null;
+      const loja = _lojas[codigo];
+      const endereco = loja.endereco || {};
+      const partes = [
+        endereco.rua,
+        endereco.numero,
+        endereco.complemento,
+        endereco.bairro,
+        endereco.cep
+      ].filter(Boolean);
+      return partes.length > 0 ? partes.join(', ') : null;
+    },
+
+    // Retorna objeto completo de endereço de uma loja
+    getEndereco(codigo) {
+      if (!_lojas || !_lojas[codigo]) return null;
+      const loja = _lojas[codigo];
+      return loja.endereco || {};
     },
 
     async migrateLojas() {
