@@ -14,6 +14,11 @@
  *   PortalAuth.getDb()        → Firebase database instance
  *   PortalAuth.getAuth()      → Firebase auth instance
  *   PortalAuth.getStorage()   → Firebase storage instance
+ *   PortalAuth.getLojas()     → objeto com todas as lojas { codigo: {...} }
+ *   PortalAuth.addLoja(codigo, nome, dados)    → cria nova loja (admin only)
+ *   PortalAuth.updateLoja(codigo, dados)       → atualiza loja (admin only)
+ *   PortalAuth.deleteLoja(codigo)              → soft-delete loja (admin only)
+ *   PortalAuth.getLojasPorEstado(estado)       → filtra lojas por estado
  *   PortalAuth.LABELS         → { admin: 'Administrador', ... }
  *   PortalAuth.ICONS          → { admin: '⚙️', ... }
  *   PortalAuth.PAGES          → matriz de permissões
@@ -154,6 +159,7 @@ const PortalAuth = (function () {
   let _notifRef    = null;
   let _pendingRef  = null;
   let _selectedGrp = null;
+  let _lojas       = null; // Cache de lojas carregadas do Firebase
   const OVERLAY_ID = 'portal-auth-root';
 
   // ── INIT ──────────────────────────────────────────────────────────────────
@@ -170,7 +176,46 @@ const PortalAuth = (function () {
     _injectOverlay();
     _applyTheme();
 
+    // Carrega lojas do Firebase
+    _loadLojas().catch(e => console.error('[PortalAuth] Erro ao carregar lojas:', e));
+
     _auth.onAuthStateChanged(_onAuthChange);
+  }
+
+  // ── CARREGAMENTO DE LOJAS ──────────────────────────────────────────────────
+  async function _loadLojas() {
+    try {
+      const snap = await _db.ref('lojas').once('value');
+      if (snap.exists()) {
+        _lojas = snap.val();
+      } else {
+        // Se não existem lojas no Firebase, inicializa com LOJAS_PA
+        await _initLojas();
+        _lojas = LOJAS_PA;
+      }
+    } catch(e) {
+      console.warn('[PortalAuth] Falha ao carregar lojas do Firebase, usando fallback:', e);
+      _lojas = LOJAS_PA;
+    }
+  }
+
+  // Inicializa lojas no Firebase com dados de LOJAS_PA (apenas na primeira vez)
+  async function _initLojas() {
+    try {
+      const lojas = {};
+      Object.entries(LOJAS_PA).forEach(([codigo, nome]) => {
+        lojas[codigo] = {
+          codigo: parseInt(codigo),
+          nome: nome,
+          ativo: true,
+          criadoEm: new Date().toISOString()
+        };
+      });
+      await _db.ref('lojas').set(lojas);
+      console.log('[PortalAuth] Lojas inicializadas no Firebase');
+    } catch(e) {
+      console.error('[PortalAuth] Erro ao inicializar lojas:', e);
+    }
   }
 
   // ── FLUXO DE AUTENTICAÇÃO ─────────────────────────────────────────────────
@@ -834,21 +879,31 @@ const PortalAuth = (function () {
     _buildStoreDrop('');
     try {
       const last = localStorage.getItem('pa-lastloja');
-      if (last && LOJAS_PA[+last]) _selectLoja(+last);
+      if (last && _lojas && _lojas[+last]) _selectLoja(+last);
     } catch(e) {}
   }
 
   function _buildStoreDrop(q) {
     const drop = document.getElementById('pa-store-drop');
-    if (!drop) return;
-    const list = Object.entries(LOJAS_PA).sort((a, b) => +a[0] - +b[0]);
+    if (!drop || !_lojas) return;
+
+    // Converte para array [codigo, {nome, ...}] e filtra apenas lojas ativas
+    const list = Object.entries(_lojas)
+      .filter(([_, loja]) => loja.ativo !== false) // Filtra soft-deleted
+      .sort((a, b) => +a[0] - +b[0]);
+
     const filtered = q
-      ? list.filter(([c, nm]) => String(c).includes(q) || nm.toLowerCase().includes(q.toLowerCase()))
+      ? list.filter(([c, loja]) =>
+          String(c).includes(q) ||
+          (loja.nome && loja.nome.toLowerCase().includes(q.toLowerCase()))
+        )
       : list;
+
     const shown = filtered.slice(0, 25);
-    drop.innerHTML = shown.map(([c, nm]) =>
-      `<div class="pa-store-opt" onmousedown="PortalAuth._selectLoja(${c})">${c} — ${nm}</div>`
-    ).join('') + (filtered.length > 25
+    drop.innerHTML = shown.map(([c, loja]) => {
+      const nome = typeof loja === 'string' ? loja : loja.nome;
+      return `<div class="pa-store-opt" onmousedown="PortalAuth._selectLoja(${c})">${c} — ${nome}</div>`;
+    }).join('') + (filtered.length > 25
       ? `<div class="pa-store-opt pa-store-more">+${filtered.length - 25} lojas…</div>`
       : '');
   }
@@ -875,8 +930,10 @@ const PortalAuth = (function () {
   }
 
   function _selectLoja(cod) {
-    const nm = LOJAS_PA[+cod];
-    if (!nm) return;
+    if (!_lojas) return;
+    const loja = _lojas[+cod];
+    if (!loja) return;
+    const nm = typeof loja === 'string' ? loja : loja.nome;
     const search = document.getElementById('pa-loja-search');
     const hid    = document.getElementById('pa-loja');
     if (search) search.value = cod + ' — ' + nm;
@@ -927,6 +984,67 @@ const PortalAuth = (function () {
     getDb:       () => _db,
     getAuth:     () => _auth,
     getStorage:  () => _storage,
+    getLojas:    () => _lojas || LOJAS_PA, // Retorna lojas carregadas ou fallback
+
+    // ── GESTÃO DE LOJAS ────────────────────────────────────────────────────
+    async addLoja(codigo, nome, dados = {}) {
+      if (!_user || _grupo !== 'admin') throw new Error('Apenas admin pode adicionar lojas');
+      if (!_db) throw new Error('Database não inicializado');
+
+      const loja = {
+        codigo: parseInt(codigo),
+        nome: nome,
+        ativo: true,
+        criadoEm: new Date().toISOString(),
+        criadoPor: _user.uid,
+        ...dados
+      };
+
+      await _db.ref('lojas/' + codigo).set(loja);
+      _lojas = _lojas || {};
+      _lojas[codigo] = loja;
+      return loja;
+    },
+
+    async updateLoja(codigo, dados) {
+      if (!_user || _grupo !== 'admin') throw new Error('Apenas admin pode atualizar lojas');
+      if (!_db) throw new Error('Database não inicializado');
+
+      const atualizado = {
+        ...dados,
+        atualizadoEm: new Date().toISOString(),
+        atualizadoPor: _user.uid
+      };
+
+      await _db.ref('lojas/' + codigo).update(atualizado);
+      if (_lojas && _lojas[codigo]) {
+        _lojas[codigo] = { ..._lojas[codigo], ...atualizado };
+      }
+      return _lojas[codigo];
+    },
+
+    async deleteLoja(codigo) {
+      if (!_user || _grupo !== 'admin') throw new Error('Apenas admin pode deletar lojas');
+      if (!_db) throw new Error('Database não inicializado');
+
+      // Soft delete: marca como inativo em vez de deletar
+      await _db.ref('lojas/' + codigo).update({
+        ativo: false,
+        deletadoEm: new Date().toISOString(),
+        deletadoPor: _user.uid
+      });
+
+      if (_lojas && _lojas[codigo]) {
+        _lojas[codigo].ativo = false;
+      }
+    },
+
+    async getLojasPorEstado(estado) {
+      if (!_lojas) return [];
+      return Object.values(_lojas).filter(
+        loja => loja.estado === estado && loja.ativo !== false
+      );
+    },
 
     async getAppConfig() {
       if (!_db) return {};
