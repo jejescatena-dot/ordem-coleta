@@ -176,9 +176,6 @@ const PortalAuth = (function () {
     _injectOverlay();
     _applyTheme();
 
-    // Carrega lojas do Firebase
-    _loadLojas().catch(e => console.error('[PortalAuth] Erro ao carregar lojas:', e));
-
     _auth.onAuthStateChanged(_onAuthChange);
   }
 
@@ -434,6 +431,9 @@ const PortalAuth = (function () {
 
     // Injeta bell de notificações para admins (em todas as páginas)
     if (_grupo === 'admin') _setupAdminNotif();
+
+    // Carrega lojas do Firebase
+    await _loadLojas().catch(e => console.error('[PortalAuth] Erro ao carregar lojas:', e));
 
     if (_onReady) _onReady(_user, _grupo);
   }
