@@ -188,10 +188,20 @@ const PortalAuth = (function () {
       const snap = await _db.ref('lojas').once('value');
       if (snap.exists()) {
         _lojas = snap.val();
+        // Verifica se há lojas que precisam ser migradas (sem cidade/estado)
+        const needsMigration = Object.values(_lojas).some(loja => !loja.cidade && !loja.estado);
+        if (needsMigration && _user && _grupo === 'admin') {
+          console.log('[PortalAuth] Detectadas lojas que precisam migração. Aguarde...');
+          await _migrateLojas();
+          // Recarrega as lojas após migração
+          const snap2 = await _db.ref('lojas').once('value');
+          _lojas = snap2.val();
+        }
       } else {
         // Se não existem lojas no Firebase, inicializa com LOJAS_PA
         await _initLojas();
-        _lojas = LOJAS_PA;
+        const snap2 = await _db.ref('lojas').once('value');
+        _lojas = snap2.val();
       }
     } catch(e) {
       console.warn('[PortalAuth] Falha ao carregar lojas do Firebase, usando fallback:', e);
@@ -204,9 +214,12 @@ const PortalAuth = (function () {
     try {
       const lojas = {};
       Object.entries(LOJAS_PA).forEach(([codigo, nome]) => {
+        const parsed = _parseLojaInfo(codigo, nome);
         lojas[codigo] = {
           codigo: parseInt(codigo),
-          nome: nome,
+          nome: parsed.nome,
+          cidade: parsed.cidade,
+          estado: parsed.estado,
           ativo: true,
           criadoEm: new Date().toISOString()
         };
@@ -215,6 +228,59 @@ const PortalAuth = (function () {
       console.log('[PortalAuth] Lojas inicializadas no Firebase');
     } catch(e) {
       console.error('[PortalAuth] Erro ao inicializar lojas:', e);
+    }
+  }
+
+  // Parse de informações de loja: "Max Debret (Foz do Iguaçu/PR)" → {nome, cidade, estado}
+  function _parseLojaInfo(codigo, fullName) {
+    // Formato: "Max Debret (Foz do Iguaçu/PR)" → cidade: Foz do Iguaçu, estado: PR
+    const match = fullName.match(/^(.+?)\s*\((.+?)\)$/);
+    if (!match) {
+      return { nome: fullName, cidade: '', estado: '' };
+    }
+    const nome = match[1].trim();
+    const localPart = match[2].trim(); // "Foz do Iguaçu/PR"
+    const [cidade, estado] = localPart.split('/').map(s => s.trim());
+    return { nome, cidade: cidade || '', estado: estado || '' };
+  }
+
+  // Migração: corrige lojas existentes com formato antigo
+  async function _migrateLojas() {
+    if (!_user || _grupo !== 'admin') {
+      console.error('[PortalAuth] Apenas admin pode migrar lojas');
+      return;
+    }
+    try {
+      const snap = await _db.ref('lojas').once('value');
+      if (!snap.exists()) {
+        console.log('[PortalAuth] Nenhuma loja para migrar');
+        return;
+      }
+      const lojas = snap.val();
+      const updates = {};
+      Object.entries(lojas).forEach(([codigo, loja]) => {
+        // Se a loja já tem cidade/estado, pula
+        if (loja.cidade || loja.estado) {
+          console.log(`[PortalAuth] Loja ${codigo} já migrada`);
+          return;
+        }
+        // Caso contrário, faz parse do nome
+        const parsed = _parseLojaInfo(codigo, loja.nome);
+        updates[`lojas/${codigo}`] = {
+          ...loja,
+          nome: parsed.nome,
+          cidade: parsed.cidade,
+          estado: parsed.estado
+        };
+      });
+      if (Object.keys(updates).length > 0) {
+        await _db.ref().update(updates);
+        console.log(`[PortalAuth] ${Object.keys(updates).length} lojas migradas com sucesso`);
+      } else {
+        console.log('[PortalAuth] Todas as lojas já estão migradas');
+      }
+    } catch(e) {
+      console.error('[PortalAuth] Erro ao migrar lojas:', e);
     }
   }
 
@@ -1044,6 +1110,10 @@ const PortalAuth = (function () {
       return Object.values(_lojas).filter(
         loja => loja.estado === estado && loja.ativo !== false
       );
+    },
+
+    async migrateLojas() {
+      return _migrateLojas();
     },
 
     async getAppConfig() {
