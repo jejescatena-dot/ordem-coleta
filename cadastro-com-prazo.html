@@ -1045,7 +1045,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
   <div class="card">
     <div class="card-header">
       <span class="ch-icon">✉️</span>
-      <div><h2>Prévia do E-mail para o Time de Cadastro</h2><p>Revise e copie antes de enviar para <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c3a0a2a7a2b0b7b1aca0afaaa6adb7a683aeb6a5a5a2b7aceda0acaeeda1b1">[email&#160;protected]</a></p></div>
+      <div><h2>Prévia do E-mail para o Time de Cadastro</h2><p>Revise e copie antes de enviar para <span style="color:#1565c0;font-weight:600">cadastrocliente@muffato.com.br</span></p></div>
     </div>
     <div class="card-body">
 
@@ -1057,7 +1057,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
         <div style="background:#f8f9fa;border:1.5px solid #e0e0e0;border-radius:10px;padding:18px;margin-bottom:14px;font-size:13px;line-height:1.7">
           <div style="margin-bottom:6px;display:flex;align-items:center;gap:8px">
             <strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;min-width:60px">PARA</strong>
-            <span style="color:#1565c0;font-weight:600"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="73101217120007011c101f1a161d0716331e06151512071c5d101c1e5d1101">[email&#160;protected]</a></span>
+            <span style="color:#1565c0;font-weight:600">cadastrocliente@muffato.com.br</span>
           </div>
           <div style="margin-bottom:12px;display:flex;align-items:flex-start;gap:8px">
             <strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;min-width:60px;margin-top:2px">ASSUNTO</strong>
@@ -1588,7 +1588,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
   PortalAuth.init('cadastro-com-prazo.html', function() {});
 </script>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ===== ESTADO GLOBAL =====
 let currentPhase = 0;
 const uploadedFiles = {};
@@ -1762,7 +1762,7 @@ function atualizarAumento(){
   // seja aplicada ANTES de lermos o valor para cálculo e geração do e-mail
   setTimeout(()=>{
     const novoVal=document.getElementById('fa_limiteNovo').value;
-    const limVal=parseFloat(novoVal.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+    const limVal=parseValorMonetario(novoVal);
     const dre=limVal>45000;
     document.getElementById('fa_doc_dre').style.display  = dre ? 'flex' : 'none';
     document.getElementById('fa_dre_hint').style.display = dre ? 'block': 'none';
@@ -1777,7 +1777,7 @@ function gerarEmailAumento(){
   const vend      = document.getElementById('fa_vendedor').value.trim();
   const limAtual  = document.getElementById('fa_limiteAtual').value.trim();
   const limNovo   = document.getElementById('fa_limiteNovo').value.trim();
-  const limVal    = parseFloat(limNovo.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  const limVal    = parseValorMonetario(limNovo);
   const dre       = limVal > 45000;
 
   if(!razao || !cnpj || !filial || !limNovo){
@@ -2231,9 +2231,24 @@ function validarGrupoEconomico() {
   gerarEmailTransferencia();
 }
 
+function parseValorMonetario(str) {
+  // Remove espaços
+  str = str.trim();
+  // Se não tem nada, retorna 0
+  if(!str) return 0;
+  // Remove "R$"
+  str = str.replace(/R\$\s*/g, '');
+  // Se tem ponto e vírgula, é formato brasileiro R$ 1.234,56
+  if(str.includes(',')) {
+    str = str.replace(/\./g, '').replace(',', '.');
+  }
+  // Se só tem números, retorna como está
+  return parseFloat(str) || 0;
+}
+
 function atualizarDisponivel() {
-  const total = parseFloat(document.getElementById('ft_limiteTotal').value.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
-  const usado = parseFloat(document.getElementById('ft_limiteUsado').value.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  const total = parseValorMonetario(document.getElementById('ft_limiteTotal').value);
+  const usado = parseValorMonetario(document.getElementById('ft_limiteUsado').value);
   const disponivel = Math.max(0, total - usado);
 
   // Formata e mostra o disponível
@@ -2263,10 +2278,10 @@ function validarValorTransferencia() {
   const totalStr = document.getElementById('ft_limiteTotal').value;
   const usadoStr = document.getElementById('ft_limiteUsado').value;
 
-  const total = parseFloat(totalStr.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
-  const usado = parseFloat(usadoStr.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  const total = parseValorMonetario(totalStr);
+  const usado = parseValorMonetario(usadoStr);
   const disponivel = Math.max(0, total - usado);
-  const valor = parseFloat(valorTransf.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  const valor = parseValorMonetario(valorTransf);
 
   const valorErr = document.getElementById('ft_valorErr');
   const valorHint = document.getElementById('ft_valorHint');
@@ -2324,10 +2339,10 @@ function gerarEmailTransferencia() {
   document.getElementById('ft_alertCnpjIgual').style.display = 'none';
 
   // Validação de valor excedente
-  const total = parseFloat(limiteTotal.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
-  const usado = parseFloat(limiteUsado.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  const total = parseValorMonetario(limiteTotal);
+  const usado = parseValorMonetario(limiteUsado);
   const disponivel = Math.max(0, total - usado);
-  const valor = parseFloat(valorTransf.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  const valor = parseValorMonetario(valorTransf);
 
   if(valor > disponivel) {
     document.getElementById('ft_emailPreview').style.display = 'none';
@@ -2385,12 +2400,13 @@ function copiarEmailTransferencia() {
 
 // ===== DOWNLOAD FICHA CADASTRAL =====
 function downloadFichaCadastralPJ() {
-  const url = 'https://raw.githubusercontent.com/jejescatena-dot/ordem-coleta/main/formularios/ficha-cadastral-pj.pdf';
+  // URL raw do GitHub para download direto
+  const url = 'https://raw.githubusercontent.com/jejescatena-dot/ordem-coleta/main/formularios/ficha-cadastral-pj.pdf.pdf';
   const fileName = 'ficha-cadastral-pj.pdf';
 
-  fetch(url)
+  fetch(url, { mode: 'cors' })
     .then(response => {
-      if(!response.ok) throw new Error('Erro ao baixar arquivo');
+      if(!response.ok) throw new Error('Arquivo não encontrado (404)');
       return response.blob();
     })
     .then(blob => {
@@ -2405,8 +2421,12 @@ function downloadFichaCadastralPJ() {
       showToast('✅ Ficha cadastral baixada!','success');
     })
     .catch(err => {
-      console.error('Erro:', err);
-      showToast('❌ Erro ao baixar arquivo. Tente novamente.','error');
+      console.error('Erro download:', err);
+      // Fallback: abre o link direto no navegador
+      showToast('⚠️ Abrindo arquivo no navegador...','warning');
+      setTimeout(() => {
+        window.open(url, '_blank');
+      }, 800);
     });
 }
 
