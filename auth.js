@@ -13,6 +13,7 @@
  *   PortalAuth.isAdmin()      → boolean
  *   PortalAuth.getDb()        → Firebase database instance
  *   PortalAuth.getAuth()      → Firebase auth instance
+ *   PortalAuth.getStorage()   → Firebase storage instance
  *   PortalAuth.LABELS         → { admin: 'Administrador', ... }
  *   PortalAuth.ICONS          → { admin: '⚙️', ... }
  *   PortalAuth.PAGES          → matriz de permissões
@@ -145,7 +146,7 @@ const PortalAuth = (function () {
   };
 
   // ── STATE INTERNO ──────────────────────────────────────────────────────────
-  let _db, _auth;
+  let _db, _auth, _storage;
   let _user        = null;
   let _grupo       = null;
   let _pageId      = null;
@@ -161,8 +162,9 @@ const PortalAuth = (function () {
     _onReady = onReadyCallback;
 
     if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-    _auth = firebase.auth();
-    _db   = firebase.database();
+    _auth    = firebase.auth();
+    _db      = firebase.database();
+    _storage = firebase.storage();
 
     _injectStyles();
     _injectOverlay();
@@ -919,11 +921,12 @@ const PortalAuth = (function () {
       _auth.signOut();
     },
 
-    getUser:  () => _user,
-    getGrupo: () => _grupo,
-    isAdmin:  () => _grupo === 'admin',
-    getDb:    () => _db,
-    getAuth:  () => _auth,
+    getUser:     () => _user,
+    getGrupo:    () => _grupo,
+    isAdmin:     () => _grupo === 'admin',
+    getDb:       () => _db,
+    getAuth:     () => _auth,
+    getStorage:  () => _storage,
 
     async getAppConfig() {
       if (!_db) return {};
