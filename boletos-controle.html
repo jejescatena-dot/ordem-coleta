@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Boletos — Max Atacadista</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<script src="auth.js"></script>
+<style>
+  :root, html[data-theme="dark"] {
+    --bg: #080810; --bg2: #0d0d1a; --nav-bg: rgba(8,8,16,0.7);
+    --surface: rgba(255,255,255,0.04); --surface-hover: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08); --border-hover: rgba(255,255,255,0.16);
+    --red: #e31e24; --red-soft: rgba(227,30,36,0.15);
+    --green: #22c55e; --green-soft: rgba(34,197,94,0.12);
+    --amber: #f59e0b; --amber-soft: rgba(245,158,11,0.12);
+    --cyan: #0891b2; --cyan-soft: rgba(8,145,178,0.12);
+    --text: #f0f0f5; --text-2: rgba(240,240,245,0.55); --text-3: rgba(240,240,245,0.3);
+    --grid-line: rgba(255,255,255,0.025);
+    --bg-glow-1: rgba(8,145,178,0.08); --bg-glow-2: rgba(60,60,140,0.06);
+    --font: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  html[data-theme="light"] {
+    --bg: #f7f7fa; --bg2: #ffffff; --nav-bg: rgba(255,255,255,0.85);
+    --surface: rgba(0,0,0,0.025); --surface-hover: rgba(0,0,0,0.05);
+    --border: rgba(0,0,0,0.08); --border-hover: rgba(0,0,0,0.16);
+    --red: #e31e24; --red-soft: rgba(227,30,36,0.08);
+    --green: #22c55e; --green-soft: rgba(34,197,94,0.08);
+    --amber: #f59e0b; --amber-soft: rgba(245,158,11,0.08);
+    --cyan: #0891b2; --cyan-soft: rgba(8,145,178,0.08);
+    --text: #14141c; --text-2: rgba(20,20,28,0.6); --text-3: rgba(20,20,28,0.35);
+    --grid-line: rgba(0,0,0,0.04);
+    --bg-glow-1: rgba(8,145,178,0.06); --bg-glow-2: rgba(60,60,140,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+
+  .bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .bg-canvas::before { content: ''; position: absolute; top: -20%; left: 50%; transform: translateX(-50%); width: 900px; height: 600px; background: radial-gradient(ellipse at center, var(--bg-glow-1) 0%, transparent 70%); }
+  .bg-canvas::after { content: ''; position: absolute; bottom: 10%; right: -10%; width: 600px; height: 600px; background: radial-gradient(ellipse at center, var(--bg-glow-2) 0%, transparent 70%); }
+  .bg-grid { position: absolute; inset: 0; background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 100%); }
+
+  .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 40px; height: 64px; display: flex; align-items: center; justify-content: space-between; background: var(--nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-logo-mark { width: 32px; height: 32px; background: var(--cyan); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; color: #fff; font-style: italic; letter-spacing: -1px; }
+  .nav-logo-text { display: flex; flex-direction: column; gap: 1px; }
+  .nav-logo-name { font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: 0.3px; }
+  .nav-logo-sub { font-size: 10px; color: var(--text-2); letter-spacing: 1px; text-transform: uppercase; font-weight: 500; }
+  .nav-right { display: flex; align-items: center; gap: 14px; }
+  .user-pill { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); padding: 4px 12px 4px 4px; border-radius: 20px; font-size: 12px; }
+  .user-pill img { width: 24px; height: 24px; border-radius: 50%; }
+  .user-pill button { background: transparent; border: none; color: var(--text-2); cursor: pointer; font-size: 11px; padding: 2px 6px; font-family: inherit; }
+  .user-pill button:hover { color: var(--red); }
+  .nav-badge { font-size: 11px; color: var(--text-2); font-weight: 500; background: var(--surface); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+  .theme-toggle { display: inline-flex; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 3px; gap: 2px; }
+  .theme-toggle button { background: transparent; border: none; cursor: pointer; width: 30px; height: 26px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-2); font-size: 13px; transition: color 0.2s; font-family: inherit; }
+  .theme-toggle button.active { background: var(--cyan); color: #fff; box-shadow: 0 2px 8px rgba(8,145,178,0.35); }
+  .theme-toggle button svg { width: 14px; height: 14px; }
+
+  .page-header { position: relative; z-index: 1; padding: 160px 40px 40px; max-width: 1200px; margin: 0 auto; }
+  .header-title { font-size: clamp(28px, 5vw, 48px); font-weight: 800; letter-spacing: -1px; color: var(--text); margin-bottom: 12px; }
+  .header-desc { font-size: 15px; color: var(--text-2); margin-bottom: 40px; }
+  .header-role { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; background: var(--cyan-soft); color: var(--cyan); margin-bottom: 20px; }
+
+  .content { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 40px 60px; }
+
+  .tab-nav { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--border); overflow-x: auto; padding-bottom: 12px; }
+  .tab-btn { background: transparent; border: none; color: var(--text-2); padding: 10px 18px; cursor: pointer; font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.3s ease; white-space: nowrap; font-family: inherit; }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+
+  .form-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 32px; }
+  .form-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 24px; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--text); }
+  .form-input, .form-select { background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: 8px; font-family: inherit; font-size: 13px; transition: all 0.2s ease; }
+  .form-input:focus, .form-select:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(8,145,178,0.1); }
+  .form-input::placeholder { color: var(--text-3); }
+
+  .table-container { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 24px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead { background: var(--surface-hover); border-bottom: 1px solid var(--border); }
+  th { padding: 14px 12px; text-align: left; font-weight: 600; color: var(--text); }
+  td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text-2); }
+  tbody tr:hover { background: var(--surface-hover); }
+
+  .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+  .badge.novo { background: var(--amber-soft); color: var(--amber); }
+  .badge.enviado { background: var(--cyan-soft); color: var(--cyan); }
+  .badge.assinado { background: var(--green-soft); color: var(--green); }
+  .badge.arquivado { background: rgba(100,100,120,0.2); color: var(--text-2); }
+
+  .btn { background: var(--cyan); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-family: inherit; }
+  .btn:hover { background: #0a7ba8; transform: translateY(-1px); }
+  .btn.success { background: var(--green); }
+  .btn.success:hover { background: #1ea34f; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .stat-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 6px; }
+  .stat-value { font-size: 24px; font-weight: 800; color: var(--text); }
+
+  .alert { padding: 16px; border-radius: 10px; margin-bottom: 16px; font-size: 13px; }
+  .alert.info { background: var(--cyan-soft); color: var(--cyan); border: 1px solid rgba(8,145,178,0.2); }
+  .alert.success { background: var(--green-soft); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--text-3); }
+  .restricted { padding: 24px; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; color: var(--text-2); }
+
+  .modal { position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal.show { display: flex; }
+  .modal-panel { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 800px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 24px 80px rgba(0,0,0,0.7); }
+  .modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .modal-header h2 { font-size: 16px; font-weight: 700; color: var(--text); }
+  .modal-close { background: transparent; border: none; color: var(--text-2); cursor: pointer; font-size: 20px; font-family: inherit; }
+  .modal-body { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .modal-footer { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; flex-shrink: 0; }
+
+  .file-upload { border: 2px dashed var(--border); border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg2); }
+  .file-upload:hover { border-color: var(--cyan); background: var(--surface); }
+  .file-upload.active { border-color: var(--cyan); background: var(--cyan-soft); }
+
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(8,145,178,0.3); border-top-color: var(--cyan); border-radius: 50%; animation: spin 0.6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 768px) {
+    .nav { padding: 0 20px; }
+    .page-header { padding: 120px 20px 30px; }
+    .content { padding: 0 20px 40px; }
+    .form-section { padding: 20px; }
+    .form-grid { grid-template-columns: 1fr; }
+    table { font-size: 12px; }
+    th, td { padding: 10px 8px; }
+  }
+
+  .auth-overlay { position: fixed; inset: 0; z-index: 200; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 48px 40px; max-width: 440px; width: 100%; text-align: center; backdrop-filter: blur(20px); }
+  .auth-logo { width: 64px; height: 64px; background: var(--cyan); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 900; color: #fff; font-style: italic; margin-bottom: 24px; }
+  .auth-title { font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+  .auth-desc { font-size: 14px; color: var(--text-2); margin-bottom: 32px; line-height: 1.5; }
+  .google-btn { display: inline-flex; align-items: center; gap: 12px; background: #fff; color: #14141c; border: 1px solid var(--border); padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; width: 100%; justify-content: center; }
+  .google-btn:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-1px); }
+</style>
+</head>
+<body>
+
+<div class="bg-canvas"><div class="bg-grid"></div></div>
+
+<!-- Auth Overlay -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-logo">B</div>
+    <h2 class="auth-title">Controle de Boletos</h2>
+    <p class="auth-desc">Gerencie assinaturas, envios e arquivamento de boletos bancários.</p>
+    <button class="google-btn" onclick="loginWithGoogle()">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continuar com Google
+    </button>
+  </div>
+</div>
+
+<!-- Navbar -->
+<nav class="nav" id="appNav" style="display:none;">
+  <a class="nav-logo" href="index.html">
+    <div class="nav-logo-mark">M</div>
+    <div class="nav-logo-text">
+      <div class="nav-logo-name">Max Atacadista</div>
+      <div class="nav-logo-sub">Portal Televendas</div>
+    </div>
+  </a>
+  <div class="nav-right">
+    <div class="user-pill">
+      <img id="userAvatar" src="" alt="">
+      <span id="userName"></span>
+      <button onclick="logout()" title="Sair">Sair</button>
+    </div>
+    <div class="nav-badge"><span id="userRole">Carregando...</span></div>
+    <div class="theme-toggle" role="group" aria-label="Alternar tema">
+      <button id="themeLight" type="button" title="Tema claro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
+      </button>
+      <button id="themeDark" type="button" title="Tema escuro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Page Header -->
+<section class="page-header" id="appHeader" style="display:none;">
+  <div class="header-role" id="roleTag"></div>
+  <h1 class="header-title">Controle de Assinatura de Boletos</h1>
+  <p class="header-desc">Gerencie o fluxo de envio, assinatura e arquivamento de boletos bancários com rastreabilidade total.</p>
+</section>
+
+<!-- Content -->
+<section class="content" id="appContent" style="display:none;">
+
+  <!-- Tabs -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('envio')" id="btnEnvio">📮 ENVIO DE BOLETOS</button>
+    <button class="tab-btn" onclick="switchTab('gerencia')" id="btnGerencia">📋 GERENCIAMENTO</button>
+  </div>
+
+  <!-- ===== TAB: ENVIO ===== -->
+  <div id="tabEnvio" style="display:block;">
+    <div class="alert info" id="restrictedEnvio" style="display:none;">⚠️ Você não tem permissão para enviar boletos. Apenas Televendas e Financeiro podem registrar.</div>
+
+    <div id="envioForm" style="display:block;">
+      <div class="form-section">
+        <div class="form-title">📮 Registrar Novo Boleto</div>
+        <div id="alertEnvio"></div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Número do Boleto *</label>
+            <input type="text" id="envio_boleto" class="form-input" placeholder="Ex: 12345.67890">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cliente *</label>
+            <input type="text" id="envio_cliente" class="form-input" placeholder="Nome do cliente">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Loja *</label>
+            <select id="envio_loja" class="form-select">
+              <option value="">-- Selecione a loja --</option>
+              <option value="1025">1025 - Debret</option>
+              <option value="1037">1037 - Max Tiradentes</option>
+              <option value="1094">1094 - Max Tito Muffato</option>
+              <option value="1141">1141 - Max Campinas</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Valor (R$) *</label>
+            <input type="number" id="envio_valor" class="form-input" placeholder="0.00" step="0.01">
+          </div>
+        </div>
+
+        <button class="btn success" onclick="salvarBoletoEnvio()" style="margin-bottom:24px;" id="btnSalvarBoleto">✓ Registrar Boleto</button>
+
+        <div class="form-title">📊 Boletos Registrados</div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nº Boleto</th>
+                <th>Cliente</th>
+                <th>Loja</th>
+                <th>Valor</th>
+                <th>Status</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaEnvio">
+              <tr><td colspan="6" class="empty-state">Carregando boletos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: GERENCIAMENTO ===== -->
+  <div id="tabGerencia" style="display:none;">
+    <div class="alert info" id="restrictedGerencia" style="display:none;">⚠️ Você não tem permissão para gerenciar boletos. Apenas Financeiro pode acessar.</div>
+
+    <div id="gerenciaForm" style="display:block;">
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total</div>
+          <div class="stat-value" id="stat_total">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Novos</div>
+          <div class="stat-value" id="stat_novo">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Assinados</div>
+          <div class="stat-value" id="stat_assinado">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Arquivados</div>
+          <div class="stat-value" id="stat_arquivado">0</div>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="form-section">
+        <div class="form-title">🔍 Filtrar Boletos</div>
+        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select id="filtro_status" class="form-select" onchange="aplicarFiltros()">
+              <option value="">-- Todos --</option>
+              <option value="novo">Novo</option>
+              <option value="enviado">Enviado</option>
+              <option value="assinado">Assinado</option>
+              <option value="arquivado">Arquivado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Loja</label>
+            <select id="filtro_loja" class="form-select" onchange="aplicarFiltros()">
+              <option value="">-- Todas --</option>
+              <option value="1025">1025 - Debret</option>
+              <option value="1037">1037 - Max Tiradentes</option>
+              <option value="1094">1094 - Max Tito Muffato</option>
+              <option value="1141">1141 - Max Campinas</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cliente</label>
+            <input type="text" id="filtro_cliente" class="form-input" placeholder="Filtrar por cliente" onchange="aplicarFiltros()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela de Gerenciamento -->
+      <div class="form-section">
+        <div class="form-title">📋 Lista de Boletos</div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nº Boleto</th>
+                <th>Cliente</th>
+                <th>Loja</th>
+                <th>Vendedor</th>
+                <th>Valor</th>
+                <th>Status</th>
+                <th>Data Assin.</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaGerencia">
+              <tr><td colspan="8" class="empty-state">Carregando boletos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- Modal: Atualizar Boleto -->
+<div class="modal" id="modalAtualizar">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <h2>Atualizar Status do Boleto</h2>
+      <button class="modal-close" onclick="fecharModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Número do Boleto</label>
+        <input type="text" id="modal_boleto" class="form-input" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Novo Status *</label>
+        <select id="modal_status" class="form-select">
+          <option value="novo">Novo</option>
+          <option value="enviado">Enviado</option>
+          <option value="assinado">Assinado</option>
+          <option value="arquivado">Arquivado</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Data de Assinatura</label>
+        <input type="date" id="modal_data_assin" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Anexar Boleto Assinado (Foto/PDF)</label>
+        <div class="file-upload" id="modalFileUpload" onclick="document.getElementById('modalFileInput').click()">
+          📁 Clique para enviar arquivo
+          <input type="file" id="modalFileInput" accept="image/*,.pdf" style="display:none;" onchange="handleFileUpload(event)">
+        </div>
+        <div id="filePreview" style="margin-top:12px;"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Observações</label>
+        <textarea id="modal_obs" class="form-input" style="min-height:80px; resize:vertical;" placeholder="Anotações adicionais..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal()">Cancelar</button>
+      <button class="btn success" onclick="salvarAtualizacao()" id="btnSalvarAtualiz">✓ Salvar Mudanças</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ── INICIALIZAR FIREBASE ──
+let db = firebase.database();
+let storage = firebase.storage();
+let currentUser = null;
+let currentUserRole = null;
+let boletosRef = null;
+
+const LOJAS = {
+  '1025': 'Debret',
+  '1037': 'Max Tiradentes',
+  '1094': 'Max Tito Muffato',
+  '1141': 'Max Campinas'
+};
+
+// ── TEMA ──
+const themeLight = document.getElementById('themeLight');
+const themeDark = document.getElementById('themeDark');
+const html = document.documentElement;
+
+function setTheme(theme) {
+  html.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+  updateThemeButtons(theme);
+}
+
+function updateThemeButtons(theme) {
+  if (theme === 'light') {
+    themeLight.classList.add('active');
+    themeDark.classList.remove('active');
+  } else {
+    themeDark.classList.add('active');
+    themeLight.classList.remove('active');
+  }
+}
+
+themeLight.addEventListener('click', () => setTheme('light'));
+themeDark.addEventListener('click', () => setTheme('dark'));
+
+const savedTheme = localStorage.getItem('theme') || 'dark';
+setTheme(savedTheme);
+
+// ── AUTH ──
+window.addEventListener('load', () => {
+  const user = JSON.parse(localStorage.getItem('user'));
+  if (user) {
+    currentUser = user;
+    currentUserRole = user.role || 'televendas';
+    showApp();
+    loadData();
+  }
+});
+
+function showApp() {
+  document.getElementById('authOverlay').style.display = 'none';
+  document.getElementById('appNav').style.display = 'flex';
+  document.getElementById('appHeader').style.display = 'block';
+  document.getElementById('appContent').style.display = 'block';
+
+  document.getElementById('userName').textContent = currentUser.displayName || 'Usuário';
+  document.getElementById('userAvatar').src = currentUser.photoURL || '';
+
+  const roleLabel = {
+    'televendas': '📱 Televendas',
+    'financeiro_loja': '🏪 Financeiro (Loja)',
+    'financeiro_sede': '🏢 Financeiro (Sede)'
+  };
+  document.getElementById('roleTag').textContent = roleLabel[currentUserRole] || roleLabel['televendas'];
+  document.getElementById('userRole').textContent = roleLabel[currentUserRole] || 'Usuário';
+
+  controlAccessibility();
+}
+
+function controlAccessibility() {
+  const canSendBoletos = ['televendas', 'financeiro_loja', 'financeiro_sede'].includes(currentUserRole);
+  document.getElementById('envioForm').style.display = canSendBoletos ? 'block' : 'none';
+  document.getElementById('restrictedEnvio').style.display = canSendBoletos ? 'none' : 'block';
+
+  const canManage = ['financeiro_loja', 'financeiro_sede'].includes(currentUserRole);
+  document.getElementById('gerenciaForm').style.display = canManage ? 'block' : 'none';
+  document.getElementById('restrictedGerencia').style.display = canManage ? 'none' : 'block';
+  document.getElementById('btnGerencia').style.pointerEvents = canManage ? 'auto' : 'none';
+  document.getElementById('btnGerencia').style.opacity = canManage ? '1' : '0.5';
+
+  if (currentUserRole === 'televendas') {
+    document.getElementById('btnGerencia').style.display = 'none';
+  }
+}
+
+// ── CARREGAR DADOS DO FIREBASE ──
+function loadData() {
+  if (!currentUser) return;
+
+  if (boletosRef) boletosRef.off();
+
+  // Filtrar por papel
+  if (currentUserRole === 'televendas') {
+    boletosRef = db.ref('boletos').orderByChild('vendorUid').equalTo(currentUser.uid);
+  } else if (currentUserRole === 'financeiro_loja') {
+    boletosRef = db.ref('boletos').orderByChild('loja').equalTo(currentUser.loja);
+  } else {
+    boletosRef = db.ref('boletos');
+  }
+
+  boletosRef.on('value', snap => {
+    const boletos = [];
+    snap.forEach(child => boletos.push(child.val()));
+    renderTabEnvio(boletos);
+    renderTabGerencia(boletos);
+    updateStats(boletos);
+  }, err => console.error('Erro ao carregar boletos:', err));
+}
+
+function updateStats(boletos) {
+  document.getElementById('stat_total').textContent = boletos.length;
+  document.getElementById('stat_novo').textContent = boletos.filter(b => b.status === 'novo').length;
+  document.getElementById('stat_assinado').textContent = boletos.filter(b => b.status === 'assinado').length;
+  document.getElementById('stat_arquivado').textContent = boletos.filter(b => b.status === 'arquivado').length;
+}
+
+function renderTabEnvio(boletos) {
+  const tbody = document.getElementById('tabelaEnvio');
+  if (!boletos || boletos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nenhum boleto registrado</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = boletos.map(b => `
+    <tr>
+      <td><strong>${b.numero}</strong></td>
+      <td>${b.cliente}</td>
+      <td>${LOJAS[b.loja] || b.loja}</td>
+      <td>R$ ${parseFloat(b.valor).toFixed(2)}</td>
+      <td><span class="badge ${b.status}">${b.status}</span></td>
+      <td>${new Date(b.createdAt).toLocaleDateString('pt-BR')}</td>
+    </tr>
+  `).join('');
+}
+
+function renderTabGerencia(boletos) {
+  const tbody = document.getElementById('tabelaGerencia');
+  if (!boletos || boletos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Nenhum boleto disponível</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = boletos.map(b => `
+    <tr>
+      <td><strong>${b.numero}</strong></td>
+      <td>${b.cliente}</td>
+      <td>${LOJAS[b.loja] || b.loja}</td>
+      <td>${b.vendorName || 'Sistema'}</td>
+      <td>R$ ${parseFloat(b.valor).toFixed(2)}</td>
+      <td><span class="badge ${b.status}">${b.status}</span></td>
+      <td>${b.assinatura_data || '—'}</td>
+      <td><button class="btn" onclick="abrirModalAtualizar('${b.id}')" style="padding:6px 10px; font-size:11px;">Atualizar</button></td>
+    </tr>
+  `).join('');
+}
+
+function switchTab(tab) {
+  document.getElementById('tabEnvio').style.display = tab === 'envio' ? 'block' : 'none';
+  document.getElementById('tabGerencia').style.display = tab === 'gerencia' ? 'block' : 'none';
+
+  document.getElementById('btnEnvio').classList.toggle('active', tab === 'envio');
+  document.getElementById('btnGerencia').classList.toggle('active', tab === 'gerencia');
+}
+
+function salvarBoletoEnvio() {
+  const numero = document.getElementById('envio_boleto').value.trim();
+  const cliente = document.getElementById('envio_cliente').value.trim();
+  const loja = document.getElementById('envio_loja').value;
+  const valor = parseFloat(document.getElementById('envio_valor').value);
+
+  if (!numero || !cliente || !loja || !valor) {
+    showAlert('alertEnvio', '❌ Preencha todos os campos obrigatórios', 'error');
+    return;
+  }
+
+  document.getElementById('btnSalvarBoleto').disabled = true;
+  document.getElementById('btnSalvarBoleto').innerHTML = '<span class="spinner"></span> Salvando...';
+
+  const newRef = db.ref('boletos').push();
+  const boletId = newRef.key;
+
+  const boletData = {
+    id: boletId,
+    numero,
+    cliente,
+    loja,
+    valor: valor.toString(),
+    status: 'novo',
+    vendorUid: currentUser.uid,
+    vendorName: currentUser.displayName || 'Sistema',
+    assinatura_data: null,
+    arquivo_url: null,
+    observacoes: '',
+    createdAt: new Date().toISOString()
+  };
+
+  newRef.set(boletData).then(() => {
+    showAlert('alertEnvio', '✓ Boleto registrado com sucesso!', 'success');
+    document.getElementById('envio_boleto').value = '';
+    document.getElementById('envio_cliente').value = '';
+    document.getElementById('envio_loja').value = '';
+    document.getElementById('envio_valor').value = '';
+    document.getElementById('btnSalvarBoleto').disabled = false;
+    document.getElementById('btnSalvarBoleto').innerHTML = '✓ Registrar Boleto';
+  }).catch(err => {
+    showAlert('alertEnvio', '❌ Erro ao salvar: ' + err.message, 'error');
+    document.getElementById('btnSalvarBoleto').disabled = false;
+    document.getElementById('btnSalvarBoleto').innerHTML = '✓ Registrar Boleto';
+  });
+}
+
+function aplicarFiltros() {
+  const status = document.getElementById('filtro_status').value;
+  const loja = document.getElementById('filtro_loja').value;
+  const cliente = document.getElementById('filtro_cliente').value.toLowerCase();
+
+  let query = db.ref('boletos');
+
+  if (status) {
+    query = query.orderByChild('status').equalTo(status);
+  }
+
+  query.once('value', snap => {
+    let boletos = [];
+    snap.forEach(child => boletos.push(child.val()));
+
+    if (loja) boletos = boletos.filter(b => b.loja === loja);
+    if (cliente) boletos = boletos.filter(b => b.cliente.toLowerCase().includes(cliente));
+
+    renderTabGerencia(boletos);
+    updateStats(boletos);
+  });
+}
+
+function abrirModalAtualizar(id) {
+  db.ref('boletos/' + id).once('value', snap => {
+    const boleto = snap.val();
+    if (!boleto) return;
+
+    document.getElementById('modal_boleto').value = boleto.numero;
+    document.getElementById('modal_status').value = boleto.status;
+    document.getElementById('modal_data_assin').value = boleto.assinatura_data || '';
+    document.getElementById('modal_obs').value = boleto.observacoes || '';
+    document.getElementById('filePreview').innerHTML = '';
+
+    document.getElementById('modalAtualizar').classList.add('show');
+    document.getElementById('modalAtualizar').dataset.boletoId = id;
+  });
+}
+
+function fecharModal() {
+  document.getElementById('modalAtualizar').classList.remove('show');
+}
+
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.getElementById('filePreview').innerHTML = `<div style="font-size:12px; color:var(--green);">✓ ${file.name}</div>`;
+      document.getElementById('modalAtualizar').dataset.arquivo = e.target.result;
+      document.getElementById('modalAtualizar').dataset.arquivo_nome = file.name;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function salvarAtualizacao() {
+  const id = document.getElementById('modalAtualizar').dataset.boletoId;
+  const status = document.getElementById('modal_status').value;
+  const data_assin = document.getElementById('modal_data_assin').value;
+  const obs = document.getElementById('modal_obs').value;
+
+  document.getElementById('btnSalvarAtualiz').disabled = true;
+  document.getElementById('btnSalvarAtualiz').innerHTML = '<span class="spinner"></span> Salvando...';
+
+  const updates = {
+    status,
+    assinatura_data: data_assin || null,
+    observacoes: obs,
+    updatedAt: new Date().toISOString()
+  };
+
+  db.ref('boletos/' + id).update(updates).then(() => {
+    if (document.getElementById('modalAtualizar').dataset.arquivo) {
+      const arquivo = document.getElementById('modalAtualizar').dataset.arquivo;
+      const arquivo_nome = document.getElementById('modalAtualizar').dataset.arquivo_nome;
+
+      // Upload para Firebase Storage
+      const storageRef = storage.ref('boletos/' + id + '/' + arquivo_nome);
+      storageRef.putString(arquivo, 'data_url').then(snapshot => {
+        return snapshot.ref.getDownloadURL();
+      }).then(url => {
+        return db.ref('boletos/' + id).update({ arquivo_url: url });
+      }).then(() => {
+        showAlert('alertEnvio', '✓ Boleto atualizado com sucesso!', 'success');
+        fecharModal();
+        document.getElementById('btnSalvarAtualiz').disabled = false;
+        document.getElementById('btnSalvarAtualiz').innerHTML = '✓ Salvar Mudanças';
+      }).catch(err => {
+        console.error('Erro ao upload:', err);
+        showAlert('alertEnvio', '⚠️ Boleto atualizado, mas erro ao salvar arquivo', 'warning');
+        fecharModal();
+        document.getElementById('btnSalvarAtualiz').disabled = false;
+        document.getElementById('btnSalvarAtualiz').innerHTML = '✓ Salvar Mudanças';
+      });
+    } else {
+      showAlert('alertEnvio', '✓ Boleto atualizado com sucesso!', 'success');
+      fecharModal();
+      document.getElementById('btnSalvarAtualiz').disabled = false;
+      document.getElementById('btnSalvarAtualiz').innerHTML = '✓ Salvar Mudanças';
+    }
+  }).catch(err => {
+    showAlert('alertEnvio', '❌ Erro ao atualizar: ' + err.message, 'error');
+    document.getElementById('btnSalvarAtualiz').disabled = false;
+    document.getElementById('btnSalvarAtualiz').innerHTML = '✓ Salvar Mudanças';
+  });
+}
+
+function showAlert(elementId, message, type) {
+  const elem = document.getElementById(elementId);
+  if (elem) {
+    elem.className = 'alert ' + type;
+    elem.innerHTML = message;
+    elem.style.display = 'block';
+  }
+}
+
+</script>
+
+</body>
+</html>
