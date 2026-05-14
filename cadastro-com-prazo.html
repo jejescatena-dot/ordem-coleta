@@ -1389,12 +1389,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
       <div class="field-grid col-2" style="margin-bottom:14px">
         <div class="field">
           <label>CNPJ da Origem <span class="req">*</span></label>
-          <input type="text" id="ft_cnpjOrigem" placeholder="00.000.000/0000-00" maxlength="18" oninput="atualizarDisponivel()">
+          <input type="text" id="ft_cnpjOrigem" placeholder="00.000.000/0000-00" maxlength="18" oninput="atualizarDisponivel(); gerarEmailTransferencia();">
           <div class="err">Campo obrigatório</div>
         </div>
         <div class="field">
           <label>Filial de Origem <span class="req">*</span></label>
-          <select id="ft_filialOrigem" onchange="atualizarDisponivel()">
+          <select id="ft_filialOrigem" onchange="atualizarDisponivel(); gerarEmailTransferencia();">
             <option value="">Selecione a loja...</option>
           </select>
           <div class="err">Selecione a filial</div>
@@ -1404,12 +1404,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
       <div class="field-grid col-3" style="margin-bottom:14px">
         <div class="field">
           <label>Limite Total (R$) <span class="req">*</span></label>
-          <input type="text" id="ft_limiteTotal" placeholder="R$ 0,00" oninput="atualizarDisponivel()">
+          <input type="text" id="ft_limiteTotal" placeholder="R$ 0,00" oninput="atualizarDisponivel(); gerarEmailTransferencia();">
           <div class="err">Campo obrigatório</div>
         </div>
         <div class="field">
           <label>Limite Utilizado (R$) <span class="req">*</span></label>
-          <input type="text" id="ft_limiteUsado" placeholder="R$ 0,00" oninput="atualizarDisponivel()">
+          <input type="text" id="ft_limiteUsado" placeholder="R$ 0,00" oninput="atualizarDisponivel(); gerarEmailTransferencia();">
           <div class="err">Campo obrigatório</div>
         </div>
         <div class="field">
@@ -1443,12 +1443,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
       <div class="field-grid col-2" style="margin-bottom:14px">
         <div class="field">
           <label>CNPJ do Destino <span class="req">*</span></label>
-          <input type="text" id="ft_cnpjDestino" placeholder="00.000.000/0000-00" maxlength="18" oninput="validarGrupoEconomico()">
+          <input type="text" id="ft_cnpjDestino" placeholder="00.000.000/0000-00" maxlength="18" oninput="validarGrupoEconomico(); gerarEmailTransferencia();">
           <div class="err">Campo obrigatório</div>
         </div>
         <div class="field">
           <label>Filial de Destino <span class="req">*</span></label>
-          <input type="text" id="ft_filialDestino" placeholder="Nome da filial" oninput="gerarEmailTransferencia()">
+          <input type="text" id="ft_filialDestino" placeholder="Nome da filial" oninput="gerarEmailTransferencia();">
           <div class="err">Campo obrigatório</div>
         </div>
       </div>
@@ -1488,7 +1488,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
       <div class="field-grid col-2" style="margin-bottom:14px">
         <div class="field">
           <label>Valor a Transferir (R$) <span class="req">*</span></label>
-          <input type="text" id="ft_valorTransferencia" placeholder="R$ 0,00" oninput="validarValorTransferencia()">
+          <input type="text" id="ft_valorTransferencia" placeholder="R$ 0,00" oninput="validarValorTransferencia(); gerarEmailTransferencia();">
           <p class="hint" id="ft_valorHint" style="color:#e65100;display:none">⚠️ O valor máximo disponível é: <strong id="ft_maxDisponivel">R$ 0,00</strong></p>
           <div class="err" id="ft_valorErr" style="display:none">O valor ultrapassa o limite disponível</div>
         </div>
@@ -2238,11 +2238,17 @@ function parseValorMonetario(str) {
   if(!str) return 0;
   // Remove "R$"
   str = str.replace(/R\$\s*/g, '');
-  // Se tem ponto e vírgula, é formato brasileiro R$ 1.234,56
+
+  // Detecta formato brasileiro (vírgula como decimal)
   if(str.includes(',')) {
+    // Formato: "1.234,56" → remove pontos, substitui vírgula por ponto
     str = str.replace(/\./g, '').replace(',', '.');
+  } else if(str.includes('.') && !str.match(/^-?\d+\.\d{2}$/)) {
+    // Se tem ponto mas NÃO é "10.50" (2 casas decimais), é separador de milhar
+    // Exemplo: "10.000" ou "1.234.567" → remover pontos
+    str = str.replace(/\./g, '');
   }
-  // Se só tem números, retorna como está
+
   return parseFloat(str) || 0;
 }
 
@@ -2400,34 +2406,26 @@ function copiarEmailTransferencia() {
 
 // ===== DOWNLOAD FICHA CADASTRAL =====
 function downloadFichaCadastralPJ() {
-  // URL raw do GitHub para download direto
-  const url = 'https://raw.githubusercontent.com/jejescatena-dot/ordem-coleta/main/formularios/ficha-cadastral-pj.pdf.pdf';
-  const fileName = 'ficha-cadastral-pj.pdf';
+  // Link direto do arquivo no GitHub (raw)
+  const url = 'https://raw.githubusercontent.com/jejescatena-dot/ordem-coleta/main/formularios/ficha-cadastral-pj.pdf';
 
-  fetch(url, { mode: 'cors' })
-    .then(response => {
-      if(!response.ok) throw new Error('Arquivo não encontrado (404)');
-      return response.blob();
-    })
-    .then(blob => {
-      const blobUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(blobUrl);
-      showToast('✅ Ficha cadastral baixada!','success');
-    })
-    .catch(err => {
-      console.error('Erro download:', err);
-      // Fallback: abre o link direto no navegador
-      showToast('⚠️ Abrindo arquivo no navegador...','warning');
-      setTimeout(() => {
-        window.open(url, '_blank');
-      }, 800);
-    });
+  // Tenta download direto primeiro
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'ficha-cadastral-pj.pdf';
+  link.style.display = 'none';
+  document.body.appendChild(link);
+
+  try {
+    link.click();
+    showToast('✅ Download iniciado!','success');
+  } catch(e) {
+    // Fallback: abre em nova aba
+    showToast('⚠️ Abrindo arquivo...','warning');
+    window.open(url, '_blank');
+  }
+
+  setTimeout(() => document.body.removeChild(link), 100);
 }
 
 // ===== HELPERS =====
