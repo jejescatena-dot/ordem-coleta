@@ -539,9 +539,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
           <span class="url-icon">🔗</span>
           <div>
             <div style="font-size:10px;color:#888;margin-bottom:2px">SITE DE PRÉ-ANÁLISE DE CRÉDITO</div>
-            <div class="url-text">crediffato.onboarding.smilego.io/app/captacao/propostas/home</div>
+            <div class="url-text">conteudo.smartnx.com/crediffato-atendimento-as-lojas</div>
           </div>
-          <a href="https://crediffato.onboarding.smilego.io/app/captacao/propostas/home" target="_blank" class="btn btn-blue" style="margin-left:auto;flex-shrink:0">🚀 Abrir Site</a>
+          <a href="https://conteudo.smartnx.com/crediffato-atendimento-as-lojas" target="_blank" class="btn btn-blue" style="margin-left:auto;flex-shrink:0">🚀 Abrir Site</a>
         </div>
         <div class="steps-guide">
           <div class="guide-step">
@@ -667,9 +667,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
     </div>
     <div class="card-body">
       <div style="margin-bottom:18px">
-        <a href="formularios/ficha-cadastral-pj.pdf" download="ficha-cadastral-pj.pdf" class="btn btn-blue btn-lg" style="display:inline-flex">
+        <button onclick="downloadFichaCadastralPJ()" class="btn btn-blue btn-lg" style="display:inline-flex;cursor:pointer;border:none;font-family:inherit">
           📥 Baixar Ficha Cadastral PJ em Branco
-        </a>
+        </button>
         <p style="font-size:12px;color:#666;margin-top:6px">⬆️ Baixe, envie ao cliente para preencher e receba de volta assinada</p>
       </div>
       <div class="doc-list">
@@ -951,7 +951,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
       </div>
       <div class="btn-row">
         <button class="btn btn-gray" onclick="goToPhase(2)">← Voltar</button>
-        <a class="btn btn-red btn-lg" id="btnCrediffato" href="https://crediffato.muffato.com.br" target="_blank">🌐 Acessar Crediffato</a>
+        <a class="btn btn-red btn-lg" id="btnCrediffato" href="https://conteudo.smartnx.com/crediffato-atendimento-as-lojas" target="_blank">🌐 TELEVENDAS - Acessar Crediffato</a>
       </div>
     </div>
   </div>
@@ -1157,7 +1157,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
           <span class="url-icon">💬</span>
           <div>
             <div style="font-size:10px;color:#888;margin-bottom:2px">CHAT DE ATENDIMENTO – CREDIFFATO</div>
-            <div class="url-text" style="color:#e65100">conteudo.smartnx.com/crediffato-atendimento-as-lojas</div>
+            <div class="url-text" style="color:#e65100">TELEVENDAS - conteudo.smartnx.com/crediffato-atendimento-as-lojas</div>
           </div>
           <a href="https://conteudo.smartnx.com/crediffato-atendimento-as-lojas" target="_blank" class="btn btn-red" style="margin-left:auto;flex-shrink:0;white-space:nowrap">💬 Abrir Chat</a>
         </div>
@@ -1337,7 +1337,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
           <span class="url-icon">💬</span>
           <div>
             <div style="font-size:10px;color:#888;margin-bottom:2px">CHAT DE ATENDIMENTO – CREDIFFATO</div>
-            <div class="url-text" style="color:#6a1b9a">conteudo.smartnx.com/crediffato-atendimento-as-lojas</div>
+            <div class="url-text" style="color:#6a1b9a">TELEVENDAS - conteudo.smartnx.com/crediffato-atendimento-as-lojas</div>
           </div>
           <a href="https://conteudo.smartnx.com/crediffato-atendimento-as-lojas" target="_blank" class="btn" style="background:#6a1b9a;color:#fff;margin-left:auto;flex-shrink:0;white-space:nowrap">💬 Abrir Chat</a>
         </div>
@@ -1374,8 +1374,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
   <div class="phase-banner" style="background:linear-gradient(135deg,#1565c0 0%,#0d47a1 100%)">
     <div class="pb-num">💳</div>
     <div>
-      <h2>Transferência de Saldo Entre Lojas</h2>
-      <p>Transfira saldo disponível de uma filial para outra do mesmo grupo econômico.</p>
+      <h2>Transferência de Limite Entre Clientes</h2>
+      <p>Transfira limite disponível entre clientes do mesmo grupo econômico.</p>
     </div>
   </div>
 
@@ -1437,13 +1437,18 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
   <div class="card">
     <div class="card-header">
       <span class="ch-icon">📥</span>
-      <div><h2>Loja de Destino</h2><p>Dados da filial que recebe o saldo</p></div>
+      <div><h2>Cliente de Destino</h2><p>Dados do cliente que recebe o limite</p></div>
     </div>
     <div class="card-body">
-      <div class="field-grid col-1" style="margin-bottom:14px">
+      <div class="field-grid col-2" style="margin-bottom:14px">
         <div class="field">
-          <label>CNPJ da Destino <span class="req">*</span></label>
+          <label>CNPJ do Destino <span class="req">*</span></label>
           <input type="text" id="ft_cnpjDestino" placeholder="00.000.000/0000-00" maxlength="18" oninput="validarGrupoEconomico()">
+          <div class="err">Campo obrigatório</div>
+        </div>
+        <div class="field">
+          <label>Filial de Destino <span class="req">*</span></label>
+          <input type="text" id="ft_filialDestino" placeholder="Nome da filial" oninput="gerarEmailTransferencia()">
           <div class="err">Campo obrigatório</div>
         </div>
       </div>
@@ -1467,7 +1472,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222;font-
       <div id="ft_alertGrupoOk" style="display:none;margin-bottom:14px">
         <div class="alert alert-green">
           <span class="alert-icon">✅</span>
-          <div>CNPJs do mesmo grupo econômico — transferência autorizada.</div>
+          <div>CNPJs de clientes do mesmo grupo econômico — transferência autorizada.</div>
         </div>
       </div>
     </div>
@@ -1781,7 +1786,7 @@ function gerarEmailAumento(){
     return;
   }
 
-  const subject = `TELEVENDAS - Aumento Limite loja "${filial}" cliente "${cnpj}" "${razao}" - ${limNovo}`;
+  const subject = `TELEVENDAS - Aumento Limite CNPJ ${cnpj} - ${filial} - ${limNovo}`;
 
   const dreDoc = dre
     ? '\n• DRE e Balancete dos últimos 2 anos (obrigatório – novo limite acima de R$ 45.000)\n'
@@ -2295,13 +2300,13 @@ function gerarEmailTransferencia() {
   const limiteTotal = document.getElementById('ft_limiteTotal').value.trim();
   const limiteUsado = document.getElementById('ft_limiteUsado').value.trim();
   const cnpjDestino = document.getElementById('ft_cnpjDestino').value.trim();
-  const filialDestino = filialOrigem; // Usa a mesma filial de origem como destino
+  const filialDestino = document.getElementById('ft_filialDestino').value.trim();
   const valorTransf = document.getElementById('ft_valorTransferencia').value.trim();
   const vend = document.getElementById('ft_vendedor').value.trim();
   const emailVend = document.getElementById('ft_email_vendedor').value.trim();
 
   // Validação básica
-  if(!cnpjOrigem || !filialOrigem || !limiteTotal || !limiteUsado || !cnpjDestino || !valorTransf) {
+  if(!cnpjOrigem || !filialOrigem || !limiteTotal || !limiteUsado || !cnpjDestino || !filialDestino || !valorTransf) {
     document.getElementById('ft_emailPreview').style.display = 'none';
     document.getElementById('ft_emailEmpty').style.display = 'block';
     return;
@@ -2339,10 +2344,10 @@ function gerarEmailTransferencia() {
   const body =
 `Prezado(a) Time de Cadastro,
 
-Solicito a transferência de limite entre filiais do mesmo grupo econômico conforme detalhado abaixo:
+Solicito a transferência de limite entre clientes do mesmo grupo econômico conforme detalhado abaixo:
 
 ──────────────────────────────
-FILIAL DE ORIGEM
+CLIENTE DE ORIGEM
 ──────────────────────────────
 • CNPJ: ${cnpjOrigem}
 • Filial: ${filialOrigem}
@@ -2351,7 +2356,7 @@ FILIAL DE ORIGEM
 • Limite Disponível: ${document.getElementById('ft_limiteDisponivel').value}
 
 ──────────────────────────────
-FILIAL DE DESTINO
+CLIENTE DE DESTINO
 ──────────────────────────────
 • CNPJ: ${cnpjDestino}
 • Filial: ${filialDestino}
@@ -2376,6 +2381,33 @@ function copiarEmailTransferencia() {
   navigator.clipboard.writeText(full)
     .then(()=>showToast('✅ E-mail copiado!','success'))
     .catch(()=>{const ta=document.createElement('textarea');ta.value=full;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ E-mail copiado!','success');});
+}
+
+// ===== DOWNLOAD FICHA CADASTRAL =====
+function downloadFichaCadastralPJ() {
+  const url = 'https://raw.githubusercontent.com/jejescatena-dot/ordem-coleta/main/formularios/ficha-cadastral-pj.pdf';
+  const fileName = 'ficha-cadastral-pj.pdf';
+
+  fetch(url)
+    .then(response => {
+      if(!response.ok) throw new Error('Erro ao baixar arquivo');
+      return response.blob();
+    })
+    .then(blob => {
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+      showToast('✅ Ficha cadastral baixada!','success');
+    })
+    .catch(err => {
+      console.error('Erro:', err);
+      showToast('❌ Erro ao baixar arquivo. Tente novamente.','error');
+    });
 }
 
 // ===== HELPERS =====
