@@ -289,6 +289,7 @@
     </button>
     <button class="tab-btn" data-tab="usuarios">👥 Todos os Usuários</button>
     <button class="tab-btn" data-tab="grupos">🗂️ Por Grupo</button>
+    <button class="tab-btn" data-tab="lojas">🏬 Lojas Cadastradas</button>
     <button class="tab-btn" data-tab="matriz">🔐 Permissões</button>
     <button class="tab-btn" data-tab="aplicativos">📱 Aplicativos</button>
   </div>
@@ -347,6 +348,31 @@
   <div id="tab-grupos" style="display:none;">
     <div class="grupos-grid" id="grupos-grid">
       <!-- Gerado dinamicamente -->
+    </div>
+  </div>
+
+  <!-- TAB: LOJAS CADASTRADAS -->
+  <div id="tab-lojas" style="display:none;">
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+      <button class="btn" onclick="abrirModalLoja('nova')">➕ Nova Loja</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nome</th>
+            <th>Cidade</th>
+            <th>Estado</th>
+            <th>Status</th>
+            <th>Criada em</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-lojas">
+          <tr><td colspan="7" class="empty-state">Carregando lojas...</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -415,6 +441,54 @@
   </div>
 </div>
 
+<!-- MODAL: GERENCIAR LOJA -->
+<div class="modal-overlay" id="modal-loja">
+  <div class="modal-panel" style="max-width:520px;">
+    <div class="modal-title" id="modal-loja-title">Nova Loja</div>
+    <div class="modal-sub" id="modal-loja-sub">Preencha os dados da loja.</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+      <div>
+        <label style="font-size:12px; font-weight:600; color:var(--text-2); display:block; margin-bottom:4px;">Código *</label>
+        <input type="number" id="loja-codigo" placeholder="Ex: 1025" style="width:100%; padding:8px 12px; background:var(--surface); border:1px solid var(--border); border-radius:8px; font-size:13px; color:var(--text); font-family:inherit;">
+      </div>
+      <div>
+        <label style="font-size:12px; font-weight:600; color:var(--text-2); display:block; margin-bottom:4px;">Estado *</label>
+        <select id="loja-estado" style="width:100%; padding:8px 12px; background:var(--surface); border:1px solid var(--border); border-radius:8px; font-size:13px; color:var(--text); font-family:inherit;">
+          <option value="">Selecione...</option>
+          <option value="PR">Paraná (PR)</option>
+          <option value="SP">São Paulo (SP)</option>
+          <option value="SC">Santa Catarina (SC)</option>
+          <option value="RS">Rio Grande do Sul (RS)</option>
+          <option value="MG">Minas Gerais (MG)</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:12px; font-weight:600; color:var(--text-2); display:block; margin-bottom:4px;">Nome da Loja *</label>
+      <input type="text" id="loja-nome" placeholder="Ex: Max Debret" style="width:100%; padding:8px 12px; background:var(--surface); border:1px solid var(--border); border-radius:8px; font-size:13px; color:var(--text); font-family:inherit;">
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:12px; font-weight:600; color:var(--text-2); display:block; margin-bottom:4px;">Cidade</label>
+      <input type="text" id="loja-cidade" placeholder="Ex: Foz do Iguaçu" style="width:100%; padding:8px 12px; background:var(--surface); border:1px solid var(--border); border-radius:8px; font-size:13px; color:var(--text); font-family:inherit;">
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:12px; font-weight:600; color:var(--text-2); display:block; margin-bottom:4px;">Gerente</label>
+      <input type="text" id="loja-gerente" placeholder="Ex: João Silva" style="width:100%; padding:8px 12px; background:var(--surface); border:1px solid var(--border); border-radius:8px; font-size:13px; color:var(--text); font-family:inherit;">
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px; background:var(--surface); border:1px solid var(--border); padding:10px 12px; border-radius:8px;">
+      <label style="font-size:12px; font-weight:600; color:var(--text-2); flex:1; margin:0;">Loja ativa</label>
+      <label class="toggle-switch">
+        <input type="checkbox" id="loja-ativo" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-loja')">Cancelar</button>
+      <button class="btn btn-success" id="btn-salvar-loja" onclick="salvarLoja()">✓ Salvar Loja</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // ─── ESTADO ────────────────────────────────────────────────────────────────
   let db;
@@ -426,6 +500,8 @@
   let grupoSelecionadoModal  = null;
   let grupoAlterarModal      = null;
   let appConfigState = {};  // estado dos aplicativos
+  let allLojas = {};        // lojas carregadas do Firebase
+  let lojaEditandoCodigo = null; // código da loja sendo editada
 
   // ─── LISTA DE APLICATIVOS GERENCIÁVEIS ────────────────────────────────────
   const APP_CONFIG_LIST = [
@@ -446,6 +522,7 @@
   PortalAuth.init('admin-usuarios.html', function(user, grupo) {
     db = PortalAuth.getDb();
     iniciarListeners();
+    carregarLojas(); // Carrega lojas na inicialização
     renderMatriz();
   });
 
@@ -995,6 +1072,127 @@
     toast.innerHTML = `<span>${icons[tipo] || ''}</span> ${esc(msg)}`;
     container.appendChild(toast);
     setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(8px)'; toast.style.transition = 'all .3s'; setTimeout(() => toast.remove(), 300); }, 3500);
+  }
+
+  // ─── GESTÃO DE LOJAS ───────────────────────────────────────────────────────
+  function carregarLojas() {
+    if (!db) return;
+    db.ref('lojas').on('value', (snap) => {
+      allLojas = snap.val() || {};
+      renderLojas();
+    });
+  }
+
+  function renderLojas() {
+    const tbody = document.getElementById('tbody-lojas');
+    if (!tbody) return;
+
+    const lojas = Object.entries(allLojas)
+      .filter(([_, loja]) => loja.ativo !== false)
+      .sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+
+    if (lojas.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Nenhuma loja cadastrada</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = lojas.map(([cod, loja]) => `
+      <tr>
+        <td style="font-weight:600;">${cod}</td>
+        <td>${esc(loja.nome || '')}</td>
+        <td>${esc(loja.cidade || '—')}</td>
+        <td>${esc(loja.estado || '—')}</td>
+        <td><span class="badge badge-approved">✓ Ativa</span></td>
+        <td style="font-size:12px; color:var(--text-3);">${formatarData(loja.criadoEm)}</td>
+        <td style="display:flex; gap:6px;">
+          <button class="btn btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="abrirModalLoja('editar', ${cod})">✏️ Editar</button>
+          <button class="btn btn-danger" style="padding:4px 10px; font-size:11px;" onclick="desativarLoja(${cod})">🗑️ Desativar</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function abrirModalLoja(modo, codigo = null) {
+    lojaEditandoCodigo = codigo;
+    const modal = document.getElementById('modal-loja');
+    const inputCodigo = document.getElementById('loja-codigo');
+    const inputNome = document.getElementById('loja-nome');
+    const inputCidade = document.getElementById('loja-cidade');
+    const inputEstado = document.getElementById('loja-estado');
+    const inputGerente = document.getElementById('loja-gerente');
+    const inputAtivo = document.getElementById('loja-ativo');
+    const btnSalvar = document.getElementById('btn-salvar-loja');
+    const titulo = document.getElementById('modal-loja-title');
+    const sub = document.getElementById('modal-loja-sub');
+
+    if (modo === 'nova') {
+      titulo.textContent = 'Nova Loja';
+      sub.textContent = 'Preencha os dados da nova loja.';
+      inputCodigo.value = '';
+      inputNome.value = '';
+      inputCidade.value = '';
+      inputEstado.value = '';
+      inputGerente.value = '';
+      inputAtivo.checked = true;
+      inputCodigo.readOnly = false;
+      btnSalvar.textContent = '➕ Criar Loja';
+    } else if (modo === 'editar' && codigo) {
+      const loja = allLojas[codigo];
+      if (!loja) return;
+      titulo.textContent = 'Editar Loja';
+      sub.textContent = `Atualize os dados da loja ${codigo}.`;
+      inputCodigo.value = codigo;
+      inputNome.value = loja.nome || '';
+      inputCidade.value = loja.cidade || '';
+      inputEstado.value = loja.estado || '';
+      inputGerente.value = loja.gerente || '';
+      inputAtivo.checked = loja.ativo !== false;
+      inputCodigo.readOnly = true;
+      btnSalvar.textContent = '✓ Salvar Alterações';
+    }
+
+    modal.classList.add('show');
+  }
+
+  async function salvarLoja() {
+    const codigo = document.getElementById('loja-codigo').value.trim();
+    const nome = document.getElementById('loja-nome').value.trim();
+    const cidade = document.getElementById('loja-cidade').value.trim();
+    const estado = document.getElementById('loja-estado').value;
+    const gerente = document.getElementById('loja-gerente').value.trim();
+    const ativo = document.getElementById('loja-ativo').checked;
+
+    if (!codigo || !nome || !estado) {
+      showToast('Preencha os campos obrigatórios', 'error');
+      return;
+    }
+
+    try {
+      if (lojaEditandoCodigo) {
+        // Editar
+        await PortalAuth.updateLoja(codigo, { nome, cidade, estado, gerente, ativo });
+        showToast('Loja atualizada com sucesso', 'success');
+      } else {
+        // Criar
+        await PortalAuth.addLoja(codigo, nome, { cidade, estado, gerente });
+        showToast('Loja criada com sucesso', 'success');
+      }
+      fecharModal('modal-loja');
+      renderLojas();
+    } catch (err) {
+      showToast('Erro ao salvar loja: ' + err.message, 'error');
+    }
+  }
+
+  async function desativarLoja(codigo) {
+    if (!confirm(`Desativar loja ${codigo}? Ela não aparecerá mais nos seletores.`)) return;
+    try {
+      await PortalAuth.deleteLoja(codigo);
+      showToast('Loja desativada com sucesso', 'success');
+      renderLojas();
+    } catch (err) {
+      showToast('Erro ao desativar loja: ' + err.message, 'error');
+    }
   }
 
   // ─── ESCAPE MODAL (ESC) ────────────────────────────────────────────────────
