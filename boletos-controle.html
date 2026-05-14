@@ -413,9 +413,9 @@
 //   prevencao         → Sem acesso
 // ──────────────────────────────────────────────────────────────────
 
-// ── INICIALIZAR FIREBASE ──
-let db = firebase.database();
-let storage = firebase.storage();
+// ── STATE VARIABLES (inicializados por PortalAuth.init) ──
+let db = null;
+let storage = null;
 let currentUser = null;
 let currentUserGroup = null;
 let boletosRef = null;
