@@ -199,10 +199,37 @@ const PortalAuth = (function () {
         await _initLojas();
         const snap2 = await _db.ref('lojas').once('value');
         _lojas = snap2.val();
+        // Se ainda assim não conseguiu, usa fallback estruturado
+        if (!_lojas) {
+          const estruturadas = {};
+          Object.entries(LOJAS_PA).forEach(([codigo, nome]) => {
+            const parsed = _parseLojaInfo(codigo, nome);
+            estruturadas[codigo] = {
+              codigo: parseInt(codigo),
+              nome: parsed.nome,
+              cidade: parsed.cidade,
+              estado: parsed.estado,
+              ativo: true
+            };
+          });
+          _lojas = estruturadas;
+        }
       }
     } catch(e) {
       console.warn('[PortalAuth] Falha ao carregar lojas do Firebase, usando fallback:', e);
-      _lojas = LOJAS_PA;
+      // Transforma LOJAS_PA (strings) em formato estruturado (objetos com cidade/estado)
+      const estruturadas = {};
+      Object.entries(LOJAS_PA).forEach(([codigo, nome]) => {
+        const parsed = _parseLojaInfo(codigo, nome);
+        estruturadas[codigo] = {
+          codigo: parseInt(codigo),
+          nome: parsed.nome,
+          cidade: parsed.cidade,
+          estado: parsed.estado,
+          ativo: true
+        };
+      });
+      _lojas = estruturadas;
     }
   }
 

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Estrutura de Lojas</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        h1 { color: #333; }
+        .test-result { margin: 20px 0; padding: 15px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #0891b2; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .code-block { background: #f4f4f4; padding: 10px; border-radius: 4px; font-family: monospace; overflow-x: auto; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste: Estrutura de Lojas (LOJAS_PA vs Firebase)</h1>
+
+        <div id="results"></div>
+
+        <h2>Lojas Carregadas (primeiras 10):</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nome</th>
+                    <th>Cidade</th>
+                    <th>Estado</th>
+                    <th>Tipo</th>
+                </tr>
+            </thead>
+            <tbody id="lojas-table">
+                <tr><td colspan="5">Carregando...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Simulação do fallback com LOJAS_PA
+        const LOJAS_PA = {
+            1025:'Max Debret (Foz do Iguaçu/PR)',
+            1037:'Max Tiradentes (Londrina/PR)',
+            1050:'Max Eldorado Prudente (Pres. Prudente/SP)',
+            1057:'Max Floresta (Cascavel/PR)',
+            1060:'Max Apucarana (Cascavel/PR)',
+        };
+
+        function _parseLojaInfo(codigo, fullName) {
+            const match = fullName.match(/^(.+?)\s*\((.+?)\)$/);
+            if (!match) {
+                return { nome: fullName, cidade: '', estado: '' };
+            }
+            const nome = match[1].trim();
+            const localPart = match[2].trim();
+            const [cidade, estado] = localPart.split('/').map(s => s.trim());
+            return { nome, cidade: cidade || '', estado: estado || '' };
+        }
+
+        function testFallbackStructure() {
+            const results = document.getElementById('results');
+            const tbody = document.getElementById('lojas-table');
+
+            try {
+                // Simula o fallback
+                const estruturadas = {};
+                Object.entries(LOJAS_PA).forEach(([codigo, nome]) => {
+                    const parsed = _parseLojaInfo(codigo, nome);
+                    estruturadas[codigo] = {
+                        codigo: parseInt(codigo),
+                        nome: parsed.nome,
+                        cidade: parsed.cidade,
+                        estado: parsed.estado,
+                        ativo: true
+                    };
+                });
+
+                // Valida estrutura
+                let allValid = true;
+                const errors = [];
+                const warnings = [];
+
+                Object.entries(estruturadas).forEach(([cod, loja]) => {
+                    if (!loja.codigo) errors.push(`Loja ${cod}: falta codigo`);
+                    if (!loja.nome) errors.push(`Loja ${cod}: falta nome`);
+                    if (!loja.cidade) warnings.push(`Loja ${cod}: cidade vazia`);
+                    if (!loja.estado) warnings.push(`Loja ${cod}: estado vazio`);
+                    if (loja.ativo === undefined) errors.push(`Loja ${cod}: falta ativo`);
+                });
+
+                // Mostra resultado
+                if (errors.length === 0) {
+                    results.innerHTML = `
+                        <div class="test-result success">
+                            ✅ <strong>Estrutura OK!</strong> Todas as lojas têm campos obrigatórios.
+                            ${warnings.length > 0 ? `<br>⚠️ ${warnings.length} avisos: verifique cidades/estados vazios.` : ''}
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = `
+                        <div class="test-result error">
+                            ❌ <strong>Erros encontrados:</strong><br>${errors.join('<br>')}
+                        </div>
+                    `;
+                    allValid = false;
+                }
+
+                // Popula tabela
+                tbody.innerHTML = Object.entries(estruturadas)
+                    .slice(0, 10)
+                    .map(([cod, loja]) => `
+                        <tr>
+                            <td>${loja.codigo}</td>
+                            <td>${loja.nome}</td>
+                            <td>${loja.cidade || '—'}</td>
+                            <td>${loja.estado || '—'}</td>
+                            <td>${typeof loja === 'string' ? 'String (ERRO!)' : 'Objeto ✓'}</td>
+                        </tr>
+                    `).join('');
+
+                // Info técnica
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'test-result';
+                infoDiv.style.background = '#e7f3ff';
+                infoDiv.style.color = '#004085';
+                infoDiv.style.borderColor = '#b8daff';
+                infoDiv.innerHTML = `
+                    <strong>📊 Estatísticas:</strong><br>
+                    • Total de lojas testadas: ${Object.keys(estruturadas).length}<br>
+                    • Erros: ${errors.length}<br>
+                    • Avisos: ${warnings.length}<br>
+                    <br>
+                    <strong>💡 O que foi corrigido:</strong><br>
+                    O fallback agora transforma LOJAS_PA (strings) em objetos estruturados com:
+                    <div class="code-block">{
+  codigo: número,
+  nome: string,
+  cidade: string,
+  estado: string,
+  ativo: boolean
+}</div>
+                `;
+                results.appendChild(infoDiv);
+
+            } catch (e) {
+                results.innerHTML = `
+                    <div class="test-result error">
+                        ❌ <strong>Erro ao testar:</strong> ${e.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Executa teste ao carregar página
+        window.addEventListener('load', testFallbackStructure);
+    </script>
+</body>
+</html>
