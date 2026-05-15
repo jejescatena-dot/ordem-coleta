@@ -167,32 +167,12 @@
     .modal-panel { max-width: 100%; }
   }
 
-  /* Auth overlay */
-  .auth-overlay { position: fixed; inset: 0; z-index: 200; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 48px 40px; max-width: 440px; width: 100%; text-align: center; backdrop-filter: blur(20px); }
-  .auth-logo { width: 64px; height: 64px; background: var(--cyan); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 900; color: #fff; font-style: italic; margin-bottom: 24px; }
-  .auth-title { font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
-  .auth-desc { font-size: 14px; color: var(--text-2); margin-bottom: 32px; line-height: 1.5; }
-  .google-btn { display: inline-flex; align-items: center; gap: 12px; background: #fff; color: #14141c; border: 1px solid var(--border); padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; width: 100%; justify-content: center; }
-  .google-btn:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-1px); }
 </style>
 </head>
 <body>
 
 <div class="bg-canvas"><div class="bg-grid"></div></div>
 
-<!-- Auth Overlay -->
-<div class="auth-overlay" id="authOverlay">
-  <div class="auth-card">
-    <div class="auth-logo">B</div>
-    <h2 class="auth-title">Controle de Boletos</h2>
-    <p class="auth-desc">Acesse seu painel para gerenciar assinaturas e arquivamento de boletos bancários.</p>
-    <button class="google-btn" onclick="loginWithGoogle()">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      Continuar com Google
-    </button>
-  </div>
-</div>
 
 <!-- Navbar -->
 <nav class="nav" id="appNav" style="display:none;">
@@ -200,16 +180,15 @@
     <div class="nav-logo-mark">M</div>
     <div class="nav-logo-text">
       <div class="nav-logo-name">Max Atacadista</div>
-      <div class="nav-logo-sub">Painel Administrativo</div>
+      <div class="nav-logo-sub">Assinatura de Boletos</div>
     </div>
   </a>
   <div class="nav-right">
     <div class="user-pill">
       <img id="userAvatar" src="" alt="">
       <span id="userName"></span>
-      <button onclick="logout()" title="Sair">Sair</button>
+      <button onclick="PortalAuth.logout()" title="Sair">Sair</button>
     </div>
-    <div class="nav-badge"><span class="status-badge" id="firebaseStatus"></span><span id="firebaseText">Conectando...</span></div>
     <div class="theme-toggle" role="group" aria-label="Alternar tema">
       <button id="themeLight" type="button" title="Tema claro">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
@@ -258,11 +237,11 @@
 
   <!-- Tabs -->
   <div class="tab-nav">
-    <button class="tab-btn active" onclick="filterByStatus('todos')">Todos</button>
-    <button class="tab-btn" onclick="filterByStatus('gerado')">Gerado</button>
-    <button class="tab-btn" onclick="filterByStatus('enviado')">Enviado</button>
-    <button class="tab-btn" onclick="filterByStatus('assinado')">Assinado</button>
-    <button class="tab-btn" onclick="filterByStatus('arquivado')">Arquivado</button>
+    <button class="tab-btn active" onclick="filterByStatus('todos', this)">Todos</button>
+    <button class="tab-btn" onclick="filterByStatus('gerado', this)">Gerado</button>
+    <button class="tab-btn" onclick="filterByStatus('enviado', this)">Enviado</button>
+    <button class="tab-btn" onclick="filterByStatus('assinado', this)">Assinado</button>
+    <button class="tab-btn" onclick="filterByStatus('arquivado', this)">Arquivado</button>
   </div>
 
   <!-- Table -->
@@ -375,33 +354,6 @@
 
 <script>
 
-// ---- TEMA ----
-const themeLight = document.getElementById('themeLight');
-const themeDark = document.getElementById('themeDark');
-const html = document.documentElement;
-
-function setTheme(theme) {
-  html.setAttribute('data-theme', theme);
-  localStorage.setItem('theme', theme);
-  updateThemeButtons(theme);
-}
-
-function updateThemeButtons(theme) {
-  if (theme === 'light') {
-    themeLight.classList.add('active');
-    themeDark.classList.remove('active');
-  } else {
-    themeDark.classList.add('active');
-    themeLight.classList.remove('active');
-  }
-}
-
-themeLight.addEventListener('click', () => setTheme('light'));
-themeDark.addEventListener('click', () => setTheme('dark'));
-
-const savedTheme = localStorage.getItem('theme') || 'dark';
-setTheme(savedTheme);
-
 // ---- DADOS SIMULADOS ----
 let boletosData = [
   { id: '1', numero: '12345.67890', codigo: '001BLT2026', cliente: 'João Silva', vendedor: 'Maria', valor: 1500.00, status: 'assinado', dataAssinatura: '2026-05-10', imagem: null, observacoes: '' },
@@ -459,10 +411,10 @@ function renderTable() {
   `).join('');
 }
 
-function filterByStatus(status) {
+function filterByStatus(status, el) {
   currentFilter = status;
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
+  if (el) el.classList.add('active');
 
   if (status === 'todos') {
     filteredData = [...boletosData];
@@ -485,7 +437,10 @@ document.getElementById('searchBox').addEventListener('input', (e) => {
 
 // ---- MODAIS ----
 function openSignatureModal(boletId = null) {
-  document.getElementById('signatureModal').classList.add('show');
+  document.getElementById('boletNum').value = '';
+  document.getElementById('clientName').value = '';
+  document.getElementById('sellerName').value = '';
+  document.getElementById('amount').value = '';
   if (boletId) {
     const boleto = boletosData.find(b => b.id === boletId);
     if (boleto) {
@@ -495,6 +450,7 @@ function openSignatureModal(boletId = null) {
       document.getElementById('amount').value = boleto.valor;
     }
   }
+  document.getElementById('signatureModal').classList.add('show');
 }
 
 function closeSignatureModal() {
@@ -512,6 +468,7 @@ function openViewModal(boletId) {
   const boleto = boletosData.find(b => b.id === boletId);
   if (!boleto) return;
 
+  document.getElementById('viewTitle').textContent = `Boleto ${boleto.numero}`;
   document.getElementById('viewNum').value = boleto.numero;
   document.getElementById('viewInfo').value = `${boleto.cliente} / ${boleto.vendedor} / R$ ${boleto.valor.toFixed(2)}`;
   document.getElementById('viewDate').value = boleto.dataAssinatura || '—';
