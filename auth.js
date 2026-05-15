@@ -171,20 +171,8 @@ const PortalAuth = (function () {
     _injectOverlay();
     _applyTheme();
 
-    // Processa resultado de redirect do Google Sign-In
-    _auth.getRedirectResult()
-      .then(result => {
-        if (result && result.user) {
-          _onAuthChange(result.user);
-        }
-      })
-      .catch(error => {
-        console.warn('[PortalAuth] Erro ao processar redirect:', error);
-      })
-      .finally(() => {
-        // Registra listener contínuo para mudanças futuras de autenticação
-        _auth.onAuthStateChanged(_onAuthChange);
-      });
+    // Registra listener contínuo para mudanças de autenticação
+    _auth.onAuthStateChanged(_onAuthChange);
   }
 
   // ── CARREGAMENTO DE LOJAS ──────────────────────────────────────────────────
@@ -1062,7 +1050,8 @@ const PortalAuth = (function () {
     login() {
       const p = new firebase.auth.GoogleAuthProvider();
       p.setCustomParameters({ prompt: 'select_account' });
-      _auth.signInWithRedirect(p).catch(e => alert('Erro ao fazer login: ' + e.message));
+      // Popup evita bloqueio de cookies de terceiros em domínios externos (GitHub Pages, etc.)
+      _auth.signInWithPopup(p).catch(e => alert('Erro ao fazer login: ' + e.message));
     },
 
     logout() {
