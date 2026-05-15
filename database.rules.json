@@ -18,6 +18,7 @@
     },
     "users": {
       ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".indexOn": ["status", "grupo"],
       "$uid": {
         ".read": "auth != null && ($uid === auth.uid || root.child('admins').child(auth.uid).exists())",
         ".write": "auth != null && ($uid === auth.uid || root.child('admins').child(auth.uid).exists())"
