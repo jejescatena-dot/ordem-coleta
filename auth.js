@@ -855,16 +855,21 @@ const PortalAuth = (function () {
       // Verifica se CPF já tem cadastro
       const cpfSnap = await _db.ref('cpf-index/' + cpf).once('value');
       if (cpfSnap.exists()) {
-        const existingUid  = cpfSnap.val();
-        const existingSnap = await _db.ref('users/' + existingUid).once('value');
-        if (existingSnap.exists()) {
-          // CPF em uso por usuário ativo/pendente → bloqueia
+        const existingUid = cpfSnap.val();
+        let cpfEmUso = true; // assume em uso por segurança
+        try {
+          const existingSnap = await _db.ref('users/' + existingUid).once('value');
+          cpfEmUso = existingSnap.exists();
+          // Entrada órfã (usuário deletado) → permite sobrescrever
+        } catch (_) {
+          // Sem permissão para ler o usuário existente → trata como CPF em uso
+        }
+        if (cpfEmUso) {
           const err = document.getElementById('pa-cpf-err');
           if (err) { err.textContent = 'Já existe um cadastro com este CPF. Entre em contato com o suporte.'; err.style.display = 'block'; }
           if (btn) { btn.disabled = false; btn.textContent = 'Solicitar Acesso'; }
           return;
         }
-        // Entrada órfã (usuário deletado manualmente) → a regra do banco permite sobrescrever; segue o fluxo normal.
       }
       await _submitGroupRequest(_selectedGrp, { nome, cpf, cracha, loja, tel });
     } catch (e) {
@@ -1051,7 +1056,13 @@ const PortalAuth = (function () {
       const p = new firebase.auth.GoogleAuthProvider();
       p.setCustomParameters({ prompt: 'select_account' });
       // Popup evita bloqueio de cookies de terceiros em domínios externos (GitHub Pages, etc.)
-      _auth.signInWithPopup(p).catch(e => alert('Erro ao fazer login: ' + e.message));
+      _auth.signInWithPopup(p).catch(e => {
+        if (e.code === 'auth/popup-blocked') {
+          alert('O navegador bloqueou a janela de login.\n\nPara resolver:\n1. Clique no ícone de bloqueio na barra de endereço\n2. Selecione "Sempre permitir popups" para este site\n3. Clique em "Entrar com Google" novamente.');
+        } else {
+          alert('Erro ao fazer login: ' + e.message);
+        }
+      });
     },
 
     logout() {
