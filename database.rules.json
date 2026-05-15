@@ -17,7 +17,6 @@
       ".write": "auth != null"
     },
     "users": {
-      ".read":  "auth != null && root.child('admins').child(auth.uid).exists()",
       "$uid": {
         ".read":  "auth != null && ($uid === auth.uid || root.child('admins').child(auth.uid).exists())",
         ".write": "auth != null && ($uid === auth.uid || root.child('admins').child(auth.uid).exists())"
@@ -30,7 +29,7 @@
     "cpf-index": {
       ".read": "auth != null",
       "$cpf": {
-        ".write": "auth != null && ((newData != null && newData.val() === auth.uid && (!data.exists() || !root.child('users').child(data.val()).exists())) || (newData == null && data.val() === auth.uid) || root.child('admins').child(auth.uid).exists())"
+        ".write": "auth != null && ((newData.exists() && newData.val() === auth.uid && (!data.exists() || !root.child('users').child(data.val()).exists())) || (!newData.exists() && data.val() === auth.uid) || root.child('admins').child(auth.uid).exists())"
       }
     },
     "app-config": {
