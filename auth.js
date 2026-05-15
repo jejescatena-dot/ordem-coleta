@@ -23,6 +23,7 @@
  *   PortalAuth.ICONS          → { admin: '⚙️', ... }
  *   PortalAuth.PAGES          → matriz de permissões
  */
+
 const PortalAuth = (function () {
   'use strict';
 
@@ -175,18 +176,31 @@ const PortalAuth = (function () {
     _injectOverlay();
     _applyTheme();
 
-    // Aguarda resultado do redirect ANTES de escutar mudanças de auth
+    console.log('[PortalAuth] Iniciando sequência de autenticação...');
+
+    // AGUARDA getRedirectResult() ANTES de registrar onAuthStateChanged
     _auth.getRedirectResult()
       .then(result => {
-        // Se houver resultado, significa que voltamos de um redirect
-        console.log('[PortalAuth] Redirect result processado');
+        if (result && result.user) {
+          console.log('[PortalAuth] ✓ Resultado do redirect processado. Usuário:', result.user.email);
+        } else {
+          console.log('[PortalAuth] ✓ getRedirectResult() completou (nenhum resultado de redirect pendente)');
+        }
       })
       .catch(e => {
-        console.error('[PortalAuth] Erro ao processar redirect:', e);
+        // Isso pode ser normal se não houve um redirect pendente
+        if (e.code === 'auth/no-auth-event') {
+          console.log('[PortalAuth] ✓ Nenhum evento de autenticação pendente (normal)');
+        } else {
+          console.error('[PortalAuth] ✗ Erro ao processar resultado do redirect:', e.code, e.message);
+        }
       })
       .finally(() => {
-        // Agora configura o listener de estado
-        _auth.onAuthStateChanged(_onAuthChange);
+        console.log('[PortalAuth] Registrando listener de mudanças de autenticação...');
+        _auth.onAuthStateChanged(user => {
+          console.log('[PortalAuth] onAuthStateChanged disparado. Usuário:', user ? user.email : 'null');
+          _onAuthChange(user);
+        });
       });
   }
 
@@ -335,26 +349,33 @@ const PortalAuth = (function () {
   // ── FLUXO DE AUTENTICAÇÃO ─────────────────────────────────────────────────
   async function _onAuthChange(user) {
     if (!user) {
+      console.log('[PortalAuth] onAuthChange: Sem usuário (logout ou sessão expirada)');
       _user = null; _grupo = null;
       _showState('login');
       return;
     }
+
+    console.log('[PortalAuth] onAuthChange: Processando usuário:', user.email, 'UID:', user.uid);
     _user = user;
     _showState('loading');
 
     try {
       // 1. É admin pelo nó admins/?
+      console.log('[PortalAuth] Verificando se é admin...');
       const adminSnap = await _db.ref('admins/' + user.uid).once('value');
       if (adminSnap.exists()) {
+        console.log('[PortalAuth] ✓ Encontrado em admins/');
         _grupo = 'admin';
         _bootstrapUser();
         return;
       }
 
       // 2. Sistema novo: nó users/
+      console.log('[PortalAuth] Verificando nó users/...');
       const userSnap = await _db.ref('users/' + user.uid).once('value');
       if (userSnap.exists()) {
         const data = userSnap.val();
+        console.log('[PortalAuth] ✓ Encontrado em users/. Status:', data.status, 'Grupo:', data.grupo);
         if (data.status === 'approved') {
           let gr = data.grupo;
           // Retrocompat: grupo legado 'financeiro' → 'financeiro-sede'
@@ -367,16 +388,19 @@ const PortalAuth = (function () {
           _bootstrapUser();
           return;
         }
-        if (data.status === 'denied')   { _showState('denied');   return; }
-        if (data.status === 'inactive') { _showState('inactive'); return; }
+        if (data.status === 'denied')   { console.log('[PortalAuth] Status: denied'); _showState('denied');   return; }
+        if (data.status === 'inactive') { console.log('[PortalAuth] Status: inactive'); _showState('inactive'); return; }
         // status === 'pending'
+        console.log('[PortalAuth] Status: pending');
         _showState('pending');
         return;
       }
 
       // 3. Legado: vendedores aprovados → migrar automaticamente
+      console.log('[PortalAuth] Verificando vendedores legado...');
       const vendSnap = await _db.ref('vendedores/' + user.uid).once('value');
       if (vendSnap.exists()) {
+        console.log('[PortalAuth] ✓ Encontrado em vendedores/. Migrando...');
         const v = vendSnap.val();
         await _db.ref('users/' + user.uid).set({
           email:        user.email,
@@ -389,6 +413,7 @@ const PortalAuth = (function () {
           approvedBy:   v.approvedBy || 'system-migration',
           migratedAt:   new Date().toISOString(),
         });
+        console.log('[PortalAuth] ✓ Migração de vendedor concluída');
         _grupo = 'vendedor';
         if (!_hasAccess()) { _showState('denied'); return; }
         _bootstrapUser();
@@ -396,8 +421,10 @@ const PortalAuth = (function () {
       }
 
       // 4. Legado: vendedoresPendentes → migrar
+      console.log('[PortalAuth] Verificando vendedoresPendentes legado...');
       const pendLegSnap = await _db.ref('vendedoresPendentes/' + user.uid).once('value');
       if (pendLegSnap.exists()) {
+        console.log('[PortalAuth] ✓ Encontrado em vendedoresPendentes/. Migrando...');
         const p = pendLegSnap.val();
         await _db.ref('users/' + user.uid).set({
           email:        user.email,
@@ -408,15 +435,17 @@ const PortalAuth = (function () {
           requestedGrupo: 'vendedor',
           requestedAt:  p.requestedAt || new Date().toISOString(),
         });
+        console.log('[PortalAuth] ✓ Migração de pendente concluída');
         _showState('pending');
         return;
       }
 
       // 5. Usuário totalmente novo → seletor de grupo
+      console.log('[PortalAuth] Usuário totalmente novo. Mostrando seletor de grupo.');
       _showState('group-select');
 
     } catch (err) {
-      console.error('[PortalAuth]', err);
+      console.error('[PortalAuth] ERRO durante processamento de autenticação:', err);
       _showState('denied');
     }
   }
