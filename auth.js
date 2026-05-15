@@ -176,6 +176,11 @@ const PortalAuth = (function () {
     _injectOverlay();
     _applyTheme();
 
+    // Recupera resultado do redirect (signInWithRedirect)
+    _auth.getRedirectResult().catch(e => {
+      console.error('[PortalAuth] Erro ao processar redirect:', e);
+    });
+
     _auth.onAuthStateChanged(_onAuthChange);
   }
 
