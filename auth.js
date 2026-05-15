@@ -1076,7 +1076,7 @@ const PortalAuth = (function () {
     login() {
       const p = new firebase.auth.GoogleAuthProvider();
       p.setCustomParameters({ prompt: 'select_account' });
-      _auth.signInWithPopup(p).catch(e => alert('Erro ao fazer login: ' + e.message));
+      _auth.signInWithRedirect(p).catch(e => alert('Erro ao fazer login: ' + e.message));
     },
 
     logout() {
