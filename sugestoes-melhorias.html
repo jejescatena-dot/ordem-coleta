@@ -741,4 +741,40 @@
           reader.onload = (e) => {
             let gallery = JSON.parse(localStorage.getItem('gallery') || '[]');
             gallery.push({
-     
+              id: Date.now() + i,
+              name: file.name,
+              src: e.target.result,
+              timestamp: timestamp
+            });
+            localStorage.setItem('gallery', JSON.stringify(gallery));
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // Mostrar mensagem de sucesso
+      document.getElementById('successMsg').classList.add('show');
+      setTimeout(() => {
+        document.getElementById('successMsg').classList.remove('show');
+      }, 6000);
+
+      // Reset do formulário
+      document.getElementById('feedbackForm').reset();
+      uploadedFiles = [];
+      updateFileChips();
+
+      // Restaurar botão
+      btn.disabled = false;
+      btn.textContent = '✓ Enviar Sugestão';
+
+    }).catch((error) => {
+      console.error('Erro EmailJS:', error);
+      alert('Erro ao enviar. Verifique sua conexão e tente novamente.');
+      btn.disabled = false;
+      btn.textContent = '✓ Enviar Sugestão';
+    });
+  });
+
+</script>
+</body>
+</html>
