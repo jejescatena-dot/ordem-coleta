@@ -14,11 +14,6 @@
  *   PortalAuth.getDb()        → Firebase database instance
  *   PortalAuth.getAuth()      → Firebase auth instance
  *   PortalAuth.getStorage()   → Firebase storage instance
- *   PortalAuth.getLojas()     → objeto com todas as lojas { codigo: {...} }
- *   PortalAuth.addLoja(codigo, nome, dados)    → cria nova loja (admin only)
- *   PortalAuth.updateLoja(codigo, dados)       → atualiza loja (admin only)
- *   PortalAuth.deleteLoja(codigo)              → soft-delete loja (admin only)
- *   PortalAuth.getLojasPorEstado(estado)       → filtra lojas por estado
  *   PortalAuth.LABELS         → { admin: 'Administrador', ... }
  *   PortalAuth.ICONS          → { admin: '⚙️', ... }
  *   PortalAuth.PAGES          → matriz de permissões
@@ -159,7 +154,6 @@ const PortalAuth = (function () {
   let _notifRef    = null;
   let _pendingRef  = null;
   let _selectedGrp = null;
-  let _lojas       = null; // Cache de lojas carregadas do Firebase
   const OVERLAY_ID = 'portal-auth-root';
 
   // ── INIT ──────────────────────────────────────────────────────────────────
@@ -177,148 +171,6 @@ const PortalAuth = (function () {
     _applyTheme();
 
     _auth.onAuthStateChanged(_onAuthChange);
-  }
-
-  // ── CARREGAMENTO DE LOJAS ──────────────────────────────────────────────────
-  async function _loadLojas() {
-    try {
-      const snap = await _db.ref('lojas').once('value');
-      if (snap.exists()) {
-        _lojas = snap.val();
-        // Verifica se há lojas que precisam ser migradas (sem cidade/estado)
-        const needsMigration = Object.values(_lojas).some(loja => !loja.cidade && !loja.estado);
-        if (needsMigration && _user && _grupo === 'admin') {
-          console.log('[PortalAuth] Detectadas lojas que precisam migração. Aguarde...');
-          await _migrateLojas();
-          // Recarrega as lojas após migração
-          const snap2 = await _db.ref('lojas').once('value');
-          _lojas = snap2.val();
-        }
-      } else {
-        // Se não existem lojas no Firebase, inicializa com LOJAS_PA
-        await _initLojas();
-        const snap2 = await _db.ref('lojas').once('value');
-        _lojas = snap2.val();
-        // Se ainda assim não conseguiu, usa fallback estruturado
-        if (!_lojas) {
-          const estruturadas = {};
-          Object.entries(LOJAS_PA).forEach(([codigo, nome]) => {
-            const parsed = _parseLojaInfo(codigo, nome);
-            estruturadas[codigo] = {
-              codigo: parseInt(codigo),
-              nome: parsed.nome,
-              cidade: parsed.cidade,
-              estado: parsed.estado,
-              endereco: parsed.endereco,
-              ativo: true
-            };
-          });
-          _lojas = estruturadas;
-        }
-      }
-    } catch(e) {
-      console.warn('[PortalAuth] Falha ao carregar lojas do Firebase, usando fallback:', e);
-      // Transforma LOJAS_PA (strings) em formato estruturado (objetos com cidade/estado/endereco)
-      const estruturadas = {};
-      Object.entries(LOJAS_PA).forEach(([codigo, nome]) => {
-        const parsed = _parseLojaInfo(codigo, nome);
-        estruturadas[codigo] = {
-          codigo: parseInt(codigo),
-          nome: parsed.nome,
-          cidade: parsed.cidade,
-          estado: parsed.estado,
-          endereco: parsed.endereco,
-          ativo: true
-        };
-      });
-      _lojas = estruturadas;
-    }
-  }
-
-  // Inicializa lojas no Firebase com dados de LOJAS_PA (apenas na primeira vez)
-  async function _initLojas() {
-    try {
-      const lojas = {};
-      Object.entries(LOJAS_PA).forEach(([codigo, nome]) => {
-        const parsed = _parseLojaInfo(codigo, nome);
-        lojas[codigo] = {
-          codigo: parseInt(codigo),
-          nome: parsed.nome,
-          cidade: parsed.cidade,
-          estado: parsed.estado,
-          endereco: parsed.endereco,
-          ativo: true,
-          criadoEm: new Date().toISOString()
-        };
-      });
-      await _db.ref('lojas').set(lojas);
-      console.log('[PortalAuth] Lojas inicializadas no Firebase');
-    } catch(e) {
-      console.error('[PortalAuth] Erro ao inicializar lojas:', e);
-    }
-  }
-
-  // Parse de informações de loja: "Max Debret (Foz do Iguaçu/PR)" → {nome, cidade, estado, endereco}
-  function _parseLojaInfo(codigo, fullName) {
-    // Formato: "Max Debret (Foz do Iguaçu/PR)" → cidade: Foz do Iguaçu, estado: PR
-    const match = fullName.match(/^(.+?)\s*\((.+?)\)$/);
-    if (!match) {
-      return {
-        nome: fullName,
-        cidade: '',
-        estado: '',
-        endereco: { rua: '', numero: '', complemento: '', bairro: '', cep: '', referencia: '' }
-      };
-    }
-    const nome = match[1].trim();
-    const localPart = match[2].trim(); // "Foz do Iguaçu/PR"
-    const [cidade, estado] = localPart.split('/').map(s => s.trim());
-    return {
-      nome,
-      cidade: cidade || '',
-      estado: estado || '',
-      endereco: { rua: '', numero: '', complemento: '', bairro: '', cep: '', referencia: '' }
-    };
-  }
-
-  // Migração: corrige lojas existentes com formato antigo
-  async function _migrateLojas() {
-    if (!_user || _grupo !== 'admin') {
-      console.error('[PortalAuth] Apenas admin pode migrar lojas');
-      return;
-    }
-    try {
-      const snap = await _db.ref('lojas').once('value');
-      if (!snap.exists()) {
-        console.log('[PortalAuth] Nenhuma loja para migrar');
-        return;
-      }
-      const lojas = snap.val();
-      const updates = {};
-      Object.entries(lojas).forEach(([codigo, loja]) => {
-        // Se a loja já tem cidade/estado, pula
-        if (loja.cidade || loja.estado) {
-          console.log(`[PortalAuth] Loja ${codigo} já migrada`);
-          return;
-        }
-        // Caso contrário, faz parse do nome
-        const parsed = _parseLojaInfo(codigo, loja.nome);
-        updates[`lojas/${codigo}`] = {
-          ...loja,
-          nome: parsed.nome,
-          cidade: parsed.cidade,
-          estado: parsed.estado
-        };
-      });
-      if (Object.keys(updates).length > 0) {
-        await _db.ref().update(updates);
-        console.log(`[PortalAuth] ${Object.keys(updates).length} lojas migradas com sucesso`);
-      } else {
-        console.log('[PortalAuth] Todas as lojas já estão migradas');
-      }
-    } catch(e) {
-      console.error('[PortalAuth] Erro ao migrar lojas:', e);
-    }
   }
 
   // ── FLUXO DE AUTENTICAÇÃO ─────────────────────────────────────────────────
@@ -471,9 +323,6 @@ const PortalAuth = (function () {
 
     // Injeta bell de notificações para admins (em todas as páginas)
     if (_grupo === 'admin') _setupAdminNotif();
-
-    // Carrega lojas do Firebase
-    await _loadLojas().catch(e => console.error('[PortalAuth] Erro ao carregar lojas:', e));
 
     if (_onReady) _onReady(_user, _grupo);
   }
@@ -985,31 +834,21 @@ const PortalAuth = (function () {
     _buildStoreDrop('');
     try {
       const last = localStorage.getItem('pa-lastloja');
-      if (last && _lojas && _lojas[+last]) _selectLoja(+last);
+      if (last && LOJAS_PA[+last]) _selectLoja(+last);
     } catch(e) {}
   }
 
   function _buildStoreDrop(q) {
     const drop = document.getElementById('pa-store-drop');
-    if (!drop || !_lojas) return;
-
-    // Converte para array [codigo, {nome, ...}] e filtra apenas lojas ativas
-    const list = Object.entries(_lojas)
-      .filter(([_, loja]) => loja.ativo !== false) // Filtra soft-deleted
-      .sort((a, b) => +a[0] - +b[0]);
-
+    if (!drop) return;
+    const list = Object.entries(LOJAS_PA).sort((a, b) => +a[0] - +b[0]);
     const filtered = q
-      ? list.filter(([c, loja]) =>
-          String(c).includes(q) ||
-          (loja.nome && loja.nome.toLowerCase().includes(q.toLowerCase()))
-        )
+      ? list.filter(([c, nm]) => String(c).includes(q) || nm.toLowerCase().includes(q.toLowerCase()))
       : list;
-
     const shown = filtered.slice(0, 25);
-    drop.innerHTML = shown.map(([c, loja]) => {
-      const nome = typeof loja === 'string' ? loja : loja.nome;
-      return `<div class="pa-store-opt" onmousedown="PortalAuth._selectLoja(${c})">${c} — ${nome}</div>`;
-    }).join('') + (filtered.length > 25
+    drop.innerHTML = shown.map(([c, nm]) =>
+      `<div class="pa-store-opt" onmousedown="PortalAuth._selectLoja(${c})">${c} — ${nm}</div>`
+    ).join('') + (filtered.length > 25
       ? `<div class="pa-store-opt pa-store-more">+${filtered.length - 25} lojas…</div>`
       : '');
   }
@@ -1036,10 +875,8 @@ const PortalAuth = (function () {
   }
 
   function _selectLoja(cod) {
-    if (!_lojas) return;
-    const loja = _lojas[+cod];
-    if (!loja) return;
-    const nm = typeof loja === 'string' ? loja : loja.nome;
+    const nm = LOJAS_PA[+cod];
+    if (!nm) return;
     const search = document.getElementById('pa-loja-search');
     const hid    = document.getElementById('pa-loja');
     if (search) search.value = cod + ' — ' + nm;
@@ -1076,7 +913,7 @@ const PortalAuth = (function () {
     login() {
       const p = new firebase.auth.GoogleAuthProvider();
       p.setCustomParameters({ prompt: 'select_account' });
-      _auth.signInWithRedirect(p).catch(e => alert('Erro ao fazer login: ' + e.message));
+      _auth.signInWithPopup(p).catch(e => alert('Erro ao fazer login: ' + e.message));
     },
 
     logout() {
@@ -1090,93 +927,6 @@ const PortalAuth = (function () {
     getDb:       () => _db,
     getAuth:     () => _auth,
     getStorage:  () => _storage,
-    getLojas:    () => _lojas || LOJAS_PA, // Retorna lojas carregadas ou fallback
-
-    // ── GESTÃO DE LOJAS ────────────────────────────────────────────────────
-    async addLoja(codigo, nome, dados = {}) {
-      if (!_user || _grupo !== 'admin') throw new Error('Apenas admin pode adicionar lojas');
-      if (!_db) throw new Error('Database não inicializado');
-
-      const loja = {
-        codigo: parseInt(codigo),
-        nome: nome,
-        ativo: true,
-        criadoEm: new Date().toISOString(),
-        criadoPor: _user.uid,
-        ...dados
-      };
-
-      await _db.ref('lojas/' + codigo).set(loja);
-      _lojas = _lojas || {};
-      _lojas[codigo] = loja;
-      return loja;
-    },
-
-    async updateLoja(codigo, dados) {
-      if (!_user || _grupo !== 'admin') throw new Error('Apenas admin pode atualizar lojas');
-      if (!_db) throw new Error('Database não inicializado');
-
-      const atualizado = {
-        ...dados,
-        atualizadoEm: new Date().toISOString(),
-        atualizadoPor: _user.uid
-      };
-
-      await _db.ref('lojas/' + codigo).update(atualizado);
-      if (_lojas && _lojas[codigo]) {
-        _lojas[codigo] = { ..._lojas[codigo], ...atualizado };
-      }
-      return _lojas[codigo];
-    },
-
-    async deleteLoja(codigo) {
-      if (!_user || _grupo !== 'admin') throw new Error('Apenas admin pode deletar lojas');
-      if (!_db) throw new Error('Database não inicializado');
-
-      // Soft delete: marca como inativo em vez de deletar
-      await _db.ref('lojas/' + codigo).update({
-        ativo: false,
-        deletadoEm: new Date().toISOString(),
-        deletadoPor: _user.uid
-      });
-
-      if (_lojas && _lojas[codigo]) {
-        _lojas[codigo].ativo = false;
-      }
-    },
-
-    async getLojasPorEstado(estado) {
-      if (!_lojas) return [];
-      return Object.values(_lojas).filter(
-        loja => loja.estado === estado && loja.ativo !== false
-      );
-    },
-
-    // Retorna endereço formatado de uma loja
-    getEnderecoFormatado(codigo) {
-      if (!_lojas || !_lojas[codigo]) return null;
-      const loja = _lojas[codigo];
-      const endereco = loja.endereco || {};
-      const partes = [
-        endereco.rua,
-        endereco.numero,
-        endereco.complemento,
-        endereco.bairro,
-        endereco.cep
-      ].filter(Boolean);
-      return partes.length > 0 ? partes.join(', ') : null;
-    },
-
-    // Retorna objeto completo de endereço de uma loja
-    getEndereco(codigo) {
-      if (!_lojas || !_lojas[codigo]) return null;
-      const loja = _lojas[codigo];
-      return loja.endereco || {};
-    },
-
-    async migrateLojas() {
-      return _migrateLojas();
-    },
 
     async getAppConfig() {
       if (!_db) return {};
