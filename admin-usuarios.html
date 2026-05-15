@@ -353,8 +353,12 @@
 
   <!-- TAB: LOJAS CADASTRADAS -->
   <div id="tab-lojas" style="display:none;">
-    <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
       <button class="btn" onclick="abrirModalLoja('nova')">➕ Nova Loja</button>
+      <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-2); cursor:pointer; margin-left:auto;">
+        <input type="checkbox" id="toggle-inativas" onchange="renderLojas()" style="accent-color:var(--cyan);">
+        Mostrar lojas inativas
+      </label>
     </div>
     <div class="table-wrap">
       <table>
@@ -745,10 +749,20 @@
   function renderGrupos() {
     const container = document.getElementById('grupos-grid');
     const grupos    = ['admin','financeiro-sede','financeiro-loja','vendedor','prevencao'];
-    const adminsUID = []; // Admins vêm de allUsers com grupo=admin OU do nó admins/
 
     container.innerHTML = grupos.map(g => {
-      const membros = Object.values(allUsers).filter(u => u.status === 'approved' && u.grupo === g);
+      let membros;
+      if (g === 'admin') {
+        // Admins ficam no nó admins/, não em users/. Inclui o usuário atual + eventuais registros em users/ com grupo=admin
+        const adminAtual = PortalAuth.getUser();
+        const adminsEmUsers = Object.values(allUsers).filter(u => u.status === 'approved' && u.grupo === 'admin');
+        membros = [...adminsEmUsers];
+        if (adminAtual && !membros.find(u => u.uid === adminAtual.uid)) {
+          membros.push({ uid: adminAtual.uid, name: adminAtual.displayName, email: adminAtual.email, photo: adminAtual.photoURL });
+        }
+      } else {
+        membros = Object.values(allUsers).filter(u => u.status === 'approved' && u.grupo === g);
+      }
       return `
         <div class="grupo-card">
           <div class="grupo-card-header">
@@ -873,21 +887,13 @@
       const admin = PortalAuth.getUser();
       const u     = pendentes[pendingUID] || allUsers[pendingUID] || {};
 
-      // Escreve no novo sistema (preserva dados de cadastro)
-      await db.ref('users/' + pendingUID).set({
-        email:          u.email || '',
-        name:           u.name || u.displayName || u.email || '',
-        photo:          u.photo || u.photoURL || '',
-        grupo:          grupoSelecionadoModal,
-        status:         'approved',
-        requestedGrupo: u.requestedGrupo || grupoSelecionadoModal,
-        requestedAt:    u.requestedAt || now,
-        approvedAt:     now,
-        approvedBy:     admin ? admin.uid : 'admin',
-        cpf:            u.cpf      || null,
-        cracha:         u.cracha   || null,
-        loja:           u.loja     || null,
-        telefone:       u.telefone || null,
+      // Atualiza apenas os campos de aprovação, preservando todos os dados existentes
+      await db.ref('users/' + pendingUID).update({
+        grupo:      grupoSelecionadoModal,
+        status:     'approved',
+        approvedAt: now,
+        approvedBy: admin ? admin.uid : 'admin',
+        reactivation: null,
       });
 
       // Backward compat: mantém nó vendedores se for vendedor
@@ -1069,7 +1075,7 @@
   async function toggleApp(appId, enabled) {
     const app = APP_CONFIG_LIST.find(a => a.id === appId);
     try {
-      await db.ref('app-config/' + appId).set({ enabled: enabled });
+      await db.ref('app-config/' + appId).update({ enabled: enabled });
       showToast(
         (enabled ? '✅ ' : '🔧 ') + (app ? app.name : appId) + (enabled ? ' ativado' : ' colocado em manutenção'),
         enabled ? 'success' : 'info'
@@ -1148,9 +1154,9 @@
     const tbody = document.getElementById('tbody-lojas');
     if (!tbody) return;
 
-    const lojas = Object.entries(allLojas)
-      .filter(([_, loja]) => loja.ativo !== false)
-      .sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+    const mostrarInativas = document.getElementById('toggle-inativas')?.checked;
+    const todasLojas = Object.entries(allLojas).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+    const lojas = mostrarInativas ? todasLojas : todasLojas.filter(([_, loja]) => loja.ativo !== false);
 
     if (lojas.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Nenhuma loja cadastrada</td></tr>';
@@ -1158,25 +1164,40 @@
     }
 
     tbody.innerHTML = lojas.map(([cod, loja]) => {
-      const endereco = loja.endereco || {};
-      const enderecoStr = [endereco.rua, endereco.numero, endereco.complemento, endereco.bairro]
-        .filter(Boolean).join(', ') || '—';
+      const ativa = loja.ativo !== false;
       return `
-        <tr>
+        <tr style="${ativa ? '' : 'opacity:0.55;'}">
           <td style="font-weight:600;">${cod}</td>
           <td>${esc(loja.nome || '')}</td>
           <td>${esc(loja.cidade || '—')}</td>
           <td>${esc(loja.estado || '—')}</td>
-          <td><span class="badge badge-approved">✓ Ativa</span></td>
+          <td>${ativa
+            ? '<span class="badge badge-approved">✓ Ativa</span>'
+            : '<span class="badge badge-denied">⏸ Inativa</span>'}</td>
           <td style="font-size:12px; color:var(--text-3);">${formatarData(loja.criadoEm)}</td>
           <td style="display:flex; gap:6px; flex-wrap:wrap;">
-            <button class="btn btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="abrirDetalhesEndereco(${cod})">📍 Endereço</button>
-            <button class="btn btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="abrirModalLoja('editar', ${cod})">✏️ Editar</button>
-            <button class="btn btn-danger" style="padding:4px 10px; font-size:11px;" onclick="desativarLoja(${cod})">🗑️ Desativar</button>
+            ${ativa ? `
+              <button class="btn btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="abrirDetalhesEndereco(${cod})">📍 Endereço</button>
+              <button class="btn btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="abrirModalLoja('editar', ${cod})">✏️ Editar</button>
+              <button class="btn btn-danger" style="padding:4px 10px; font-size:11px;" onclick="desativarLoja(${cod})">🗑️ Desativar</button>
+            ` : `
+              <button class="btn btn-success" style="padding:4px 10px; font-size:11px;" onclick="reativarLoja(${cod})">🔄 Reativar</button>
+            `}
           </td>
         </tr>
       `;
     }).join('');
+  }
+
+  async function reativarLoja(codigo) {
+    if (!confirm(`Reativar loja ${codigo}?`)) return;
+    try {
+      await PortalAuth.updateLoja(codigo, { ativo: true });
+      showToast('Loja reativada com sucesso', 'success');
+      renderLojas();
+    } catch (err) {
+      showToast('Erro ao reativar loja: ' + err.message, 'error');
+    }
   }
 
   function abrirModalLoja(modo, codigo = null) {
