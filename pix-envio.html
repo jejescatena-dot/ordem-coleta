@@ -900,6 +900,9 @@
         /DADOS\s+DE\s+ORIGEM\s+Nome\s+([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇÑ0-9][A-Za-záéíóúàâêîôûãõçñ0-9\s,\.\-&]{4,100}?)(?=\s*CNPJ)/i,
         // Stone alternativo (sem "DADOS DE ORIGEM" no início, mas com "Origem" + "Nome")
         /Origem\s+Nome\s+([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇÑ0-9][A-Za-záéíóúàâêîôûãõçñ0-9\s,\.\-&]{4,100}?)(?=\s*CNPJ)/i,
+        // Sicoob e bancos com seção "Pagador\nNome\nNOME_EMPRESA\nCPF/CNPJ"
+        // (o label "Nome" aparece entre "Pagador" e o nome real — deve ser ignorado)
+        /(?:Pagador|Remetente)\s+Nome\s+([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇÑ0-9][A-Za-záéíóúàâêîôûãõçñ0-9\s,\.\-&]{4,80}?)(?=\s*(?:CPF|CNPJ))/i,
         // XP: "Enviado de MEGA DISTRIBUICAO LTDA" (antes de CPF/CNPJ ou **)
         /Enviado\s+de\s+([A-ZÁÉÍÓÚÀÂÊÎÔÛÃÕÇÑ][A-Za-záéíóúàâêîôûãõçñ\s&\.]{4,60}?)(?=\s*(?:CPF|CNPJ|Inst|Banco|\*\*|$))/i,
         // BTG: "De MEGA DISTRIBUICAO LTDA M CNP:" (para antes de M CN ou CNP ou CNPJ)
