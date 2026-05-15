@@ -243,9 +243,9 @@
     <div class="table-container">
       <table>
         <thead>
-          <tr><th>Vendedor</th><th>Data PIX</th><th>Valor</th><th>Cliente</th><th>Comprovante</th><th>Status</th><th>Ação</th></tr>
+          <tr><th>Vendedor</th><th>Data PIX</th><th>Valor</th><th>Cliente</th><th>Comprovante</th><th>ID Banco</th><th>Status</th><th>Ação</th></tr>
         </thead>
-        <tbody id="filaTable"><tr><td colspan="7" class="empty-state">Aguardando dados...</td></tr></tbody>
+        <tbody id="filaTable"><tr><td colspan="8" class="empty-state">Aguardando dados...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -408,10 +408,35 @@
     `).join('');
   }
 
+  function renderIdBancoCell(p) {
+    const sid = escapeHTML(p.id);
+    if (p.idBanco) {
+      const short = p.idBanco.length > 18 ? p.idBanco.slice(0, 18) + '…' : p.idBanco;
+      return `<div style="display:flex;align-items:center;gap:4px;">
+        <span style="font-size:11px;font-family:monospace;color:var(--green);" title="${escapeHTML(p.idBanco)}">&#10003; ${escapeHTML(short)}</span>
+        <button onclick="abrirAudit('${sid}')" title="Editar no painel de auditoria" style="background:none;border:none;cursor:pointer;color:var(--text-3);font-size:11px;padding:0 2px;">&#9998;</button>
+      </div>`;
+    }
+    return `<input type="text" placeholder="Colar ID do banco..."
+      style="font-size:11px;width:150px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;font-family:monospace;"
+      onblur="if(this.value.trim()) salvarIdBanco('${sid}', this.value.trim())"
+      onkeydown="if(event.key==='Enter') this.blur()">`;
+  }
+
+  async function salvarIdBanco(pixId, valor) {
+    if (!valor || !firebaseConnected) return;
+    try {
+      await db.ref(`pix-envios/${pixId}`).update({
+        idBanco: valor,
+        idBancoSetAt: new Date().toISOString()
+      });
+    } catch(err) { alert('Erro ao salvar ID Banco: ' + err.message); }
+  }
+
   function renderFila() {
     const tbody = document.getElementById('filaTable');
     if (pixes.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Nenhum PIX recebido</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Nenhum PIX recebido</td></tr>';
       return;
     }
     tbody.innerHTML = pixes.map(p => `
@@ -421,6 +446,7 @@
         <td><strong>R$ ${formatarReal(p.amount)}</strong></td>
         <td>${escapeHTML(p.clienteName || '')}<br><span style="font-size:11px; color:var(--text-3);">${escapeHTML(formatarDoc(p.receiver, p.documentType))}</span></td>
         <td>${((p.proofFiles&&p.proofFiles.length>0)||p.proofBase64) ? `<button class="btn" style="font-size:11px;" onclick="abrirAudit('${escapeHTML(p.id)}')">&#128269; Ver</button>` : '—'}</td>
+        <td>${renderIdBancoCell(p)}</td>
         <td><span class="badge ${escapeHTML(p.status)}">${escapeHTML(statusLabel(p.status))}</span></td>
         <td>${getActionButton(p)}</td>
       </tr>
@@ -681,14 +707,24 @@
     const dia = new Date(p.datetime).toDateString();
     const currentValor = p.amount || 0;
 
-    // IDs de transação deste lançamento
+    // ID bancário oficial deste lançamento (fonte: financeiro, direto do banco)
+    const currentIdBanco = (p.idBanco || '').trim();
+
+    // IDs de transação OCR/manual deste lançamento
     const currentIds = (p.pixEntries || [])
       .map(e => (e.idValidacao||'').trim())
       .filter(id => id.length > 0);
 
-    // Sinal 1: mesmo ID de transação (duplicata certa)
+    // Sinal 0: mesmo ID bancário (duplicata absoluta — confirmada pelo banco)
+    const dupPorIdBanco = currentIdBanco ? pixes.filter(x => {
+      if (x.id === p.id) return false;
+      return (x.idBanco || '').trim() === currentIdBanco;
+    }) : [];
+
+    // Sinal 1: mesmo ID de transação OCR (duplicata detectada, não confirmada pelo banco)
     const dupPorId = pixes.filter(x => {
       if (x.id === p.id) return false;
+      if (dupPorIdBanco.some(d => d.id === x.id)) return false;
       if (currentIds.length === 0) return false;
       const otherIds = (x.pixEntries || []).map(e => (e.idValidacao||'').trim()).filter(id => id.length > 0);
       return currentIds.some(id => otherIds.includes(id));
@@ -696,7 +732,8 @@
 
     // Sinal 2: mesmo emitente + mesmo valor + mesma data (duplicata provável)
     const dupPorValorDia = pixes.filter(x => {
-      if (x.id === p.id || dupPorId.some(d => d.id === x.id)) return false;
+      if (x.id === p.id) return false;
+      if (dupPorIdBanco.some(d => d.id === x.id) || dupPorId.some(d => d.id === x.id)) return false;
       const xEm = (x.clienteName||'').toLowerCase();
       const xDia = new Date(x.datetime).toDateString();
       return xEm === emitente && xDia === dia && Math.abs((x.amount||0) - currentValor) < 0.01;
@@ -705,19 +742,22 @@
     // Sinal 3: mesmo emitente + mesma data (atenção)
     const dupPorDia = pixes.filter(x => {
       if (x.id === p.id) return false;
-      if (dupPorId.some(d => d.id === x.id) || dupPorValorDia.some(d => d.id === x.id)) return false;
+      if (dupPorIdBanco.some(d => d.id === x.id) || dupPorId.some(d => d.id === x.id) || dupPorValorDia.some(d => d.id === x.id)) return false;
       const xEm = (x.clienteName||'').toLowerCase();
       const xDia = new Date(x.datetime).toDateString();
       return xEm === emitente && xDia === dia;
     });
 
-    const duplicatas = [...dupPorId, ...dupPorValorDia, ...dupPorDia];
+    const duplicatas = [...dupPorIdBanco, ...dupPorId, ...dupPorValorDia, ...dupPorDia];
 
     let leftCol = '';
 
-    if (dupPorId.length > 0) {
+    if (dupPorIdBanco.length > 0) {
+      leftCol += `<div class="duplicate-warn" style="border-color:var(--red); background:rgba(227,30,36,0.18); color:var(--red);">
+        &#128721; <strong>DUPLICATA CONFIRMADA PELO BANCO:</strong> ${dupPorIdBanco.length} lançamento(s) com o mesmo ID bancário! Bloqueie antes de conciliar.</div>`;
+    } else if (dupPorId.length > 0) {
       leftCol += `<div class="duplicate-warn" style="border-color:var(--red); background:rgba(227,30,36,0.12); color:var(--red);">
-        &#128721; <strong>DUPLICATA CONFIRMADA:</strong> ${dupPorId.length} lançamento(s) com o mesmo ID de transação detectado!</div>`;
+        &#9940; <strong>DUPLICATA DETECTADA (OCR):</strong> ${dupPorId.length} lançamento(s) com o mesmo ID de transação. Confirme o ID bancário para validar.</div>`;
     } else if (dupPorValorDia.length > 0) {
       leftCol += `<div class="duplicate-warn">&#9888; <strong>Possível duplicata:</strong> ${dupPorValorDia.length} lançamento(s) do mesmo emitente, valor idêntico e mesma data.</div>`;
     } else if (dupPorDia.length > 0) {
@@ -756,7 +796,23 @@
       </div>
     </div>`;
 
-    let rightCol = `<div class="audit-section">
+    const idBancoColor = p.idBanco ? 'var(--green)' : 'var(--border)';
+    const idBancoBg    = p.idBanco ? 'rgba(34,197,94,0.06)' : 'var(--surface)';
+    let rightCol = `<div class="audit-section" style="border:2px solid ${idBancoColor}; background:${idBancoBg}; border-radius:12px; padding:16px; margin-bottom:16px;">
+      <h3 style="margin-bottom:8px;">&#127974; ID Bancário <span style="font-size:11px; font-weight:400; color:var(--text-3);">(financeiro — fonte oficial)</span></h3>
+      <div style="font-size:12px; color:var(--text-3); margin-bottom:10px;">Cole o ID da transação obtido diretamente no site do banco. Este é o campo definitivo para detecção de duplicatas.</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="text" id="auditIdBanco" value="${escapeHTML(p.idBanco||'')}"
+          placeholder="E... (PIX) ou UUID (TED)"
+          style="flex:1; font-family:monospace; font-size:12px; background:var(--bg2); border:1px solid ${idBancoColor}; color:var(--text); border-radius:8px; padding:8px 12px;">
+        <button class="btn" onclick="salvarIdBancoAudit()" style="${p.idBanco ? 'background:var(--green); color:#fff;' : ''}">
+          ${p.idBanco ? '&#10003; Atualizar' : '&#128190; Salvar ID'}
+        </button>
+      </div>
+      ${p.idBancoSetAt ? `<div style="font-size:11px; color:var(--text-3); margin-top:6px;">Registrado em ${new Date(p.idBancoSetAt).toLocaleString('pt-BR')}</div>` : ''}
+    </div>`;
+
+    rightCol += `<div class="audit-section">
       <h3>&#128179; PIX Enviados (${entries.length}) — <span style="color:var(--green);">Total: R$ ${formatarReal(entries.reduce((s,e)=>s+(e.valor||0),0))}</span></h3>`;
     entries.forEach((entry, i) => {
       let dtValue = '';
@@ -885,6 +941,27 @@
       auditEdits = {};
       alert('Alterações salvas com sucesso!');
     } catch(err) { alert('Erro ao salvar: ' + err.message); }
+  }
+
+  async function salvarIdBancoAudit() {
+    if (!auditPixId || !firebaseConnected) { alert('Sem conexão ou sessão inválida.'); return; }
+    const input = document.getElementById('auditIdBanco');
+    if (!input) return;
+    const valor = input.value.trim();
+    if (!valor) { alert('Digite o ID bancário antes de salvar.'); return; }
+    try {
+      await db.ref(`pix-envios/${auditPixId}`).update({
+        idBanco: valor,
+        idBancoSetAt: new Date().toISOString()
+      });
+      const p = pixes.find(x => x.id === auditPixId);
+      if (p) {
+        p.idBanco = valor;
+        p.idBancoSetAt = new Date().toISOString();
+        renderAuditBody(p);
+        renderAuditFooter(p);
+      }
+    } catch(err) { alert('Erro ao salvar ID Banco: ' + err.message); }
   }
 
   async function updatePixStatusAudit(pixId, newStatus) {
