@@ -171,7 +171,20 @@ const PortalAuth = (function () {
     _injectOverlay();
     _applyTheme();
 
-    _auth.onAuthStateChanged(_onAuthChange);
+    // Processa resultado de redirect do Google Sign-In
+    _auth.getRedirectResult()
+      .then(result => {
+        if (result && result.user) {
+          _onAuthChange(result.user);
+        }
+      })
+      .catch(error => {
+        console.warn('[PortalAuth] Erro ao processar redirect:', error);
+      })
+      .finally(() => {
+        // Registra listener contínuo para mudanças futuras de autenticação
+        _auth.onAuthStateChanged(_onAuthChange);
+      });
   }
 
   // ── CARREGAMENTO DE LOJAS ──────────────────────────────────────────────────
