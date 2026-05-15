@@ -334,6 +334,7 @@
   // ── AUTH via auth.js ──
   function logout() {
     if (pixListener) { pixListener.off(); pixListener = null; }
+    if (db) db.ref('.info/connected').off();
     PortalAuth.logout();
   }
 

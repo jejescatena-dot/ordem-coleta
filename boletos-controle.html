@@ -114,6 +114,8 @@
   .alert { padding: 16px; border-radius: 10px; margin-bottom: 16px; font-size: 13px; }
   .alert.info { background: var(--cyan-soft); color: var(--cyan); border: 1px solid rgba(8,145,178,0.2); }
   .alert.success { background: var(--green-soft); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+  .alert.warning { background: rgba(245,158,11,0.1); color: #d97706; border: 1px solid rgba(245,158,11,0.25); }
+  .alert.error { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
 
   .empty-state { text-align: center; padding: 48px 24px; color: var(--text-3); }
   .restricted { padding: 24px; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; color: var(--text-2); }
@@ -183,7 +185,7 @@
     <div class="user-pill">
       <img id="userAvatar" src="" alt="">
       <span id="userName"></span>
-      <button onclick="logout()" title="Sair">Sair</button>
+      <button onclick="PortalAuth.logout()" title="Sair">Sair</button>
     </div>
     <div class="nav-badge"><span id="userRole">Carregando...</span></div>
     <div class="theme-toggle" role="group" aria-label="Alternar tema">
@@ -427,32 +429,6 @@ const LOJAS = {
   '1141': 'Max Campinas'
 };
 
-// ── TEMA ──
-const themeLight = document.getElementById('themeLight');
-const themeDark = document.getElementById('themeDark');
-const html = document.documentElement;
-
-function setTheme(theme) {
-  html.setAttribute('data-theme', theme);
-  localStorage.setItem('theme', theme);
-  updateThemeButtons(theme);
-}
-
-function updateThemeButtons(theme) {
-  if (theme === 'light') {
-    themeLight.classList.add('active');
-    themeDark.classList.remove('active');
-  } else {
-    themeDark.classList.add('active');
-    themeLight.classList.remove('active');
-  }
-}
-
-themeLight.addEventListener('click', () => setTheme('light'));
-themeDark.addEventListener('click', () => setTheme('dark'));
-
-const savedTheme = localStorage.getItem('theme') || 'dark';
-setTheme(savedTheme);
 
 // ── AUTH via PortalAuth ──
 window.addEventListener('DOMContentLoaded', function() {
