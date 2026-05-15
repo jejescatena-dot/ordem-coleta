@@ -742,23 +742,56 @@
       else if (/\bPix\b|\bPIX\b/i.test(t)) dados.tipo = 'PIX';
 
       // ── ID DA TRANSAÇÃO ──
-      // 1) E-code PIX (Banco XP e outros): E + 30 a 45 chars alfanuméricos
-      //    Exemplo: E332646682026050619312649f044c60
-      const mE = t.match(/\bE[0-9A-Za-z]{30,45}\b/);
-      if (mE) { dados.id = mE[0]; dados.idTipo = 'PIX-Ecode'; }
+      // Texto sem espaços: resolve E-codes que o OCR dividiu em grupos ou quebrou em linhas
+      const tSemEsp = rawText.replace(/\s+/g, '');
 
-      // 2) UUID com label explícito (prioridade — evita pegar código de autenticação)
-      //    BTG: "Identificador da transação ff29a4b1-..." ou "ID da transação ff29a4b1-..."
+      // 1) E-code PIX padrão SPB: E + 32-33 chars alfanuméricos
+      //    Busca primeiro no texto sem espaços (captura E-codes que o OCR fragmentou)
+      //    Aceita 'e' minúsculo (erro frequente do Tesseract em fontes pequenas)
+      const mESemEsp = tSemEsp.match(/[Ee][0-9A-Za-z]{30,45}/);
+      if (mESemEsp) {
+        dados.id = mESemEsp[0].replace(/^e/, 'E');
+        dados.idTipo = 'PIX-Ecode';
+      }
+
+      // 1b) Fallback E-code no texto normalizado (quando não há fragmentação)
       if (!dados.id) {
-        const mUUIDLabel = t.match(/(?:Identificador|ID)\s+da\s+transa[cç][aã]o\s*[:\-]?\s*([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/i);
+        const mE = t.match(/(?<![A-Za-z])[Ee][0-9A-Za-z]{30,45}(?![A-Za-z0-9])/);
+        if (mE) { dados.id = mE[0].replace(/^e/, 'E'); dados.idTipo = 'PIX-Ecode'; }
+      }
+
+      // 2) UUID com label explícito — cobre mais variações de label por banco
+      //    BTG: "Identificador da transação ff29a4b1-..."
+      //    Outros: "Código da transação", "ID da transação", "Cód. transação"
+      if (!dados.id) {
+        const mUUIDLabel = t.match(/(?:Identificador|ID|C[oó]d(?:igo)?\.?)\s+da\s+transa[cç][aã]o\s*[:\-]?\s*([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/i);
         if (mUUIDLabel) { dados.id = mUUIDLabel[1]; dados.idTipo = 'UUID-TED'; }
       }
 
-      // 3) UUID sem label — pega o ÚLTIMO (BTG coloca autenticação antes do ID da transação)
+      // 3) IDs numéricos de TED — padrões específicos por banco
+      if (!dados.id) {
+        const tedPatterns = [
+          // Bradesco: "Autenticação 123456789012" ou "N° Autenticação: XXXXXXXXXX"
+          [/(?:autenti[cç][aã]o|n[°º]\s*autenti[cç][aã]o)\s*[:\-]?\s*([0-9]{8,20})/i, 'TED-Bradesco'],
+          // Itaú: "Código de autorização XXXXXXXX" / "Cód. autorização XXXXXXXX"
+          [/(?:c[oó]d(?:igo)?\.?\s*(?:de\s*)?autoriza[cç][aã]o)\s*[:\-]?\s*([0-9A-Za-z]{8,20})/i, 'TED-Itau'],
+          // Santander: "Cód. Transação XXXXXXXXX"
+          [/c[oó]d(?:igo)?\.?\s*transa[cç][aã]o\s*[:\-]?\s*([0-9A-Za-z]{6,20})/i, 'TED-Santander'],
+          // BB / Caixa: "Número da operação XXXXXXXX" / "N° da operação"
+          [/(?:n[uú]mero|n[°º])\s+da\s+opera[cç][aã]o\s*[:\-]?\s*([0-9]{6,20})/i, 'TED-BB'],
+          // Genérico: "ID da transferência" / "Número da transferência"
+          [/(?:ID|n[uú]mero)\s+da\s+transfer[eê]ncia\s*[:\-]?\s*([0-9A-Za-z]{6,20})/i, 'TED-gen'],
+        ];
+        for (const [pat, tipo] of tedPatterns) {
+          const m = t.match(pat);
+          if (m && m[1] && m[1].length >= 6) { dados.id = m[1]; dados.idTipo = tipo; break; }
+        }
+      }
+
+      // 4) UUID sem label — pega o ÚLTIMO (BTG coloca autenticação antes do ID da transação)
       if (!dados.id) {
         const todosUUIDs = [...t.matchAll(/\b([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\b/g)];
         if (todosUUIDs.length > 0) {
-          // Ignora UUIDs próximos a palavras como "autenticação" / "autenticacao"
           const uuidsFiltrados = todosUUIDs.filter(m => {
             const pos = m.index;
             const contexto = t.slice(Math.max(0, pos - 60), pos).toLowerCase();
@@ -769,9 +802,9 @@
         }
       }
 
-      // 4) Fallback: qualquer coisa após "Identificador" ou "ID da transação" (E-code sem "E" ou outro)
+      // 5) Fallback: token longo após qualquer label de ID de transação
       if (!dados.id) {
-        const mLabel = t.match(/(?:Identificador|ID)\s+da\s+transa[cç][aã]o\s+([A-Za-z0-9\-]{10,})/i);
+        const mLabel = t.match(/(?:Identificador|ID|C[oó]d(?:igo)?)\s+da\s+transa[cç][aã]o\s+([A-Za-z0-9\-]{10,})/i);
         if (mLabel) { dados.id = mLabel[1]; dados.idTipo = 'label'; }
       }
 
