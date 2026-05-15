@@ -412,25 +412,10 @@ let boletosData = [
 let currentFilter = 'todos';
 let filteredData = [...boletosData];
 
-// ---- AUTH (gerenciado por auth.js) ----
-window.addEventListener('load', () => {
-  const user = JSON.parse(localStorage.getItem('user'));
-  if (user) {
-    showApp();
-    loadBoletos();
-  }
+// ---- AUTH via PortalAuth ----
+PortalAuth.init('boletos-assinatura.html', function(user, grupo) {
+  loadBoletos();
 });
-
-function showApp() {
-  document.getElementById('authOverlay').style.display = 'none';
-  document.getElementById('appNav').style.display = 'flex';
-  document.getElementById('appHeader').style.display = 'block';
-  document.getElementById('appContent').style.display = 'block';
-
-  const user = JSON.parse(localStorage.getItem('user'));
-  document.getElementById('userName').textContent = user.name || 'Usuário';
-  document.getElementById('userAvatar').src = user.avatar || '';
-}
 
 function loadBoletos() {
   renderTable();

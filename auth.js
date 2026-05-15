@@ -40,6 +40,7 @@ const PortalAuth = (function () {
     'pix-envio.html':           ['admin', 'vendedor', 'financeiro-sede'],
     'pix-gerenciamento.html':   ['admin', 'financeiro-sede', 'financeiro-loja'],
     'boletos-controle.html':    ['admin', 'vendedor', 'financeiro-sede', 'financeiro-loja'],
+    'boletos-assinatura.html':  ['admin', 'financeiro-sede'],
     'conciliacao-pix.html':     ['admin', 'financeiro-sede'],
     'cadastro-com-prazo.html':  ['admin', 'financeiro-sede', 'vendedor'],
     'ordem-de-coleta.html':     ['admin', 'vendedor', 'prevencao'],
