@@ -154,6 +154,7 @@ const PortalAuth = (function () {
   let _notifRef    = null;
   let _pendingRef  = null;
   let _selectedGrp = null;
+  let _lojas       = null; // Cache de lojas carregadas do Firebase
   const OVERLAY_ID = 'portal-auth-root';
 
   // ── INIT ──────────────────────────────────────────────────────────────────
@@ -173,6 +174,138 @@ const PortalAuth = (function () {
     _auth.onAuthStateChanged(_onAuthChange);
   }
 
+  // ── CARREGAMENTO DE LOJAS ──────────────────────────────────────────────────
+  async function _loadLojas() {
+    try {
+      const snap = await _db.ref('lojas').once('value');
+      if (snap.exists()) {
+        _lojas = snap.val();
+        // Verifica se há lojas que precisam ser migradas (sem cidade/estado)
+        const needsMigration = Object.values(_lojas).some(loja => !loja.cidade && !loja.estado);
+        if (needsMigration && _user && _grupo === 'admin') {
+          console.log('[PortalAuth] Detectadas lojas que precisam migração. Aguarde...');
+          await _migrateLojas();
+          // Recarrega as lojas após migração
+          const snap2 = await _db.ref('lojas').once('value');
+          _lojas = snap2.val();
+        }
+      } else {
+        // Se não existem lojas no Firebase, inicializa com LOJAS_PA
+        await _initLojas();
+        const snap2 = await _db.ref('lojas').once('value');
+        _lojas = snap2.val();
+        // Se ainda assim não conseguiu, usa fallback estruturado
+        if (!_lojas) {
+          const estruturadas = {};
+          Object.entries(LOJAS_PA).forEach(([codigo, nome]) => {
+            const parsed = _parseLojaInfo(codigo, nome);
+            estruturadas[codigo] = {
+              codigo: parseInt(codigo),
+              nome: parsed.nome,
+              cidade: parsed.cidade,
+              estado: parsed.estado,
+              endereco: parsed.endereco,
+              ativo: true
+            };
+          });
+          _lojas = estruturadas;
+        }
+      }
+    } catch(e) {
+      console.warn('[PortalAuth] Falha ao carregar lojas do Firebase, usando fallback:', e);
+      // Transforma LOJAS_PA (strings) em formato estruturado (objetos com cidade/estado/endereco)
+      const estruturadas = {};
+      Object.entries(LOJAS_PA).forEach(([codigo, nome]) => {
+        const parsed = _parseLojaInfo(codigo, nome);
+        estruturadas[codigo] = {
+          codigo: parseInt(codigo),
+          nome: parsed.nome,
+          cidade: parsed.cidade,
+          estado: parsed.estado,
+          endereco: parsed.endereco,
+          ativo: true
+        };
+      });
+      _lojas = estruturadas;
+    }
+  }
+
+  // Inicializa lojas no Firebase com dados de LOJAS_PA (apenas na primeira vez)
+  async function _initLojas() {
+    try {
+      const lojas = {};
+      Object.entries(LOJAS_PA).forEach(([codigo, nome]) => {
+        const parsed = _parseLojaInfo(codigo, nome);
+        lojas[codigo] = {
+          codigo: parseInt(codigo),
+          nome: parsed.nome,
+          cidade: parsed.cidade,
+          estado: parsed.estado,
+          endereco: parsed.endereco,
+          ativo: true,
+          criadoEm: new Date().toISOString()
+        };
+      });
+      await _db.ref('lojas').set(lojas);
+      console.log('[PortalAuth] Lojas inicializadas no Firebase');
+    } catch(e) {
+      console.error('[PortalAuth] Erro ao inicializar lojas:', e);
+    }
+  }
+
+  // Parse de informações de loja: "Max Debret (Foz do Iguaçu/PR)" → {nome, cidade, estado, endereco}
+  function _parseLojaInfo(codigo, fullName) {
+    // Formato: "Max Debret (Foz do Iguaçu/PR)" → cidade: Foz do Iguaçu, estado: PR
+    const match = fullName.match(/^(.+?)\s*\((.+?)\)$/);
+    if (!match) {
+      return {
+        nome: fullName,
+        cidade: '',
+        estado: '',
+        endereco: { rua: '', numero: '', complemento: '', bairro: '', cep: '', referencia: '' }
+      };
+    }
+    const nome = match[1].trim();
+    const localPart = match[2].trim(); // "Foz do Iguaçu/PR"
+    const [cidade, estado] = localPart.split('/').map(s => s.trim());
+    return {
+      nome,
+      cidade: cidade || '',
+      estado: estado || '',
+      endereco: { rua: '', numero: '', complemento: '', bairro: '', cep: '', referencia: '' }
+    };
+  }
+
+  // Migração: corrige lojas existentes com formato antigo
+  async function _migrateLojas() {
+    if (!_user || _grupo !== 'admin') {
+      console.error('[PortalAuth] Apenas admin pode migrar lojas');
+      return;
+    }
+    try {
+      const snap = await _db.ref('lojas').once('value');
+      if (!snap.exists()) {
+        console.log('[PortalAuth] Nenhuma loja para migrar');
+        return;
+      }
+      const lojas = snap.val();
+      const updates = {};
+      for (const [codigo, loja] of Object.entries(lojas)) {
+        if (!loja.cidade || !loja.estado) {
+          const fullName = loja.nome;
+          const parsed = _parseLojaInfo(codigo, fullName);
+          updates['lojas/' + codigo] = { ...loja, ...parsed };
+        }
+      }
+      if (Object.keys(updates).length > 0) {
+        await _db.ref().update(updates);
+        console.log('[PortalAuth] Migração de lojas concluída:', Object.keys(updates).length, 'lojas atualizadas');
+      }
+    } catch(e) {
+      console.error('[PortalAuth] Erro durante migração de lojas:', e);
+    }
+  }
+
   // ── FLUXO DE AUTENTICAÇÃO ─────────────────────────────────────────────────
   async function _onAuthChange(user) {
     if (!user) {
@@ -188,6 +321,7 @@ const PortalAuth = (function () {
       const adminSnap = await _db.ref('admins/' + user.uid).once('value');
       if (adminSnap.exists()) {
         _grupo = 'admin';
+        await _loadLojas();
         _bootstrapUser();
         return;
       }
@@ -205,6 +339,7 @@ const PortalAuth = (function () {
           }
           _grupo = gr;
           if (!_hasAccess()) { _showState('denied'); return; }
+          await _loadLojas();
           _bootstrapUser();
           return;
         }
@@ -232,6 +367,7 @@ const PortalAuth = (function () {
         });
         _grupo = 'vendedor';
         if (!_hasAccess()) { _showState('denied'); return; }
+        await _loadLojas();
         _bootstrapUser();
         return;
       }
@@ -913,7 +1049,7 @@ const PortalAuth = (function () {
     login() {
       const p = new firebase.auth.GoogleAuthProvider();
       p.setCustomParameters({ prompt: 'select_account' });
-      _auth.signInWithPopup(p).catch(e => alert('Erro ao fazer login: ' + e.message));
+      _auth.signInWithRedirect(p).catch(e => alert('Erro ao fazer login: ' + e.message));
     },
 
     logout() {
